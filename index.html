@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RFID Reader" />
+  <meta name="description" content="Receive and display scan results from Yanzeo R12 UHF RFID / barcode Bluetooth scanner" />
+  <title>RFID Reader</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Hidden input that captures HID keyboard input from the scanner -->
+  <input id="scanner-input" autocomplete="off" autocorrect="off" autocapitalize="off"
+         spellcheck="false" inputmode="none" aria-hidden="true" tabindex="-1" />
+
+  <div id="app">
+
+    <!-- Header -->
+    <header>
+      <div class="header-left">
+        <h1>RFID Reader</h1>
+        <p class="subtitle">Yanzeo R12 &middot; UHF BT Scanner</p>
+      </div>
+      <span id="status-badge" class="badge badge-idle">Ready</span>
+    </header>
+
+    <!-- Setup instructions banner (shown until first scan) -->
+    <div id="setup-banner" class="setup-banner">
+      <div class="setup-icon">📡</div>
+      <div class="setup-text">
+        <strong>How to connect</strong>
+        <ol>
+          <li>On your R12, enable Bluetooth &amp; set output to <em>HID / Keyboard</em> mode.</li>
+          <li>Pair the scanner with this device via system Bluetooth settings.</li>
+          <li>Tap the button below so this page stays focused, then scan a tag.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Tap-to-focus button -->
+    <div id="focus-section">
+      <button id="focus-btn" class="focus-btn">
+        <span id="focus-icon">⌨️</span>
+        <span id="focus-label">Tap to start scanning</span>
+      </button>
+      <p id="focus-hint" class="focus-hint">Keep this app in focus while scanning</p>
+    </div>
+
+    <!-- Results panel -->
+    <section class="results-panel">
+      <div class="results-header">
+        <h2>
+          Scan Results
+          <span id="result-count" class="result-count">(0)</span>
+        </h2>
+        <div class="results-actions">
+          <button id="export-btn" class="action-btn" style="display:none" title="Export CSV">
+            &#8595; CSV
+          </button>
+          <button id="clear-btn" class="action-btn danger" style="display:none">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div id="empty-state" class="empty-state">
+        <span class="empty-icon">📭</span>
+        <p>No scans yet.<br>Pair your scanner and tap the button above.</p>
+      </div>
+
+      <ul id="results-list" class="results-list"></ul>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
