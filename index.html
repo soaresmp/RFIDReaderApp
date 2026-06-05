@@ -6,78 +6,442 @@
   <meta name="theme-color" content="#1e293b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="RFID Reader" />
-  <meta name="description" content="Receive and display scan results from Yanzeo R12 UHF RFID / barcode Bluetooth scanner" />
-  <title>RFID Reader</title>
+  <meta name="apple-mobile-web-app-title" content="LPG Tracer" />
+  <meta name="description" content="LPG Cylinder Tracking System — RFID-based cylinder lifecycle management" />
+  <title>LPG Tracer</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- Hidden input that captures HID keyboard input from the scanner -->
+  <!-- Hidden HID scanner capture input (always in DOM) -->
   <input id="scanner-input" autocomplete="off" autocorrect="off" autocapitalize="off"
          spellcheck="false" inputmode="none" aria-hidden="true" tabindex="-1" />
 
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- LOGIN OVERLAY                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="login-overlay" class="login-overlay" aria-modal="true" role="dialog" aria-label="Login">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-logo">⛽</div>
+        <h1 class="login-title">LPG Tracer</h1>
+        <p class="login-subtitle">Select your role to continue</p>
+      </div>
+
+      <!-- Role cards -->
+      <div class="role-cards" id="role-cards">
+
+        <div class="role-card" data-role="lpgmc" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏭</div>
+          <div class="role-card-body">
+            <div class="role-card-title">LPGMC</div>
+            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="government" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏛️</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Government</div>
+            <div class="role-card-desc">Regulatory Agency<br>Inspect · License · Oversee</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="revalidation" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🔧</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Revalidation</div>
+            <div class="role-card-desc">Revalidation Company<br>Receive Damaged · Refurbish · Re-tag</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+      </div>
+
+      <!-- Inline login sub-form (hidden until role selected) -->
+      <div id="login-form-wrapper" class="login-form-wrapper" hidden>
+        <div class="login-form-header">
+          <button id="login-back-btn" class="login-back-btn" type="button">‹ Back</button>
+          <span id="login-form-role-label" class="login-form-role-label"></span>
+        </div>
+        <form id="login-form" class="login-form" novalidate>
+          <div class="form-group">
+            <label for="login-company">Company</label>
+            <!-- Populated dynamically -->
+            <select id="login-company-select" class="form-control" style="display:none"></select>
+            <input id="login-company-text" type="text" class="form-control" placeholder="Company name" style="display:none" />
+          </div>
+          <div class="form-group">
+            <label for="login-operator">Operator ID</label>
+            <input id="login-operator" type="text" class="form-control" placeholder="e.g. OP-001" autocomplete="username" />
+          </div>
+          <button type="submit" class="btn btn-primary login-enter-btn">Enter App →</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MAIN APP                                                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="app">
 
     <!-- Header -->
-    <header>
+    <header id="app-header">
       <div class="header-left">
-        <h1>RFID Reader</h1>
-        <p class="subtitle">Yanzeo R12 &middot; UHF BT Scanner</p>
+        <span class="header-logo">⛽</span>
+        <div>
+          <h1>LPG Tracer</h1>
+          <p class="subtitle" id="header-subtitle">Ready</p>
+        </div>
       </div>
-      <span id="status-badge" class="badge badge-idle">Ready</span>
+      <div class="header-right">
+        <span id="header-role-badge" class="header-role-badge" hidden></span>
+        <span id="header-operator-pill" class="header-operator-pill" hidden></span>
+        <span id="status-badge" class="badge badge-idle">Idle</span>
+        <button id="logout-btn" class="logout-btn" hidden type="button" title="Log out">← Exit</button>
+      </div>
     </header>
 
-    <!-- Setup instructions banner (shown until first scan) -->
-    <div id="setup-banner" class="setup-banner">
-      <div class="setup-icon">📡</div>
-      <div class="setup-text">
-        <strong>How to connect</strong>
-        <ol>
-          <li>On your R12, enable Bluetooth &amp; set output to <em>HID / Keyboard</em> mode.</li>
-          <li>Pair the scanner with this device via system Bluetooth settings.</li>
-          <li>Tap the button below so this page stays focused, then scan a tag.</li>
-        </ol>
+    <!-- Nav tabs -->
+    <nav id="app-nav" class="app-nav">
+      <button class="nav-tab active" data-view="scan">Scan</button>
+      <button class="nav-tab" data-view="cylinders">Cylinders</button>
+      <button class="nav-tab" data-view="alerts" id="nav-alerts">Alerts</button>
+      <button class="nav-tab" data-view="reports">Reports</button>
+      <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
+    </nav>
+
+    <!-- ── SCAN VIEW ─────────────────────────────────────────────────── -->
+    <div id="view-scan" class="view active">
+
+      <!-- Event type selector -->
+      <div class="scan-event-bar" id="scan-event-bar">
+        <!-- pills injected by JS per role -->
       </div>
-    </div>
 
-    <!-- Tap-to-focus button -->
-    <div id="focus-section">
-      <button id="focus-btn" class="focus-btn">
-        <span id="focus-icon">⌨️</span>
-        <span id="focus-label">Tap to start scanning</span>
-      </button>
-      <p id="focus-hint" class="focus-hint">Keep this app in focus while scanning</p>
-    </div>
+      <!-- Batch mode toggle -->
+      <div class="scan-options-bar">
+        <label class="toggle-label">
+          <input type="checkbox" id="batch-mode-toggle" />
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Batch mode</span>
+        </label>
+        <label class="toggle-label" id="gps-label">
+          <input type="checkbox" id="gps-toggle" />
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">GPS tag</span>
+        </label>
+        <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">
+          🔄 Re-tag
+        </button>
+      </div>
 
-    <!-- Results panel -->
-    <section class="results-panel">
-      <div class="results-header">
-        <h2>
-          Scan Results
-          <span id="result-count" class="result-count">(0)</span>
-        </h2>
-        <div class="results-actions">
-          <button id="export-btn" class="action-btn" style="display:none" title="Export CSV">
-            &#8595; CSV
-          </button>
-          <button id="clear-btn" class="action-btn danger" style="display:none">
-            Clear
-          </button>
+      <!-- Focus / scanning button -->
+      <div id="focus-section" class="focus-section">
+        <button id="focus-btn" class="focus-btn" type="button">
+          <span id="focus-icon">📡</span>
+          <span id="focus-label">Tap to start scanning</span>
+        </button>
+        <p class="focus-hint">Keep this app in focus while scanning</p>
+      </div>
+
+      <!-- Last scan result card -->
+      <div id="last-scan-card" class="last-scan-card" hidden>
+        <div class="last-scan-header">
+          <span class="last-scan-label">Last Scan</span>
+          <span id="last-scan-time" class="last-scan-time"></span>
+        </div>
+        <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
+        <div id="last-scan-result" class="last-scan-result"></div>
+      </div>
+
+      <!-- Batch queue -->
+      <div id="batch-queue-section" class="batch-queue-section" hidden>
+        <div class="section-header">
+          <span>Batch Queue (<span id="batch-count">0</span>)</span>
+          <div class="section-actions">
+            <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button">Commit All</button>
+            <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button">Clear</button>
+          </div>
+        </div>
+        <ul id="batch-list" class="compact-list"></ul>
+      </div>
+
+      <!-- Recent scan events -->
+      <div class="section-header" style="margin:12px 16px 0">
+        <span>Recent Events</span>
+        <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+      </div>
+      <ul id="events-list" class="scan-events-list"></ul>
+      <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
+
+    </div><!-- /view-scan -->
+
+    <!-- ── CYLINDERS VIEW ────────────────────────────────────────────── -->
+    <div id="view-cylinders" class="view">
+
+      <div class="view-toolbar">
+        <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
+        <div class="filter-row">
+          <select id="cyl-filter-status" class="filter-select">
+            <option value="">All statuses</option>
+            <option value="available">Available</option>
+            <option value="in-use">In Use</option>
+            <option value="condemned">Condemned</option>
+            <option value="revalidation">Revalidation</option>
+          </select>
+          <select id="cyl-filter-company" class="filter-select" id="cyl-filter-company">
+            <option value="">All companies</option>
+            <option value="Vivo LPG">Vivo LPG</option>
+            <option value="Total Energies">Total Energies</option>
+            <option value="Shell Gas">Shell Gas</option>
+          </select>
         </div>
       </div>
 
-      <div id="empty-state" class="empty-state">
-        <span class="empty-icon">📭</span>
-        <p>No scans yet.<br>Pair your scanner and tap the button above.</p>
+      <div id="cyl-stats" class="cyl-stats-row"></div>
+
+      <ul id="cylinders-list" class="cylinders-list"></ul>
+      <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+
+    </div><!-- /view-cylinders -->
+
+    <!-- ── ALERTS VIEW ────────────────────────────────────────────────── -->
+    <div id="view-alerts" class="view">
+      <div class="view-toolbar">
+        <select id="alert-filter-severity" class="filter-select">
+          <option value="">All severities</option>
+          <option value="critical">Critical</option>
+          <option value="warning">Warning</option>
+          <option value="info">Info</option>
+        </select>
+        <select id="alert-filter-type" class="filter-select">
+          <option value="">All types</option>
+          <option value="overdue-hydrotest">Overdue Hydrotest</option>
+          <option value="near-capacity">Near Capacity</option>
+          <option value="exceeded-capacity">Exceeded Capacity</option>
+          <option value="condemned">Condemned</option>
+        </select>
       </div>
+      <div id="alert-summary" class="alert-summary-row"></div>
+      <ul id="alerts-list" class="alerts-list"></ul>
+      <p id="alerts-empty" class="list-empty">No alerts.</p>
+    </div><!-- /view-alerts -->
 
-      <ul id="results-list" class="results-list"></ul>
-    </section>
+    <!-- ── REPORTS VIEW ───────────────────────────────────────────────── -->
+    <div id="view-reports" class="view">
+      <div class="reports-grid" id="reports-grid"></div>
+      <div class="section-header" style="margin: 16px 16px 8px">
+        <span>Activity — Last 30 Days</span>
+        <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+      </div>
+      <div id="report-chart" class="report-chart"></div>
+      <div class="section-header" style="margin: 16px 16px 8px">
+        <span>Sync Status</span>
+        <button id="sync-btn" class="btn btn-sm btn-blue" type="button">↑ Sync Now</button>
+      </div>
+      <div id="sync-status-card" class="sync-status-card">
+        <span id="sync-status-text">Not synced yet.</span>
+        <span id="sync-indicator" class="sync-indicator"></span>
+      </div>
+    </div><!-- /view-reports -->
 
+    <!-- ── LICENSES VIEW (Government only) ───────────────────────────── -->
+    <div id="view-licenses" class="view" style="display:none">
+      <div class="view-toolbar">
+        <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
+        <div class="filter-row">
+          <select id="lic-filter-type" class="filter-select">
+            <option value="">All types</option>
+            <option value="LPGMC">LPGMC</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Retailer">Retailer</option>
+            <option value="Revalidation">Revalidation</option>
+          </select>
+          <select id="lic-filter-status" class="filter-select">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+        <button id="issue-license-btn" class="btn btn-primary btn-sm" type="button">+ Issue License</button>
+      </div>
+      <ul id="licenses-list" class="licenses-list"></ul>
+      <p id="licenses-empty" class="list-empty">No licenses found.</p>
+    </div><!-- /view-licenses -->
+
+  </div><!-- /app -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODALS                                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Register cylinder modal -->
+  <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Register Cylinder</h2>
+        <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>RFID Tag</label>
+          <input id="reg-tag" type="text" class="form-control font-mono" readonly />
+        </div>
+        <div class="form-group">
+          <label>Serial Number</label>
+          <input id="reg-serial" type="text" class="form-control" placeholder="e.g. LPG-2026-013" />
+        </div>
+        <div class="form-group">
+          <label>Manufacture Date</label>
+          <input id="reg-manufacture-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Tare Weight (kg)</label>
+          <input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Capacity (kg)</label>
+          <input id="reg-capacity" type="number" class="form-control" value="12" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Max Fills</label>
+          <input id="reg-max-fills" type="number" class="form-control" value="500" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Last Hydro Test Date</label>
+          <input id="reg-hydrotest" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-register" type="button">Cancel</button>
+        <button id="reg-submit-btn" class="btn btn-primary" type="button">Register</button>
+      </div>
+    </div>
   </div>
+
+  <!-- Cylinder passport / detail modal -->
+  <div id="modal-passport" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Cylinder Passport">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Cylinder Passport</h2>
+        <button class="modal-close" data-close="modal-passport" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="passport-body">
+        <!-- Injected by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-passport" type="button">Close</button>
+        <button id="passport-export-btn" class="btn btn-blue" type="button">↓ Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Re-tag modal -->
+  <div id="modal-retag" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Re-tag Cylinder">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Re-tag Cylinder</h2>
+        <button class="modal-close" data-close="modal-retag" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Step 1 -->
+        <div id="retag-step1" class="retag-step">
+          <div class="retag-step-num">Step 1 of 2</div>
+          <p class="retag-step-desc">Scan the <strong>old (damaged) RFID tag</strong> on the cylinder to be re-tagged.</p>
+          <div class="form-group">
+            <label>Old RFID Tag</label>
+            <input id="retag-old-input" type="text" class="form-control font-mono"
+                   placeholder="Scan or type old tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div id="retag-old-error" class="form-error" hidden></div>
+          <div id="retag-old-info" class="retag-cylinder-info" hidden>
+            <!-- Cylinder info shown after valid scan -->
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div id="retag-step2" class="retag-step" hidden>
+          <div class="retag-step-num">Step 2 of 2</div>
+          <p class="retag-step-desc">Scan the <strong>new RFID tag</strong> to assign to the refurbished cylinder.</p>
+          <div id="retag-old-summary" class="retag-old-summary"></div>
+          <div class="form-group">
+            <label>New RFID Tag</label>
+            <input id="retag-new-input" type="text" class="form-control font-mono"
+                   placeholder="Scan or type new tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div id="retag-new-error" class="form-error" hidden></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-retag" type="button">Cancel</button>
+        <button id="retag-step1-next" class="btn btn-primary" type="button">Confirm Old Tag →</button>
+        <button id="retag-step2-submit" class="btn btn-primary" type="button" hidden>Complete Re-tag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Issue License modal -->
+  <div id="modal-issue-license" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Issue License">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Issue New License</h2>
+        <button class="modal-close" data-close="modal-issue-license" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input id="lic-company-name" type="text" class="form-control" placeholder="e.g. Sunrise Gas Ltd" />
+        </div>
+        <div class="form-group">
+          <label>Company Type</label>
+          <select id="lic-company-type" class="form-control">
+            <option value="LPGMC">LPGMC</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Retailer">Retailer</option>
+            <option value="Revalidation">Revalidation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>License Number</label>
+          <input id="lic-number" type="text" class="form-control font-mono" placeholder="e.g. LPGMC-2026-008" />
+        </div>
+        <div class="form-group">
+          <label>Issued Date</label>
+          <input id="lic-issued-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input id="lic-expiry-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="lic-status" class="form-control">
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-issue-license" type="button">Cancel</button>
+        <button id="lic-submit-btn" class="btn btn-primary" type="button">Issue License</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Snackbar -->
+  <div id="snackbar" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
 </body>
