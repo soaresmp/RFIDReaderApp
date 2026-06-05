@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LPG Tracer" />
-  <meta name="description" content="LPG cylinder chain-of-custody traceability with RFID scanning" />
+  <meta name="description" content="LPG Cylinder Tracking System — RFID-based cylinder lifecycle management" />
   <title>LPG Tracer</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -15,183 +15,325 @@
 </head>
 <body>
 
+  <!-- Hidden HID scanner capture input (always in DOM) -->
   <input id="scanner-input" autocomplete="off" autocorrect="off" autocapitalize="off"
          spellcheck="false" inputmode="none" aria-hidden="true" tabindex="-1" />
 
-  <div id="app">
-
-    <header>
-      <div class="header-left">
-        <h1>LPG Tracer</h1>
-        <p class="subtitle">Chain-of-custody &middot; RFID</p>
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" class="login-overlay" aria-modal="true" role="dialog" aria-label="Login">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-logo">⛽</div>
+        <h1 class="login-title">LPG Tracer</h1>
+        <p class="login-subtitle">Select your role to continue</p>
       </div>
-      <div class="header-pills">
-        <button id="operator-pill" class="pill pill-operator" title="Set operator ID">
-          <span id="operator-pill-icon">👤</span>
-          <span id="operator-pill-label">Set Operator</span>
-        </button>
-        <button id="gps-pill" class="pill pill-gps" title="Enable GPS location">
-          <span id="gps-pill-icon">📍</span>
-          <span id="gps-pill-label">GPS Off</span>
-        </button>
-        <span id="unsynced-badge" class="unsynced-badge" style="display:none">0</span>
+
+      <div class="role-cards" id="role-cards">
+        <div class="role-card" data-role="lpgmc" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏭</div>
+          <div class="role-card-body">
+            <div class="role-card-title">LPGMC</div>
+            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="government" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏛️</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Government</div>
+            <div class="role-card-desc">Regulatory Agency<br>Inspect · License · Oversee</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="revalidation" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🔧</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Revalidation</div>
+            <div class="role-card-desc">Revalidation Company<br>Receive Damaged · Refurbish · Re-tag</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+      </div>
+
+      <div id="login-form-wrapper" class="login-form-wrapper" hidden>
+        <div class="login-form-header">
+          <button id="login-back-btn" class="login-back-btn" type="button">‹ Back</button>
+          <span id="login-form-role-label" class="login-form-role-label"></span>
+        </div>
+        <form id="login-form" class="login-form" novalidate>
+          <div class="form-group">
+            <label for="login-company">Company</label>
+            <select id="login-company-select" class="form-control" style="display:none"></select>
+            <input id="login-company-text" type="text" class="form-control" placeholder="Company name" style="display:none" />
+          </div>
+          <div class="form-group">
+            <label for="login-operator">Operator ID</label>
+            <input id="login-operator" type="text" class="form-control" placeholder="e.g. OP-001" autocomplete="username" />
+          </div>
+          <button type="submit" class="btn btn-primary login-enter-btn">Enter App →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app">
+    <header id="app-header">
+      <div class="header-left">
+        <span class="header-logo">⛽</span>
+        <div>
+          <h1>LPG Tracer</h1>
+          <p class="subtitle" id="header-subtitle">Ready</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="header-role-badge" class="header-role-badge" hidden></span>
+        <span id="header-operator-pill" class="header-operator-pill" hidden></span>
+        <span id="status-badge" class="badge badge-idle">Idle</span>
+        <button id="logout-btn" class="logout-btn" hidden type="button" title="Log out">← Exit</button>
       </div>
     </header>
 
-    <div id="views">
-
-      <div id="view-scan" class="view">
-        <div class="scan-event-bar">
-          <div class="scan-event-label">Log as:</div>
-          <div id="event-type-pills" class="event-type-pills">
-            <button class="event-pill active" data-type="filled">Filled</button>
-            <button class="event-pill" data-type="dispatched">Dispatched</button>
-            <button class="event-pill" data-type="delivered">Delivered</button>
-            <button class="event-pill" data-type="returned">Returned</button>
-            <button class="event-pill" data-type="inspected">Inspected</button>
-            <button class="event-pill" data-type="condemned">Condemned</button>
-          </div>
-        </div>
-
-        <div class="scan-batch-bar">
-          <label class="toggle-label">
-            <span>Batch mode</span>
-            <div class="toggle-wrap">
-              <input type="checkbox" id="batch-toggle" />
-              <span class="toggle-track"><span class="toggle-thumb"></span></span>
-            </div>
-          </label>
-          <button id="batch-submit-btn" class="btn btn-primary" style="display:none">
-            Submit Batch <span id="batch-count-badge" class="count-badge">0</span>
-          </button>
-        </div>
-
-        <div id="batch-list-section" style="display:none">
-          <div class="section-header">
-            <span>Batch Queue</span>
-            <button id="batch-clear-btn" class="link-btn">Clear all</button>
-          </div>
-          <ul id="batch-list" class="batch-list"></ul>
-        </div>
-
-        <div id="scan-focus-section">
-          <button id="focus-btn" class="focus-btn">
-            <span id="focus-icon">⌨️</span>
-            <span id="focus-label">Tap to start scanning</span>
-          </button>
-          <p class="focus-hint">Keep this app in focus while scanning</p>
-        </div>
-
-        <div id="last-scan-area" style="display:none" class="last-scan-area"></div>
-      </div>
-
-      <div id="view-cylinders" class="view" style="display:none">
-        <div class="search-filter-bar">
-          <input type="search" id="cyl-search" class="search-input" placeholder="Search serial or ID…" />
-          <div id="cyl-filter-pills" class="filter-pills">
-            <button class="filter-pill active" data-filter="all">All</button>
-            <button class="filter-pill" data-filter="available">Available</button>
-            <button class="filter-pill" data-filter="in-use">In Use</button>
-            <button class="filter-pill" data-filter="condemned">Condemned</button>
-          </div>
-        </div>
-        <ul id="cyl-list" class="cyl-list"></ul>
-      </div>
-
-      <div id="view-alerts" class="view" style="display:none">
-        <div id="alerts-container" class="alerts-container"></div>
-      </div>
-
-      <div id="view-reports" class="view" style="display:none">
-        <div id="stats-grid" class="stats-grid"></div>
-        <div class="reports-actions">
-          <button id="btn-export-events" class="btn btn-secondary">Export Events CSV</button>
-          <button id="btn-export-cylinders" class="btn btn-secondary">Export Cylinders CSV</button>
-          <button id="btn-sync" class="btn btn-primary">Sync to Server</button>
-          <button id="btn-print" class="btn btn-ghost">Print Report</button>
-        </div>
-        <div id="sync-status" class="sync-status" style="display:none"></div>
-      </div>
-
-    </div>
-
-    <nav class="bottom-nav">
-      <button class="nav-btn active" data-view="scan">
-        <span class="nav-icon">📷</span>
-        <span class="nav-label">Scan</span>
-      </button>
-      <button class="nav-btn" data-view="cylinders">
-        <span class="nav-icon">🗂️</span>
-        <span class="nav-label">Cylinders</span>
-      </button>
-      <button class="nav-btn" data-view="alerts">
-        <span class="nav-icon">🔔</span>
-        <span class="nav-label">Alerts</span>
-        <span id="alerts-nav-badge" class="nav-badge" style="display:none">0</span>
-      </button>
-      <button class="nav-btn" data-view="reports">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Reports</span>
-      </button>
+    <nav id="app-nav" class="app-nav">
+      <button class="nav-tab active" data-view="scan">Scan</button>
+      <button class="nav-tab" data-view="cylinders">Cylinders</button>
+      <button class="nav-tab" data-view="alerts" id="nav-alerts">Alerts</button>
+      <button class="nav-tab" data-view="reports">Reports</button>
+      <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
     </nav>
 
-  </div>
-
-  <div id="modal-cylinder" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
-    <div class="modal-sheet">
-      <div class="modal-header">
-        <h2 class="modal-title">Cylinder Passport</h2>
-        <button class="modal-close" data-close="modal-cylinder">✕</button>
+    <!-- SCAN VIEW -->
+    <div id="view-scan" class="view active">
+      <div class="scan-event-bar" id="scan-event-bar"></div>
+      <div class="scan-options-bar">
+        <label class="toggle-label">
+          <input type="checkbox" id="batch-mode-toggle" />
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Batch mode</span>
+        </label>
+        <label class="toggle-label" id="gps-label">
+          <input type="checkbox" id="gps-toggle" />
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">GPS tag</span>
+        </label>
+        <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">🔄 Re-tag</button>
       </div>
-      <div class="modal-body" id="modal-cylinder-body"></div>
+      <div id="focus-section" class="focus-section">
+        <button id="focus-btn" class="focus-btn" type="button">
+          <span id="focus-icon">📡</span>
+          <span id="focus-label">Tap to start scanning</span>
+        </button>
+        <p class="focus-hint">Keep this app in focus while scanning</p>
+      </div>
+      <div id="last-scan-card" class="last-scan-card" hidden>
+        <div class="last-scan-header">
+          <span class="last-scan-label">Last Scan</span>
+          <span id="last-scan-time" class="last-scan-time"></span>
+        </div>
+        <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
+        <div id="last-scan-result" class="last-scan-result"></div>
+      </div>
+      <div id="batch-queue-section" class="batch-queue-section" hidden>
+        <div class="section-header">
+          <span>Batch Queue (<span id="batch-count">0</span>)</span>
+          <div class="section-actions">
+            <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button">Commit All</button>
+            <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button">Clear</button>
+          </div>
+        </div>
+        <ul id="batch-list" class="compact-list"></ul>
+      </div>
+      <div class="section-header" style="margin:12px 16px 0">
+        <span>Recent Events</span>
+        <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+      </div>
+      <ul id="events-list" class="scan-events-list"></ul>
+      <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
+    </div>
+
+    <!-- CYLINDERS VIEW -->
+    <div id="view-cylinders" class="view">
+      <div class="view-toolbar">
+        <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
+        <div class="filter-row">
+          <select id="cyl-filter-status" class="filter-select">
+            <option value="">All statuses</option>
+            <option value="available">Available</option>
+            <option value="in-use">In Use</option>
+            <option value="condemned">Condemned</option>
+            <option value="revalidation">Revalidation</option>
+          </select>
+          <select id="cyl-filter-company" class="filter-select">
+            <option value="">All companies</option>
+            <option value="Vivo LPG">Vivo LPG</option>
+            <option value="Total Energies">Total Energies</option>
+            <option value="Shell Gas">Shell Gas</option>
+          </select>
+        </div>
+      </div>
+      <div id="cyl-stats" class="cyl-stats-row"></div>
+      <ul id="cylinders-list" class="cylinders-list"></ul>
+      <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+    </div>
+
+    <!-- ALERTS VIEW -->
+    <div id="view-alerts" class="view">
+      <div class="view-toolbar">
+        <select id="alert-filter-severity" class="filter-select">
+          <option value="">All severities</option>
+          <option value="critical">Critical</option>
+          <option value="warning">Warning</option>
+          <option value="info">Info</option>
+        </select>
+        <select id="alert-filter-type" class="filter-select">
+          <option value="">All types</option>
+          <option value="overdue-hydrotest">Overdue Hydrotest</option>
+          <option value="near-capacity">Near Capacity</option>
+          <option value="exceeded-capacity">Exceeded Capacity</option>
+          <option value="condemned">Condemned</option>
+        </select>
+      </div>
+      <div id="alert-summary" class="alert-summary-row"></div>
+      <ul id="alerts-list" class="alerts-list"></ul>
+      <p id="alerts-empty" class="list-empty">No alerts.</p>
+    </div>
+
+    <!-- REPORTS VIEW -->
+    <div id="view-reports" class="view">
+      <div class="reports-grid" id="reports-grid"></div>
+      <div class="section-header" style="margin: 16px 16px 8px">
+        <span>Activity — Last 30 Days</span>
+        <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+      </div>
+      <div id="report-chart" class="report-chart"></div>
+      <div class="section-header" style="margin: 16px 16px 8px">
+        <span>Sync Status</span>
+        <button id="sync-btn" class="btn btn-sm btn-blue" type="button">↑ Sync Now</button>
+      </div>
+      <div id="sync-status-card" class="sync-status-card">
+        <span id="sync-status-text">Not synced yet.</span>
+        <span id="sync-indicator" class="sync-indicator"></span>
+      </div>
+    </div>
+
+    <!-- LICENSES VIEW (Government only) -->
+    <div id="view-licenses" class="view" style="display:none">
+      <div class="view-toolbar">
+        <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
+        <div class="filter-row">
+          <select id="lic-filter-type" class="filter-select">
+            <option value="">All types</option>
+            <option value="LPGMC">LPGMC</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Retailer">Retailer</option>
+            <option value="Revalidation">Revalidation</option>
+          </select>
+          <select id="lic-filter-status" class="filter-select">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+        <button id="issue-license-btn" class="btn btn-primary btn-sm" type="button">+ Issue License</button>
+      </div>
+      <ul id="licenses-list" class="licenses-list"></ul>
+      <p id="licenses-empty" class="list-empty">No licenses found.</p>
     </div>
   </div>
 
-  <div id="modal-register" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
-    <div class="modal-sheet">
+  <!-- MODALS -->
+  <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
+    <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title">Register New Cylinder</h2>
-        <button class="modal-close" data-close="modal-register">✕</button>
+        <h2>Register Cylinder</h2>
+        <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-row"><label class="form-label">Tag ID</label><input id="reg-tag-id" class="form-input" readonly /></div>
-        <div class="form-row"><label class="form-label">Serial Number *</label><input id="reg-serial" class="form-input" placeholder="e.g. LPG-2026-013" /></div>
-        <div class="form-row"><label class="form-label">Manufacture Date *</label><input id="reg-mfg-date" class="form-input" type="date" /></div>
-        <div class="form-row"><label class="form-label">Tare Weight (kg)</label><input id="reg-tare" class="form-input" type="number" step="0.1" value="14.5" /></div>
-        <div class="form-row"><label class="form-label">Capacity (kg)</label><input id="reg-capacity" class="form-input" type="number" step="0.5" value="12" /></div>
-        <div class="form-row"><label class="form-label">Max Fills</label><input id="reg-maxfills" class="form-input" type="number" value="500" /></div>
-        <div class="form-row"><label class="form-label">Last Hydro Test Date</label><input id="reg-hydrotest" class="form-input" type="date" /></div>
-        <div class="form-row"><label class="form-label">Notes</label><textarea id="reg-notes" class="form-input form-textarea" placeholder="Optional notes…"></textarea></div>
-        <button id="reg-submit-btn" class="btn btn-primary btn-full">Register Cylinder</button>
+        <div class="form-group"><label>RFID Tag</label><input id="reg-tag" type="text" class="form-control font-mono" readonly /></div>
+        <div class="form-group"><label>Serial Number</label><input id="reg-serial" type="text" class="form-control" placeholder="e.g. LPG-2026-013" /></div>
+        <div class="form-group"><label>Manufacture Date</label><input id="reg-manufacture-date" type="date" class="form-control" /></div>
+        <div class="form-group"><label>Tare Weight (kg)</label><input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" /></div>
+        <div class="form-group"><label>Capacity (kg)</label><input id="reg-capacity" type="number" class="form-control" value="12" step="1" /></div>
+        <div class="form-group"><label>Max Fills</label><input id="reg-max-fills" type="number" class="form-control" value="500" step="1" /></div>
+        <div class="form-group"><label>Last Hydro Test Date</label><input id="reg-hydrotest" type="date" class="form-control" /></div>
+        <div class="form-group"><label>Notes</label><textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-register" type="button">Cancel</button>
+        <button id="reg-submit-btn" class="btn btn-primary" type="button">Register</button>
       </div>
     </div>
   </div>
 
-  <div id="modal-operator" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
-    <div class="modal-sheet modal-sheet-sm">
+  <div id="modal-passport" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Cylinder Passport">
+    <div class="modal modal-wide">
       <div class="modal-header">
-        <h2 class="modal-title">Operator ID</h2>
-        <button class="modal-close" data-close="modal-operator">✕</button>
+        <h2>Cylinder Passport</h2>
+        <button class="modal-close" data-close="modal-passport" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="passport-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-passport" type="button">Close</button>
+        <button id="passport-export-btn" class="btn btn-blue" type="button">↓ Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-retag" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Re-tag Cylinder">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Re-tag Cylinder</h2>
+        <button class="modal-close" data-close="modal-retag" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-row"><label class="form-label">Your Operator ID</label><input id="op-input" class="form-input" placeholder="e.g. OP-001" maxlength="20" /></div>
-        <button id="op-save-btn" class="btn btn-primary btn-full">Save</button>
+        <div id="retag-step1" class="retag-step">
+          <div class="retag-step-num">Step 1 of 2</div>
+          <p class="retag-step-desc">Scan the <strong>old (damaged) RFID tag</strong> on the cylinder to be re-tagged.</p>
+          <div class="form-group"><label>Old RFID Tag</label><input id="retag-old-input" type="text" class="form-control font-mono" placeholder="Scan or type old tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /></div>
+          <div id="retag-old-error" class="form-error" hidden></div>
+          <div id="retag-old-info" class="retag-cylinder-info" hidden></div>
+        </div>
+        <div id="retag-step2" class="retag-step" hidden>
+          <div class="retag-step-num">Step 2 of 2</div>
+          <p class="retag-step-desc">Scan the <strong>new RFID tag</strong> to assign to the refurbished cylinder.</p>
+          <div id="retag-old-summary" class="retag-old-summary"></div>
+          <div class="form-group"><label>New RFID Tag</label><input id="retag-new-input" type="text" class="form-control font-mono" placeholder="Scan or type new tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /></div>
+          <div id="retag-new-error" class="form-error" hidden></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-retag" type="button">Cancel</button>
+        <button id="retag-step1-next" class="btn btn-primary" type="button">Confirm Old Tag →</button>
+        <button id="retag-step2-submit" class="btn btn-primary" type="button" hidden>Complete Re-tag</button>
       </div>
     </div>
   </div>
 
-  <div id="modal-batch" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
-    <div class="modal-sheet">
+  <div id="modal-issue-license" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Issue License">
+    <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title">Batch Complete</h2>
-        <button class="modal-close" data-close="modal-batch">✕</button>
+        <h2>Issue New License</h2>
+        <button class="modal-close" data-close="modal-issue-license" type="button" aria-label="Close">✕</button>
       </div>
-      <div class="modal-body" id="modal-batch-body"></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Company Name</label><input id="lic-company-name" type="text" class="form-control" placeholder="e.g. Sunrise Gas Ltd" /></div>
+        <div class="form-group"><label>Company Type</label><select id="lic-company-type" class="form-control"><option value="LPGMC">LPGMC</option><option value="Distributor">Distributor</option><option value="Retailer">Retailer</option><option value="Revalidation">Revalidation</option></select></div>
+        <div class="form-group"><label>License Number</label><input id="lic-number" type="text" class="form-control font-mono" placeholder="e.g. LPGMC-2026-008" /></div>
+        <div class="form-group"><label>Issued Date</label><input id="lic-issued-date" type="date" class="form-control" /></div>
+        <div class="form-group"><label>Expiry Date</label><input id="lic-expiry-date" type="date" class="form-control" /></div>
+        <div class="form-group"><label>Status</label><select id="lic-status" class="form-control"><option value="active">Active</option><option value="suspended">Suspended</option><option value="expired">Expired</option></select></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-issue-license" type="button">Cancel</button>
+        <button id="lic-submit-btn" class="btn btn-primary" type="button">Issue License</button>
+      </div>
     </div>
   </div>
 
-  <div id="snackbar"></div>
-
+  <div id="snackbar" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
 </html>
