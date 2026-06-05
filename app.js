@@ -1,419 +1,506 @@
 'use strict';
 
-// ── DB (IndexedDB) ────────────────────────────────────────────────────────────
-// Stores:
-//   cylinders {id, serial, manufactureDate, tareWeight, capacity, maxFills,
-//              fillCount, lastHydroTest, status, notes}
-//   events    {id, cylinderId, eventType, operatorId, timestamp, location,
-//              batchId, synced}
-//   meta      {key, value}
-
-const DB = (() => {
-  const DB_NAME = 'lpg-tracer';
-  const DB_VER  = 1;
-  let _db = null;
-
-  function open() {
-    return new Promise((resolve, reject) => {
-      if (_db) { resolve(_db); return; }
-      const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('cylinders')) {
-          db.createObjectStore('cylinders', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('events')) {
-          const evStore = db.createObjectStore('events', { keyPath: 'id' });
-          evStore.createIndex('cylinderId', 'cylinderId', { unique: false });
-          evStore.createIndex('synced',     'synced',     { unique: false });
-        }
-        if (!db.objectStoreNames.contains('meta')) {
-          db.createObjectStore('meta', { keyPath: 'key' });
-        }
-      };
-      req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  function transaction(storeName, mode = 'readonly') {
-    return _db.transaction(storeName, mode).objectStore(storeName);
-  }
-
-  function put(storeName, item) {
-    return new Promise((resolve, reject) => {
-      const store = transaction(storeName, 'readwrite');
-      const req = store.put(item);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  function get(storeName, key) {
-    return new Promise((resolve, reject) => {
-      const req = transaction(storeName).get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  function getAll(storeName) {
-    return new Promise((resolve, reject) => {
-      const req = transaction(storeName).getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  function getByIndex(storeName, indexName, value) {
-    return new Promise((resolve, reject) => {
-      const store = transaction(storeName);
-      const index = store.index(indexName);
-      const req   = index.getAll(value);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  function putAll(storeName, items) {
-    return new Promise((resolve, reject) => {
-      const tx    = _db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      items.forEach(item => store.put(item));
-      tx.oncomplete = () => resolve();
-      tx.onerror    = () => reject(tx.error);
-    });
-  }
-
-  return { open, put, get, getAll, getByIndex, putAll };
-})();
-
-// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+const DB_NAME    = 'lpg-tracer-db';
+const DB_VERSION = 2;
+const SEED_KEY   = 'seeded-v2';
 
 const DEMO_CYLINDERS = [
-  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-use',    notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'condemned',  notes:'Exceeded max fills. Condemned 2026-03-01.' },
-  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-use',    notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',    notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'available', notes:'' },
-  { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'available', notes:'' },
+  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', company:'Vivo LPG',       manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-use',     notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'condemned',  notes:'Exceeded max fills. Condemned 2026-03-01.' },
+  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', company:'Total Energies', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-use',     notes:'' },
+  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', company:'Total Energies', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', company:'Shell Gas',      manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',     notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', company:'Shell Gas',      manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'available',  notes:'' },
 ];
 
-function makeId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+const DEMO_LICENSES = [
+  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',        licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active' },
+  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',        licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active' },
+  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',        licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active' },
+  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',  licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired' },
+  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',     licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired' },
+  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidation', licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
+  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',     licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active' },
+];
+
+const ROLE_EVENTS = {
+  lpgmc: [
+    { type: 'registered',        label: 'Registered',        icon: '🆕' },
+    { type: 'refilled',          label: 'Refilled',          icon: '🔄' },
+    { type: 'shipped',           label: 'Shipped',           icon: '🚚' },
+    { type: 'received-empty',    label: 'Received Empty',    icon: '📥' },
+    { type: 'sent-revalidation', label: 'Sent Revalidation', icon: '🔧' },
+  ],
+  government: [
+    { type: 'inspected', label: 'Inspected', icon: '🏛️' },
+  ],
+  revalidation: [
+    { type: 'received-damaged', label: 'Received Damaged',  icon: '⚠️' },
+    { type: 'revalidated',      label: 'Revalidated',       icon: '✅' },
+    { type: 'returned-lpgmc',   label: 'Returned to LPGMC', icon: '📤' },
+  ],
+};
+
+const ROLE_TABS = {
+  lpgmc:       ['scan', 'cylinders', 'alerts', 'reports'],
+  government:  ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
+  revalidation:['scan', 'cylinders', 'reports'],
+};
+
+const ROLE_LABELS = {
+  lpgmc:       'LPGMC',
+  government:  'Government',
+  revalidation:'Revalidation',
+};
+
+const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas'];
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+const Auth = {
+  session: null,
+
+  load() {
+    try {
+      const raw = localStorage.getItem('lpg-session');
+      if (raw) this.session = JSON.parse(raw);
+    } catch { this.session = null; }
+  },
+
+  login(role, company, operatorId) {
+    this.session = { role, company, operatorId };
+    localStorage.setItem('lpg-session', JSON.stringify(this.session));
+    applySession();
+    hideLoginOverlay();
+  },
+
+  logout() {
+    this.session = null;
+    localStorage.removeItem('lpg-session');
+    showLoginOverlay();
+  },
+
+  can(action) {
+    if (!this.session) return false;
+    const { role } = this.session;
+    switch (action) {
+      case 'register': return role === 'lpgmc';
+      case 'inspect':  return role === 'government';
+      case 'license':  return role === 'government';
+      case 'retag':    return role === 'revalidation';
+      case 'viewAll':  return role === 'government' || role === 'revalidation';
+      case 'alerts':   return role === 'lpgmc' || role === 'government';
+      default:         return false;
+    }
+  },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+const State = {
+  activeView:        'scan',
+  activeEventType:   null,
+  batchMode:         false,
+  batchQueue:        [],
+  gpsEnabled:        false,
+  gpsCoords:         null,
+  focused:           false,
+  scanEvents:        [],
+  syncStatus:        'idle',
+  lastSyncTime:      null,
+  retagStep:         null,
+  retagOldCylinder:  null,
+  passportCylinderId: null,
+};
+
+// ── IndexedDB ─────────────────────────────────────────────────────────────────
+
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('cylinders')) {
+        const s = d.createObjectStore('cylinders', { keyPath: 'id' });
+        s.createIndex('serial',  'serial',  { unique: true });
+        s.createIndex('company', 'company', { unique: false });
+        s.createIndex('status',  'status',  { unique: false });
+      }
+      if (!d.objectStoreNames.contains('events')) {
+        const s = d.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('cylinderId', 'cylinderId', { unique: false });
+        s.createIndex('timestamp',  'timestamp',  { unique: false });
+      }
+      if (!d.objectStoreNames.contains('meta')) {
+        d.createObjectStore('meta', { keyPath: 'key' });
+      }
+      if (!d.objectStoreNames.contains('licenses')) {
+        const s = d.createObjectStore('licenses', { keyPath: 'id' });
+        s.createIndex('companyType', 'companyType', { unique: false });
+        s.createIndex('status',      'status',      { unique: false });
+      }
+    };
+
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror   = (e) => reject(e.target.error);
+  });
 }
 
-function makeEvents(cylinderId, serial, fillCount, startDateStr, status) {
-  const events = [];
-  const ops    = ['OP-001', 'OP-002'];
-  const paris  = { lat: 48.8566, lng: 2.3522 };
-
-  // Parse start date; first event is registration
-  const startMs  = new Date(startDateStr).getTime();
-  const nowMs    = new Date('2026-06-05').getTime();
-  const rangeMs  = nowMs - startMs;
-
-  // Registration event at manufacture date
-  events.push({
-    id:          makeId() + 'reg',
-    cylinderId,
-    eventType:   'registered',
-    operatorId:  'OP-001',
-    timestamp:   new Date(startMs + 7 * 86400000).toISOString(),
-    location:    paris,
-    batchId:     null,
-    synced:      true,
+function txGet(store, key) {
+  return new Promise((res, rej) => {
+    const r = db.transaction(store, 'readonly').objectStore(store).get(key);
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => rej(r.error);
   });
+}
 
-  // First hydro test shortly after registration
-  events.push({
-    id:          makeId() + 'ht0',
-    cylinderId,
-    eventType:   'inspected',
-    operatorId:  'OP-002',
-    timestamp:   new Date(startMs + 30 * 86400000).toISOString(),
-    location:    paris,
-    batchId:     null,
-    synced:      true,
+function txGetAll(store) {
+  return new Promise((res, rej) => {
+    const r = db.transaction(store, 'readonly').objectStore(store).getAll();
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => rej(r.error);
   });
+}
 
-  // Generate fill cycles spread over the available time
-  const cyclesTarget = Math.min(fillCount, 20); // cap demo events at 20 cycles
-  const interval = rangeMs / (cyclesTarget + 2);
+function txPut(store, record) {
+  return new Promise((res, rej) => {
+    const r = db.transaction(store, 'readwrite').objectStore(store).put(record);
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => rej(r.error);
+  });
+}
 
-  for (let i = 0; i < cyclesTarget; i++) {
-    const baseMs = startMs + interval * (i + 1);
-    const op     = ops[i % 2];
-    const loc    = (i % 3 === 0) ? paris : null;
-
-    events.push({
-      id:         makeId() + 'f' + i,
-      cylinderId,
-      eventType:  'filled',
-      operatorId: op,
-      timestamp:  new Date(baseMs).toISOString(),
-      location:   loc,
-      batchId:    null,
-      synced:     true,
-    });
-
-    events.push({
-      id:         makeId() + 'd' + i,
-      cylinderId,
-      eventType:  'dispatched',
-      operatorId: op,
-      timestamp:  new Date(baseMs + 3600000 * 2).toISOString(),
-      location:   loc,
-      batchId:    null,
-      synced:     true,
-    });
-
-    events.push({
-      id:         makeId() + 'dv' + i,
-      cylinderId,
-      eventType:  'delivered',
-      operatorId: op,
-      timestamp:  new Date(baseMs + 3600000 * 6).toISOString(),
-      location:   loc ? { lat: loc.lat + 0.01, lng: loc.lng + 0.01 } : null,
-      batchId:    null,
-      synced:     true,
-    });
-
-    // Return only for most cycles (not the last if in-use)
-    if (!(i === cyclesTarget - 1 && status === 'in-use')) {
-      events.push({
-        id:         makeId() + 'r' + i,
-        cylinderId,
-        eventType:  'returned',
-        operatorId: op,
-        timestamp:  new Date(baseMs + 86400000 * 14).toISOString(),
-        location:   loc,
-        batchId:    null,
-        synced:     true,
-      });
-    }
-  }
-
-  // Add condemned event for condemned cylinders
-  if (status === 'condemned') {
-    events.push({
-      id:         makeId() + 'con',
-      cylinderId,
-      eventType:  'condemned',
-      operatorId: 'OP-001',
-      timestamp:  new Date('2026-03-01T09:00:00.000Z').toISOString(),
-      location:   paris,
-      batchId:    null,
-      synced:     true,
-    });
-  }
-
-  // Sort by timestamp ascending
-  events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  return events;
+function txGetIndex(store, index, value) {
+  return new Promise((res, rej) => {
+    const r = db.transaction(store, 'readonly').objectStore(store).index(index).getAll(value);
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => rej(r.error);
+  });
 }
 
 async function seedDemoData() {
-  const meta = await DB.get('meta', 'seeded');
-  if (meta && meta.value) return;
-
-  const allEvents = [];
+  const seeded = await txGet('meta', SEED_KEY);
+  if (seeded) return;
+  for (const cyl of DEMO_CYLINDERS) await txPut('cylinders', cyl);
+  const now = Date.now();
   for (const cyl of DEMO_CYLINDERS) {
-    await DB.put('cylinders', cyl);
-    const evs = makeEvents(cyl.id, cyl.serial, cyl.fillCount, cyl.manufactureDate, cyl.status);
-    allEvents.push(...evs);
+    await txPut('events', { cylinderId: cyl.id, type: 'registered', timestamp: new Date(cyl.manufactureDate).toISOString(), operatorId: 'SYSTEM', company: cyl.company, notes: 'Initial registration' });
+    const fills = Math.min(cyl.fillCount, 3);
+    for (let i = 0; i < fills; i++) {
+      await txPut('events', { cylinderId: cyl.id, type: 'refilled', timestamp: new Date(now - (fills - i) * 30 * 24 * 60 * 60 * 1000).toISOString(), operatorId: 'SYSTEM', company: cyl.company, notes: '' });
+    }
   }
-  await DB.putAll('events', allEvents);
-  await DB.put('meta', { key: 'seeded', value: true });
+  for (const lic of DEMO_LICENSES) await txPut('licenses', lic);
+  await txPut('meta', { key: SEED_KEY, value: true });
 }
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
+// ── DOM refs ──────────────────────────────────────────────────────────────────
 
-const State = {
-  currentView:      'scan',
-  operator:         '',
-  geo:              null,
-  batchMode:        false,
-  batchItems:       [],   // [{tagId, cylinderId, serial, isDuplicate}]
-  batchEventType:   'filled',
-  pendingRegisterTag: null,
-  focused:          false,
-  selectedEventType: 'filled',
-  cylFilter:        'all',
-  cylSearch:        '',
-};
+const $ = (id) => document.getElementById(id);
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
+const scannerInput     = $('scanner-input');
+const statusBadge      = $('status-badge');
+const focusBtn         = $('focus-btn');
+const focusIcon        = $('focus-icon');
+const focusLabel       = $('focus-label');
+const logoutBtn        = $('logout-btn');
+const headerRoleBadge  = $('header-role-badge');
+const headerOpPill     = $('header-operator-pill');
+const headerSubtitle   = $('header-subtitle');
+const snackbar         = $('snackbar');
+
+const loginOverlay     = $('login-overlay');
+const roleCards        = $('role-cards');
+const loginFormWrapper = $('login-form-wrapper');
+const loginBackBtn     = $('login-back-btn');
+const loginFormLabel   = $('login-form-role-label');
+const loginForm        = $('login-form');
+const loginCompSel     = $('login-company-select');
+const loginCompText    = $('login-company-text');
+const loginOperator    = $('login-operator');
+
+const scanEventBar     = $('scan-event-bar');
+const batchModeToggle  = $('batch-mode-toggle');
+const gpsToggle        = $('gps-toggle');
+const retagBtn         = $('retag-btn');
+const lastScanCard     = $('last-scan-card');
+const lastScanTime     = $('last-scan-time');
+const lastScanTag      = $('last-scan-tag');
+const lastScanResult   = $('last-scan-result');
+const batchQueueSection= $('batch-queue-section');
+const batchCount       = $('batch-count');
+const batchList        = $('batch-list');
+const batchCommitBtn   = $('batch-commit-btn');
+const batchClearBtn    = $('batch-clear-btn');
+const eventsList       = $('events-list');
+const eventsEmpty      = $('events-empty');
+const exportEventsBtn  = $('export-events-btn');
+
+const cylSearch        = $('cyl-search');
+const cylFilterStatus  = $('cyl-filter-status');
+const cylFilterCompany = $('cyl-filter-company');
+const cylStats         = $('cyl-stats');
+const cylindersList    = $('cylinders-list');
+const cylindersEmpty   = $('cylinders-empty');
+
+const alertFilterSeverity = $('alert-filter-severity');
+const alertFilterType     = $('alert-filter-type');
+const alertSummary        = $('alert-summary');
+const alertsList          = $('alerts-list');
+const alertsEmpty         = $('alerts-empty');
+
+const reportsGrid      = $('reports-grid');
+const reportChart      = $('report-chart');
+const exportReportBtn  = $('export-report-btn');
+const syncBtn          = $('sync-btn');
+const syncStatusText   = $('sync-status-text');
+const syncIndicator    = $('sync-indicator');
+
+const licSearch        = $('lic-search');
+const licFilterType    = $('lic-filter-type');
+const licFilterStatus  = $('lic-filter-status');
+const issueLicenseBtn  = $('issue-license-btn');
+const licensesList     = $('licenses-list');
+const licensesEmpty    = $('licenses-empty');
+
+const modalRegister    = $('modal-register');
+const regTag           = $('reg-tag');
+const regSerial        = $('reg-serial');
+const regManufDate     = $('reg-manufacture-date');
+const regTare          = $('reg-tare');
+const regCapacity      = $('reg-capacity');
+const regMaxFills      = $('reg-max-fills');
+const regHydrotest     = $('reg-hydrotest');
+const regNotes         = $('reg-notes');
+const regSubmitBtn     = $('reg-submit-btn');
+
+const modalPassport    = $('modal-passport');
+const passportBody     = $('passport-body');
+const passportExportBtn= $('passport-export-btn');
+
+const modalRetag       = $('modal-retag');
+const retagStep1El     = $('retag-step1');
+const retagStep2El     = $('retag-step2');
+const retagOldInput    = $('retag-old-input');
+const retagOldError    = $('retag-old-error');
+const retagOldInfo     = $('retag-old-info');
+const retagOldSummary  = $('retag-old-summary');
+const retagNewInput    = $('retag-new-input');
+const retagNewError    = $('retag-new-error');
+const retagStep1Next   = $('retag-step1-next');
+const retagStep2Submit = $('retag-step2-submit');
+
+const modalIssueLicense= $('modal-issue-license');
+const licCompanyName   = $('lic-company-name');
+const licCompanyType   = $('lic-company-type');
+const licNumber        = $('lic-number');
+const licIssuedDate    = $('lic-issued-date');
+const licExpiryDate    = $('lic-expiry-date');
+const licStatus        = $('lic-status');
+const licSubmitBtn     = $('lic-submit-btn');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function fmtDate(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr);
-  if (isNaN(d)) return isoStr;
-  return d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
 }
 
-function fmtDateTime(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr);
-  if (isNaN(d)) return isoStr;
-  return d.toLocaleString(undefined, {
-    year:'numeric', month:'short', day:'numeric',
-    hour:'2-digit', minute:'2-digit',
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso + 'T00:00:00').toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function nowISO() { return new Date().toISOString(); }
+
+let _snackTimer = null;
+function showSnackbar(msg, type = '') {
+  snackbar.textContent = msg;
+  snackbar.className = 'show' + (type ? ' snack-' + type : '');
+  clearTimeout(_snackTimer);
+  _snackTimer = setTimeout(() => { snackbar.className = ''; }, 2500);
+}
+
+function openModal(id)  { const el = $(id); if (el) { el.hidden = false; el.focus(); } }
+function closeModal(id) { const el = $(id); if (el) el.hidden = true; }
+
+function hydroTestDaysOverdue(lastHydroTest) {
+  if (!lastHydroTest) return Infinity;
+  const due = new Date(new Date(lastHydroTest + 'T00:00:00').getTime() + 5 * 365 * 24 * 60 * 60 * 1000);
+  return Math.floor((Date.now() - due.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+// ── Login screen ──────────────────────────────────────────────────────────────
+
+let _selectedRole = null;
+
+function showLoginOverlay() {
+  loginOverlay.classList.remove('hidden');
+  loginFormWrapper.hidden = true;
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  loginOperator.value = '';
+  loginCompSel.value  = '';
+  loginCompText.value = '';
+  _selectedRole = null;
+}
+
+function hideLoginOverlay() {
+  loginOverlay.classList.add('hidden');
+}
+
+function selectRole(role) {
+  _selectedRole = role;
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.role === role);
+    c.setAttribute('aria-pressed', String(c.dataset.role === role));
   });
-}
-
-function fmtDateShort(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr);
-  if (isNaN(d)) return isoStr;
-  return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
-}
-
-function detectType(data) {
-  return /^[0-9A-Fa-f]{12,}$/i.test(data.trim()) ? 'rfid' : 'barcode';
-}
-
-function showSnackbar(msg, duration = 2200) {
-  const sb = document.getElementById('snackbar');
-  sb.textContent = msg;
-  sb.classList.add('show');
-  clearTimeout(showSnackbar._t);
-  showSnackbar._t = setTimeout(() => sb.classList.remove('show'), duration);
-}
-
-// ── GEO MODULE ────────────────────────────────────────────────────────────────
-
-function requestGeo(silent = false) {
-  if (!navigator.geolocation) {
-    if (!silent) showSnackbar('Geolocation not supported');
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      State.geo = {
-        lat:      pos.coords.latitude,
-        lng:      pos.coords.longitude,
-        accuracy: pos.coords.accuracy,
-      };
-      updateGpsPill();
-      if (!silent) showSnackbar(`GPS: ${State.geo.lat.toFixed(4)}, ${State.geo.lng.toFixed(4)}`);
-    },
-    (err) => {
-      State.geo = null;
-      updateGpsPill();
-      if (!silent) showSnackbar('GPS error: ' + err.message);
-    },
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
-}
-
-function updateGpsPill() {
-  const pill  = document.getElementById('gps-pill');
-  const label = document.getElementById('gps-pill-label');
-  if (State.geo) {
-    label.textContent = `${State.geo.lat.toFixed(3)}, ${State.geo.lng.toFixed(3)}`;
-    pill.classList.add('gps-active');
+  loginFormLabel.textContent = ROLE_LABELS[role] || role;
+  loginCompSel.style.display  = 'none';
+  loginCompText.style.display = 'none';
+  if (role === 'lpgmc') {
+    loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    loginCompSel.style.display = '';
   } else {
-    label.textContent = 'GPS Off';
-    pill.classList.remove('gps-active');
+    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency' : 'e.g. ProRevalid Ltd';
+    loginCompText.style.display = '';
   }
+  loginFormWrapper.hidden = false;
+  loginOperator.focus();
 }
 
-// ── CYLINDER UTILS ────────────────────────────────────────────────────────────
-
-const HYDRO_CUTOFF = new Date('2021-06-05'); // 5 years before today
-
-function getCylinderAlerts(cyl) {
-  const alerts = [];
-  const hydro  = cyl.lastHydroTest ? new Date(cyl.lastHydroTest) : null;
-
-  if (cyl.status === 'condemned') {
-    alerts.push({ type: 'condemned', label: 'Cylinder condemned', severity: 'critical' });
+roleCards.addEventListener('click', (e) => {
+  const card = e.target.closest('.role-card');
+  if (card) selectRole(card.dataset.role);
+});
+roleCards.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    const card = e.target.closest('.role-card');
+    if (card) { e.preventDefault(); selectRole(card.dataset.role); }
   }
-  if (hydro && hydro < HYDRO_CUTOFF) {
-    const yrs = ((new Date('2026-06-05') - hydro) / (365.25 * 86400000)).toFixed(1);
-    alerts.push({ type: 'overdue-hydro', label: `Hydro test overdue (${yrs} yrs ago)`, severity: 'critical' });
-  }
-  if (cyl.fillCount >= cyl.maxFills) {
-    alerts.push({ type: 'max-fills', label: `Max fills reached (${cyl.fillCount}/${cyl.maxFills})`, severity: 'critical' });
-  } else if (cyl.fillCount >= cyl.maxFills * 0.9) {
-    const pct = Math.round(cyl.fillCount / cyl.maxFills * 100);
-    alerts.push({ type: 'near-max', label: `Approaching max fills (${pct}%)`, severity: 'warning' });
-  }
-  return alerts;
+});
+
+loginBackBtn.addEventListener('click', () => {
+  loginFormWrapper.hidden = true;
+  _selectedRole = null;
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+});
+
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!_selectedRole) return;
+  const company = _selectedRole === 'lpgmc' ? loginCompSel.value.trim() : loginCompText.value.trim();
+  const operatorId = loginOperator.value.trim();
+  if (!company)    { showSnackbar('Please enter a company name.', 'error'); return; }
+  if (!operatorId) { showSnackbar('Please enter an Operator ID.', 'error'); return; }
+  Auth.login(_selectedRole, company, operatorId);
+});
+
+// ── Session application ───────────────────────────────────────────────────────
+
+function applySession() {
+  const s = Auth.session;
+  if (!s) return;
+
+  headerRoleBadge.textContent = ROLE_LABELS[s.role] || s.role;
+  headerRoleBadge.className   = 'header-role-badge role-' + s.role;
+  headerRoleBadge.hidden      = false;
+  headerOpPill.textContent    = s.company + ' · ' + s.operatorId;
+  headerOpPill.hidden         = false;
+  logoutBtn.hidden            = false;
+
+  const allowed = ROLE_TABS[s.role] || [];
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.style.display = allowed.includes(tab.dataset.view) ? '' : 'none';
+  });
+
+  $('view-licenses').style.display = s.role === 'government' ? '' : 'none';
+
+  buildEventPills();
+  retagBtn.style.display = s.role === 'revalidation' ? '' : 'none';
+  cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
+
+  showView('scan');
+  renderCylinders();
+  renderAlerts();
+  renderReports();
+  if (s.role === 'government') renderLicenses();
 }
 
-function getStatusClass(status) {
-  const map = { available: 'status-available', 'in-use': 'status-in-use', condemned: 'status-condemned', registered: 'status-registered' };
-  return map[status] || 'status-unknown';
+function buildEventPills() {
+  scanEventBar.innerHTML = '';
+  const role   = Auth.session ? Auth.session.role : null;
+  const events = ROLE_EVENTS[role] || [];
+  events.forEach((ev, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'event-pill' + (i === 0 ? ' active' : '');
+    btn.dataset.type = ev.type;
+    btn.textContent  = ev.label;
+    btn.type         = 'button';
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.event-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      State.activeEventType = ev.type;
+    });
+    scanEventBar.appendChild(btn);
+  });
+  State.activeEventType = events.length > 0 ? events[0].type : null;
 }
 
-function getStatusLabel(status) {
-  const map = { available: 'Available', 'in-use': 'In Use', condemned: 'Condemned', registered: 'Registered' };
-  return map[status] || status || 'Unknown';
+// ── View routing ──────────────────────────────────────────────────────────────
+
+function showView(name) {
+  const s = Auth.session;
+  if (!s) return;
+  const allowed = ROLE_TABS[s.role] || [];
+  if (!allowed.includes(name)) name = allowed[0] || 'scan';
+  State.activeView = name;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const viewEl = $('view-' + name);
+  if (viewEl) viewEl.classList.add('active');
+  const tabEl = document.querySelector(`.nav-tab[data-view="${name}"]`);
+  if (tabEl) tabEl.classList.add('active');
+  headerSubtitle.textContent = { scan:'Scanning', cylinders:'Cylinders', alerts:'Alerts', reports:'Reports', licenses:'Licenses' }[name] || name;
+  if (name === 'cylinders') renderCylinders();
+  if (name === 'alerts')    renderAlerts();
+  if (name === 'reports')   renderReports();
+  if (name === 'licenses')  renderLicenses();
 }
 
-function eventTypeIcon(type) {
-  const map = { filled:'🔵', dispatched:'🟣', delivered:'🟢', returned:'🟡', inspected:'🩵', condemned:'🔴', registered:'⚪' };
-  return map[type] || '⚫';
-}
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => showView(tab.dataset.view));
+});
 
-function eventTypeClass(type) {
-  const map = { filled:'evt-filled', dispatched:'evt-dispatched', delivered:'evt-delivered', returned:'evt-returned', inspected:'evt-inspected', condemned:'evt-condemned', registered:'evt-registered' };
-  return map[type] || '';
-}
+// ── Scanner input (HID) ───────────────────────────────────────────────────────
 
-function eventTypeBgClass(type) {
-  const map = { filled:'evt-bg-filled', dispatched:'evt-bg-dispatched', delivered:'evt-bg-delivered', returned:'evt-bg-returned', inspected:'evt-bg-inspected', condemned:'evt-bg-condemned', registered:'evt-bg-registered' };
-  return map[type] || 'evt-bg-registered';
-}
-
-function cylinderIcon(cyl) {
-  if (cyl.status === 'condemned') return '🚫';
-  if (cyl.status === 'in-use')    return '🔵';
-  return '🟢';
-}
-
-function cylinderIconBg(cyl) {
-  if (cyl.status === 'condemned') return 'rgba(239,68,68,0.12)';
-  if (cyl.status === 'in-use')    return 'rgba(59,130,246,0.12)';
-  return 'rgba(16,185,129,0.12)';
-}
-
-// ── UNSYNCED BADGE ────────────────────────────────────────────────────────────
-
-async function refreshUnsyncedBadge() {
-  const events   = await DB.getAll('events');
-  const unsynced = events.filter(e => !e.synced).length;
-  const badge    = document.getElementById('unsynced-badge');
-  badge.textContent = unsynced;
-  badge.style.display = unsynced > 0 ? '' : 'none';
-}
-
-// ── SCANNER MODULE ────────────────────────────────────────────────────────────
-
-const scannerInput = document.getElementById('scanner-input');
 let inputBuffer = '';
 let flushTimer  = null;
 
 function flushBuffer() {
-  const data = inputBuffer.replace(/[\r\n]/g, '').trim();
+  const data = inputBuffer.trim();
   inputBuffer = '';
-  if (data) onScan(data);
+  if (data) handleScan(data);
 }
 
 scannerInput.addEventListener('input', () => {
@@ -438,890 +525,701 @@ scannerInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Keep scanner input focused when app is focused
+// ── Focus management ──────────────────────────────────────────────────────────
+
+function setFocused(yes) {
+  State.focused = yes;
+  if (yes) {
+    scannerInput.focus();
+    focusBtn.classList.add('active');
+    focusIcon.textContent  = '🟢';
+    focusLabel.textContent = 'Scanning active — tap to pause';
+    statusBadge.textContent = 'Active';
+    statusBadge.className   = 'badge badge-active';
+  } else {
+    scannerInput.blur();
+    focusBtn.classList.remove('active');
+    focusIcon.textContent  = '📡';
+    focusLabel.textContent = 'Tap to start scanning';
+    statusBadge.textContent = 'Idle';
+    statusBadge.className   = 'badge badge-idle';
+  }
+}
+
+focusBtn.addEventListener('click', () => setFocused(!State.focused));
+
 document.addEventListener('click', (e) => {
-  const ignored = ['modal-overlay', 'form-input', 'btn', 'event-pill', 'filter-pill',
-                    'nav-btn', 'focus-btn', 'modal-close', 'link-btn', 'pill'];
-  const isIgnored = ignored.some(cls => e.target.classList.contains(cls) || e.target.closest('.' + cls));
-  if (State.focused && !isIgnored) {
+  if (!State.focused) return;
+  if (!e.target.closest('.modal-backdrop, .login-overlay, #app-nav, .btn, button, input, select, textarea')) {
     scannerInput.focus();
   }
 });
 
-// ── VIEW: SCAN ────────────────────────────────────────────────────────────────
+scannerInput.addEventListener('blur', () => {
+  if (State.focused) { statusBadge.textContent = 'Unfocused'; statusBadge.className = 'badge badge-scanning'; }
+});
+scannerInput.addEventListener('focus', () => {
+  if (State.focused) { statusBadge.textContent = 'Active'; statusBadge.className = 'badge badge-active'; }
+});
 
-function renderScanView() {
-  // Event type pills
-  document.querySelectorAll('#event-type-pills .event-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.type === State.selectedEventType);
-    btn.addEventListener('click', () => {
-      State.selectedEventType = btn.dataset.type;
-      State.batchEventType    = btn.dataset.type;
-      document.querySelectorAll('#event-type-pills .event-pill').forEach(b =>
-        b.classList.toggle('active', b.dataset.type === State.selectedEventType)
-      );
-    });
-  });
+// ── Scan handler ──────────────────────────────────────────────────────────────
 
-  // Batch toggle
-  const batchToggle    = document.getElementById('batch-toggle');
-  const batchSubmitBtn = document.getElementById('batch-submit-btn');
-  const batchSection   = document.getElementById('batch-list-section');
+async function handleScan(tagId) {
+  if (!Auth.session) return;
+  if (State.retagStep) { handleRetagScan(tagId); return; }
+  if (State.activeView !== 'scan') return;
 
-  batchToggle.checked = State.batchMode;
-  batchToggle.addEventListener('change', () => {
-    State.batchMode  = batchToggle.checked;
-    State.batchItems = [];
-    renderBatchList();
-    batchSubmitBtn.style.display = State.batchMode ? '' : 'none';
-    batchSection.style.display   = State.batchMode ? '' : 'none';
-    updateBatchCount();
-  });
+  const ts = nowISO();
+  lastScanCard.hidden = false;
+  lastScanTime.textContent = formatTime(ts);
+  lastScanTag.textContent  = tagId;
+  lastScanResult.className = 'last-scan-result';
+  lastScanResult.textContent = 'Looking up…';
 
-  batchSubmitBtn.addEventListener('click', submitBatch);
-  document.getElementById('batch-clear-btn').addEventListener('click', () => {
-    State.batchItems = [];
-    renderBatchList();
-    updateBatchCount();
-  });
+  const cyl = await txGet('cylinders', tagId);
 
-  // Focus button
-  const focusBtn   = document.getElementById('focus-btn');
-  const focusIcon  = document.getElementById('focus-icon');
-  const focusLabel = document.getElementById('focus-label');
-
-  focusBtn.addEventListener('click', () => {
-    State.focused = !State.focused;
-    if (State.focused) {
-      scannerInput.focus();
-      focusBtn.classList.add('active');
-      focusIcon.textContent  = '🟢';
-      focusLabel.textContent = 'Scanning active — tap to pause';
+  if (!cyl) {
+    if (Auth.can('register')) {
+      lastScanResult.className   = 'last-scan-result warning';
+      lastScanResult.textContent = 'Unknown tag — opening registration…';
+      openRegisterModal(tagId);
+    } else if (Auth.session.role === 'government') {
+      lastScanResult.className   = 'last-scan-result error';
+      lastScanResult.textContent = 'Tag not registered. Contact LPGMC to register.';
     } else {
-      scannerInput.blur();
-      focusBtn.classList.remove('active');
-      focusIcon.textContent  = '⌨️';
-      focusLabel.textContent = 'Tap to start scanning';
+      lastScanResult.className   = 'last-scan-result error';
+      lastScanResult.textContent = 'Tag not registered.';
     }
-  });
-}
+    return;
+  }
 
-function updateBatchCount() {
-  const badge = document.getElementById('batch-count-badge');
-  if (badge) badge.textContent = State.batchItems.length;
-}
-
-function renderBatchList() {
-  const ul = document.getElementById('batch-list');
-  if (!ul) return;
-  ul.innerHTML = '';
-  State.batchItems.forEach((item, idx) => {
-    const li = document.createElement('li');
-    li.className = 'batch-item' + (item.isDuplicate ? ' duplicate' : '');
-    li.innerHTML = `
-      <div class="batch-item-index">${idx + 1}</div>
-      <div class="batch-item-body">
-        <div class="batch-item-serial">${escapeHtml(item.serial || 'Unknown')}</div>
-        <div class="batch-item-id">${escapeHtml(item.tagId)}</div>
-        ${item.isDuplicate ? '<div class="batch-dup-label">⚠ Duplicate scan</div>' : ''}
-      </div>
-    `;
-    ul.appendChild(li);
-  });
-}
-
-async function onScan(tagId) {
-  tagId = tagId.trim();
-  if (!tagId) return;
-
-  const type = detectType(tagId);
-  let cylinder = null;
-
-  if (type === 'rfid') {
-    cylinder = await DB.get('cylinders', tagId);
-  } else {
-    // barcode — look up by serial
-    const all = await DB.getAll('cylinders');
-    cylinder  = all.find(c => c.serial.toLowerCase() === tagId.toLowerCase()) || null;
+  if (Auth.session.role === 'lpgmc' && cyl.company !== Auth.session.company) {
+    lastScanResult.className   = 'last-scan-result error';
+    lastScanResult.textContent = `Cylinder belongs to ${escapeHtml(cyl.company)} — not your company.`;
+    return;
   }
 
   if (State.batchMode) {
-    // Check duplicate
-    const isDuplicate = State.batchItems.some(i => i.tagId === tagId);
-    State.batchItems.push({
-      tagId,
-      cylinderId: cylinder ? cylinder.id   : null,
-      serial:     cylinder ? cylinder.serial : tagId,
-      isDuplicate,
-      found:      !!cylinder,
-    });
-    renderBatchList();
-    updateBatchCount();
-
-    const batchSection = document.getElementById('batch-list-section');
-    batchSection.style.display = '';
-    if (isDuplicate) {
-      showSnackbar(`⚠ Duplicate: ${cylinder ? cylinder.serial : tagId}`);
+    const already = State.batchQueue.find(b => b.id === cyl.id);
+    if (already) {
+      lastScanResult.className   = 'last-scan-result warning';
+      lastScanResult.textContent = `${escapeHtml(cyl.serial)} already in batch queue.`;
     } else {
-      showSnackbar(cylinder ? `Added: ${cylinder.serial}` : `Unknown tag added`);
+      State.batchQueue.push({ id: cyl.id, serial: cyl.serial, timestamp: ts });
+      lastScanResult.className   = 'last-scan-result success';
+      lastScanResult.textContent = `${escapeHtml(cyl.serial)} added to batch.`;
+      renderBatchQueue();
     }
-    return;
+  } else {
+    await commitScanEvent(cyl, ts);
   }
+}
 
-  // Single-scan mode
-  if (!cylinder) {
-    showLastScan({ tagId, found: false });
-    State.pendingRegisterTag = tagId;
-    setTimeout(() => openRegisterModal(tagId), 400);
-    return;
-  }
+async function commitScanEvent(cyl, timestamp, overrideType) {
+  const eventType = overrideType || State.activeEventType;
+  if (!eventType) { showSnackbar('Select an event type first.', 'error'); return; }
 
-  // Log the event
+  const session = Auth.session;
   const event = {
-    id:         makeId(),
-    cylinderId: cylinder.id,
-    eventType:  State.selectedEventType,
-    operatorId: State.operator || 'Unknown',
-    timestamp:  new Date().toISOString(),
-    location:   State.geo ? { lat: State.geo.lat, lng: State.geo.lng } : null,
-    batchId:    null,
-    synced:     false,
+    cylinderId: cyl.id,
+    type:       eventType,
+    timestamp:  timestamp || nowISO(),
+    operatorId: session.operatorId,
+    company:    session.company,
+    notes:      '',
   };
-  await DB.put('events', event);
 
-  // Update cylinder status
-  if (State.selectedEventType === 'filled') {
-    cylinder.fillCount = (cylinder.fillCount || 0) + 1;
-    cylinder.status    = 'available';
-  } else if (State.selectedEventType === 'dispatched') {
-    cylinder.status = 'in-use';
-  } else if (State.selectedEventType === 'delivered') {
-    cylinder.status = 'in-use';
-  } else if (State.selectedEventType === 'returned') {
-    cylinder.status = 'available';
-  } else if (State.selectedEventType === 'condemned') {
-    cylinder.status = 'condemned';
+  if (State.gpsEnabled && State.gpsCoords) {
+    event.lat = State.gpsCoords.latitude;
+    event.lng = State.gpsCoords.longitude;
   }
-  await DB.put('cylinders', cylinder);
 
-  showLastScan({ tagId, found: true, cylinder, eventType: State.selectedEventType });
-  await refreshUnsyncedBadge();
+  await txPut('events', event);
+
+  const updatedCyl = Object.assign({}, cyl);
+  if (eventType === 'refilled') {
+    updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
+    if (updatedCyl.fillCount >= updatedCyl.maxFills) updatedCyl.status = 'condemned';
+  } else if (eventType === 'sent-revalidation' || eventType === 'received-damaged') {
+    updatedCyl.status = 'revalidation';
+  } else if (eventType === 'revalidated' || eventType === 'returned-lpgmc') {
+    updatedCyl.status = 'available';
+    updatedCyl.fillCount = 0;
+  } else if (eventType === 'shipped') {
+    updatedCyl.status = 'in-use';
+  } else if (eventType === 'received-empty') {
+    updatedCyl.status = 'available';
+  }
+  await txPut('cylinders', updatedCyl);
+
+  lastScanCard.hidden = false;
+  lastScanTime.textContent   = formatTime(event.timestamp);
+  lastScanTag.textContent    = cyl.id;
+  lastScanResult.className   = 'last-scan-result success';
+  lastScanResult.textContent = `${escapeHtml(cyl.serial)} — ${eventType} recorded.`;
+
+  State.scanEvents.unshift({ ...event, serial: cyl.serial });
+  renderScanEvent(State.scanEvents[0], true);
+  eventsEmpty.style.display = 'none';
+  showSnackbar(`${cyl.serial}: ${eventType}`, 'success');
 }
 
-function showLastScan({ tagId, found, cylinder, eventType }) {
-  const area = document.getElementById('last-scan-area');
-  area.style.display = '';
+// ── Scan view rendering ───────────────────────────────────────────────────────
 
-  if (!found) {
-    area.className = 'last-scan-area scan-unknown';
-    area.innerHTML = `
-      <div class="last-scan-tag">${escapeHtml(tagId)}</div>
-      <div class="last-scan-serial">Unknown Tag</div>
-      <div class="last-scan-status">Not found in database</div>
-      <div class="last-scan-event">Opening registration form…</div>
-    `;
-    return;
-  }
-
-  const alertList = getCylinderAlerts(cylinder);
-  const hasAlerts  = alertList.length > 0;
-
-  area.className = 'last-scan-area scan-found';
-  area.innerHTML = `
-    <div class="last-scan-tag">${escapeHtml(tagId)}</div>
-    <div class="last-scan-serial">${escapeHtml(cylinder.serial)}</div>
-    <div class="last-scan-status">
-      <span class="status-badge ${getStatusClass(cylinder.status)}">${getStatusLabel(cylinder.status)}</span>
-      &nbsp; Fills: ${cylinder.fillCount}/${cylinder.maxFills}
-    </div>
-    <div class="last-scan-event">
-      ${eventTypeIcon(eventType)} Logged as <strong>${eventType}</strong>
-      ${hasAlerts ? '<br>⚠ ' + alertList.map(a => escapeHtml(a.label)).join(' · ') : ''}
-    </div>
-  `;
-
-  // Tap to open passport
-  area.style.cursor = 'pointer';
-  area.onclick = () => openCylinderModal(cylinder.id);
+function renderScanEvent(ev, prepend = false) {
+  const li = document.createElement('li');
+  li.className = 'scan-event-item';
+  const evClass = 'evt-' + ev.type;
+  const label = (ROLE_EVENTS[Auth.session ? Auth.session.role : 'lpgmc'] || []).find(r => r.type === ev.type)?.label || ev.type;
+  let meta = formatDateTime(ev.timestamp);
+  if (ev.operatorId) meta += ` · ${escapeHtml(ev.operatorId)}`;
+  if (ev.lat) meta += ` · 📍${ev.lat.toFixed(4)},${ev.lng.toFixed(4)}`;
+  li.innerHTML = `
+    <span class="event-type-badge ${escapeHtml(evClass)}">${escapeHtml(label)}</span>
+    <div class="event-body">
+      <div class="event-serial">${escapeHtml(ev.serial || ev.cylinderId)}</div>
+      <div class="event-meta">${meta}</div>
+    </div>`;
+  if (prepend) eventsList.prepend(li);
+  else         eventsList.append(li);
 }
 
-async function submitBatch() {
-  if (State.batchItems.length === 0) {
-    showSnackbar('Batch is empty');
-    return;
-  }
-
-  const batchId  = makeId();
-  const results  = [];
-  const eventType = State.batchEventType;
-
-  for (const item of State.batchItems) {
-    if (item.isDuplicate) {
-      results.push({ ...item, status: 'skip', note: 'Duplicate — skipped' });
-      continue;
-    }
-    if (!item.found || !item.cylinderId) {
-      results.push({ ...item, status: 'warn', note: 'Unknown tag — not logged' });
-      continue;
-    }
-
-    const cylinder = await DB.get('cylinders', item.cylinderId);
-    if (!cylinder) {
-      results.push({ ...item, status: 'warn', note: 'Cylinder not found' });
-      continue;
-    }
-
-    const event = {
-      id:         makeId(),
-      cylinderId: cylinder.id,
-      eventType,
-      operatorId: State.operator || 'Unknown',
-      timestamp:  new Date().toISOString(),
-      location:   State.geo ? { lat: State.geo.lat, lng: State.geo.lng } : null,
-      batchId,
-      synced:     false,
-    };
-    await DB.put('events', event);
-
-    // Update cylinder
-    if (eventType === 'filled') {
-      cylinder.fillCount = (cylinder.fillCount || 0) + 1;
-      cylinder.status    = 'available';
-    } else if (eventType === 'dispatched' || eventType === 'delivered') {
-      cylinder.status = 'in-use';
-    } else if (eventType === 'returned') {
-      cylinder.status = 'available';
-    } else if (eventType === 'condemned') {
-      cylinder.status = 'condemned';
-    }
-    await DB.put('cylinders', cylinder);
-    results.push({ ...item, status: 'ok', note: `Logged as ${eventType}` });
-  }
-
-  // Clear batch
-  State.batchItems = [];
-  State.batchMode  = false;
-  const batchToggle = document.getElementById('batch-toggle');
-  if (batchToggle) batchToggle.checked = false;
-  const batchSection = document.getElementById('batch-list-section');
-  if (batchSection) batchSection.style.display = 'none';
-  const batchSubmitBtn = document.getElementById('batch-submit-btn');
-  if (batchSubmitBtn) batchSubmitBtn.style.display = 'none';
-  renderBatchList();
-  updateBatchCount();
-
-  await refreshUnsyncedBadge();
-  showBatchSummary(results, eventType);
-}
-
-// ── VIEW: CYLINDERS ───────────────────────────────────────────────────────────
-
-async function renderCylindersView() {
-  const cylinders = await DB.getAll('cylinders');
-  const events    = await DB.getAll('events');
-
-  // Index last event per cylinder
-  const lastEventMap = {};
-  events.forEach(ev => {
-    const prev = lastEventMap[ev.cylinderId];
-    if (!prev || ev.timestamp > prev.timestamp) lastEventMap[ev.cylinderId] = ev;
-  });
-
-  let filtered = cylinders;
-
-  // Filter
-  if (State.cylFilter !== 'all') {
-    filtered = filtered.filter(c => c.status === State.cylFilter);
-  }
-
-  // Search
-  if (State.cylSearch) {
-    const q = State.cylSearch.toLowerCase();
-    filtered = filtered.filter(c =>
-      c.serial.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
-    );
-  }
-
-  // Sort: condemned last, then by serial
-  filtered.sort((a, b) => {
-    if (a.status === 'condemned' && b.status !== 'condemned') return 1;
-    if (b.status === 'condemned' && a.status !== 'condemned') return -1;
-    return a.serial.localeCompare(b.serial);
-  });
-
-  const ul = document.getElementById('cyl-list');
-  ul.innerHTML = '';
-
-  if (filtered.length === 0) {
-    ul.innerHTML = `<li style="padding:40px 16px;text-align:center;color:var(--dim);font-size:14px;">No cylinders found</li>`;
-    return;
-  }
-
-  filtered.forEach(cyl => {
-    const lastEv  = lastEventMap[cyl.id];
-    const alerts  = getCylinderAlerts(cyl);
-    const pct     = Math.round(cyl.fillCount / cyl.maxFills * 100);
-
+function renderBatchQueue() {
+  batchQueueSection.hidden = State.batchQueue.length === 0;
+  batchCount.textContent   = State.batchQueue.length;
+  batchList.innerHTML = '';
+  State.batchQueue.forEach((item, idx) => {
     const li = document.createElement('li');
-    li.className = 'cyl-item';
     li.innerHTML = `
-      <div class="cyl-item-icon" style="background:${cylinderIconBg(cyl)}">${cylinderIcon(cyl)}</div>
-      <div class="cyl-item-body">
-        <div class="cyl-item-serial">${escapeHtml(cyl.serial)}
-          ${alerts.length ? ' <span style="color:var(--amber);font-size:13px;">⚠</span>' : ''}
-        </div>
-        <div class="cyl-item-meta">
-          <span class="status-badge ${getStatusClass(cyl.status)}">${getStatusLabel(cyl.status)}</span>
-          ${lastEv ? `<span>Last: ${eventTypeIcon(lastEv.eventType)} ${lastEv.eventType} ${fmtDateShort(lastEv.timestamp)}</span>` : ''}
-        </div>
-      </div>
-      <div class="cyl-item-right">
-        <div class="cyl-fill-pct">${cyl.fillCount}/${cyl.maxFills} fills</div>
-        <div class="cyl-fill-pct">${pct}%</div>
-      </div>
-      <div class="cyl-item-chevron">›</div>
-    `;
-    li.addEventListener('click', () => openCylinderModal(cyl.id));
-    ul.appendChild(li);
+      <span class="tag-serial">${escapeHtml(item.serial)}</span>
+      <span class="tag-id">${escapeHtml(item.id)}</span>
+      <button class="tag-remove" data-idx="${idx}" type="button" title="Remove">✕</button>`;
+    li.querySelector('.tag-remove').addEventListener('click', () => {
+      State.batchQueue.splice(idx, 1);
+      renderBatchQueue();
+    });
+    batchList.appendChild(li);
   });
 }
 
-function initCylindersView() {
-  const searchInput = document.getElementById('cyl-search');
-  searchInput.value = State.cylSearch;
-  searchInput.addEventListener('input', () => {
-    State.cylSearch = searchInput.value;
-    renderCylindersView();
-  });
+batchModeToggle.addEventListener('change', () => {
+  State.batchMode = batchModeToggle.checked;
+  if (!State.batchMode) { State.batchQueue = []; renderBatchQueue(); }
+});
 
-  document.querySelectorAll('#cyl-filter-pills .filter-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === State.cylFilter);
-    btn.addEventListener('click', () => {
-      State.cylFilter = btn.dataset.filter;
-      document.querySelectorAll('#cyl-filter-pills .filter-pill').forEach(b =>
-        b.classList.toggle('active', b.dataset.filter === State.cylFilter)
-      );
-      renderCylindersView();
-    });
-  });
-}
-
-// ── VIEW: ALERTS ──────────────────────────────────────────────────────────────
-
-async function renderAlertsView() {
-  const cylinders  = await DB.getAll('cylinders');
-  const container  = document.getElementById('alerts-container');
-  container.innerHTML = '';
-
-  // Build alert groups
-  const groups = {
-    'Overdue Inspection': [],
-    'Max Fills':          [],
-    'Other Issues':       [],
-  };
-
-  cylinders.forEach(cyl => {
-    const alerts = getCylinderAlerts(cyl);
-    alerts.forEach(alert => {
-      if (alert.type === 'overdue-hydro') {
-        groups['Overdue Inspection'].push({ cyl, alert });
-      } else if (alert.type === 'max-fills' || alert.type === 'near-max' || alert.type === 'condemned') {
-        groups['Max Fills'].push({ cyl, alert });
-      } else {
-        groups['Other Issues'].push({ cyl, alert });
-      }
-    });
-  });
-
-  let totalAlerts = 0;
-  Object.values(groups).forEach(g => totalAlerts += g.length);
-  updateAlertsBadge(totalAlerts);
-
-  if (totalAlerts === 0) {
-    container.innerHTML = `
-      <div class="alerts-empty">
-        <div class="alerts-empty-icon">✅</div>
-        <p>No active alerts.<br>All cylinders are within normal parameters.</p>
-      </div>
-    `;
-    return;
+batchCommitBtn.addEventListener('click', async () => {
+  if (!State.batchQueue.length) return;
+  const items = [...State.batchQueue];
+  State.batchQueue = [];
+  renderBatchQueue();
+  let count = 0;
+  for (const item of items) {
+    const cyl = await txGet('cylinders', item.id);
+    if (cyl) { await commitScanEvent(cyl, item.timestamp); count++; }
   }
+  showSnackbar(`Committed ${count} events.`, 'success');
+});
 
-  Object.entries(groups).forEach(([groupName, items]) => {
-    if (items.length === 0) return;
+batchClearBtn.addEventListener('click', () => { State.batchQueue = []; renderBatchQueue(); });
 
-    const title = document.createElement('div');
-    title.className = 'alerts-group-title';
-    title.textContent = `${groupName} (${items.length})`;
-    container.appendChild(title);
+gpsToggle.addEventListener('change', async () => {
+  State.gpsEnabled = gpsToggle.checked;
+  if (State.gpsEnabled) {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        pos => { State.gpsCoords = pos.coords; showSnackbar('GPS acquired.', 'success'); },
+        ()  => { State.gpsEnabled = false; gpsToggle.checked = false; showSnackbar('GPS unavailable.', 'error'); }
+      );
+    } else {
+      State.gpsEnabled = false; gpsToggle.checked = false;
+      showSnackbar('GPS not supported.', 'error');
+    }
+  }
+});
 
-    items.forEach(({ cyl, alert }) => {
-      const card = document.createElement('div');
-      card.className = `alert-card alert-${alert.severity}`;
-      card.innerHTML = `
-        <div class="alert-card-inner">
-          <div class="alert-icon">${alert.severity === 'critical' ? '🚨' : '⚠️'}</div>
-          <div class="alert-body">
-            <div class="alert-title">${escapeHtml(cyl.serial)}</div>
-            <div class="alert-subtitle">${escapeHtml(alert.label)}</div>
-          </div>
-          <div style="color:var(--dim);font-size:18px;">›</div>
-        </div>
-      `;
-      card.addEventListener('click', () => openCylinderModal(cyl.id));
-      container.appendChild(card);
-    });
-  });
-}
+exportEventsBtn.addEventListener('click', () => {
+  if (!State.scanEvents.length) { showSnackbar('No events to export.'); return; }
+  const header = 'cylinderId,serial,type,timestamp,operatorId,company,lat,lng\n';
+  const rows = State.scanEvents.map(ev =>
+    `"${ev.cylinderId}","${ev.serial||''}","${ev.type}","${ev.timestamp}","${ev.operatorId||''}","${ev.company||''}","${ev.lat||''}","${ev.lng||''}"`);
+  downloadCSV('lpg-events-' + new Date().toISOString().slice(0,10) + '.csv', header + rows.join('\n'));
+});
 
-function updateAlertsBadge(count) {
-  const badge = document.getElementById('alerts-nav-badge');
-  badge.textContent = count;
-  badge.style.display = count > 0 ? '' : 'none';
-}
-
-// ── VIEW: REPORTS ─────────────────────────────────────────────────────────────
-
-async function renderReportsView() {
-  const cylinders = await DB.getAll('cylinders');
-  const events    = await DB.getAll('events');
-  const today     = new Date('2026-06-05').toDateString();
-  const eventsToday = events.filter(e => new Date(e.timestamp).toDateString() === today);
-  const unsynced    = events.filter(e => !e.synced).length;
-
-  const totalAlerts = cylinders.reduce((acc, c) => acc + getCylinderAlerts(c).length, 0);
-
-  const grid = document.getElementById('stats-grid');
-  grid.innerHTML = `
-    <div class="stat-card stat-accent-blue">
-      <div class="stat-label">Total Cylinders</div>
-      <div class="stat-value">${cylinders.length}</div>
-      <div class="stat-sub">${cylinders.filter(c=>c.status==='available').length} available</div>
-    </div>
-    <div class="stat-card stat-accent-green">
-      <div class="stat-label">Events Today</div>
-      <div class="stat-value">${eventsToday.length}</div>
-      <div class="stat-sub">of ${events.length} total</div>
-    </div>
-    <div class="stat-card stat-accent-amber">
-      <div class="stat-label">Unsynced</div>
-      <div class="stat-value">${unsynced}</div>
-      <div class="stat-sub">pending upload</div>
-    </div>
-    <div class="stat-card stat-accent-red">
-      <div class="stat-label">Active Alerts</div>
-      <div class="stat-value">${totalAlerts}</div>
-      <div class="stat-sub">${cylinders.filter(c=>c.status==='condemned').length} condemned</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">In Use</div>
-      <div class="stat-value">${cylinders.filter(c=>c.status==='in-use').length}</div>
-      <div class="stat-sub">cylinders dispatched</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Total Events</div>
-      <div class="stat-value">${events.length}</div>
-      <div class="stat-sub">${events.filter(e=>e.synced).length} synced</div>
-    </div>
-  `;
-
-  // Wire report buttons once
-  const btnExportEvts  = document.getElementById('btn-export-events');
-  const btnExportCyls  = document.getElementById('btn-export-cylinders');
-  const btnSync        = document.getElementById('btn-sync');
-  const btnPrint       = document.getElementById('btn-print');
-
-  // Replace to remove old listeners
-  btnExportEvts.replaceWith(btnExportEvts.cloneNode(true));
-  btnExportCyls.replaceWith(btnExportCyls.cloneNode(true));
-  btnSync.replaceWith(btnSync.cloneNode(true));
-  btnPrint.replaceWith(btnPrint.cloneNode(true));
-
-  document.getElementById('btn-export-events').addEventListener('click',     exportEventsCSV);
-  document.getElementById('btn-export-cylinders').addEventListener('click',  exportCylindersCSV);
-  document.getElementById('btn-sync').addEventListener('click',              simulateSync);
-  document.getElementById('btn-print').addEventListener('click',             () => window.print());
-}
-
-async function exportEventsCSV() {
-  const events = await DB.getAll('events');
-  const header = 'id,cylinderId,eventType,operatorId,timestamp,lat,lng,batchId,synced\n';
-  const rows   = events.map(e => [
-    e.id, e.cylinderId, e.eventType, e.operatorId, e.timestamp,
-    e.location ? e.location.lat : '',
-    e.location ? e.location.lng : '',
-    e.batchId || '', e.synced ? 'true' : 'false',
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-
-  downloadCSV(header + rows, `lpg-events-${new Date().toISOString().slice(0,10)}.csv`);
-  showSnackbar(`Exported ${events.length} events`);
-}
-
-async function exportCylindersCSV() {
-  const cylinders = await DB.getAll('cylinders');
-  const header    = 'id,serial,manufactureDate,tareWeight,capacity,maxFills,fillCount,lastHydroTest,status,notes\n';
-  const rows      = cylinders.map(c => [
-    c.id, c.serial, c.manufactureDate, c.tareWeight, c.capacity,
-    c.maxFills, c.fillCount, c.lastHydroTest, c.status, c.notes || '',
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-
-  downloadCSV(header + rows, `lpg-cylinders-${new Date().toISOString().slice(0,10)}.csv`);
-  showSnackbar(`Exported ${cylinders.length} cylinders`);
-}
-
-function downloadCSV(content, filename) {
-  const blob = new Blob([content], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function simulateSync() {
-  const syncStatus = document.getElementById('sync-status');
-  syncStatus.style.display = '';
-  syncStatus.className     = 'sync-status syncing';
-  syncStatus.textContent   = '⏳ Syncing events to server…';
-
-  await new Promise(r => setTimeout(r, 1500));
-
-  const events  = await DB.getAll('events');
-  const updated = events.map(e => ({ ...e, synced: true }));
-  await DB.putAll('events', updated);
-
-  syncStatus.className   = 'sync-status synced';
-  syncStatus.textContent = `✅ Synced ${updated.length} events successfully`;
-
-  await refreshUnsyncedBadge();
-  await renderReportsView();
-
-  setTimeout(() => { syncStatus.style.display = 'none'; }, 4000);
-}
-
-// ── MODAL: CYLINDER PASSPORT ──────────────────────────────────────────────────
-
-async function openCylinderModal(cylinderId) {
-  const cyl    = await DB.get('cylinders', cylinderId);
-  if (!cyl) { showSnackbar('Cylinder not found'); return; }
-
-  const events = await DB.getByIndex('events', 'cylinderId', cylinderId);
-  events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // newest first
-
-  const alerts = getCylinderAlerts(cyl);
-  const pct    = Math.round(cyl.fillCount / cyl.maxFills * 100);
-  const hydro  = cyl.lastHydroTest ? new Date(cyl.lastHydroTest) : null;
-  const hydroOverdue = hydro && hydro < HYDRO_CUTOFF;
-
-  const alertsHtml = alerts.map(a => `
-    <div class="passport-alert ${a.severity}">
-      <span>${a.severity === 'critical' ? '🚨' : '⚠️'}</span>
-      <span>${escapeHtml(a.label)}</span>
-    </div>
-  `).join('');
-
-  const timelineHtml = events.map(ev => `
-    <div class="timeline-item">
-      <div class="timeline-dot ${eventTypeBgClass(ev.eventType)}"></div>
-      <div class="timeline-item-header">
-        <span class="timeline-type ${eventTypeClass(ev.eventType)}">${eventTypeIcon(ev.eventType)} ${ev.eventType}</span>
-        <span class="timeline-ts">${fmtDateTime(ev.timestamp)}</span>
-      </div>
-      <div class="timeline-meta">
-        <span>👤 ${escapeHtml(ev.operatorId)}</span>
-        ${ev.location ? `<span>📍 ${ev.location.lat.toFixed(4)}, ${ev.location.lng.toFixed(4)}</span>` : ''}
-        ${ev.batchId  ? `<span>📦 Batch</span>` : ''}
-      </div>
-    </div>
-  `).join('');
-
-  const body = document.getElementById('modal-cylinder-body');
-  body.innerHTML = `
-    <div class="passport-header">
-      <div>
-        <div class="passport-serial">${escapeHtml(cyl.serial)}</div>
-        <div class="passport-id">${escapeHtml(cyl.id)}</div>
-      </div>
-      <div>
-        <span class="status-badge ${getStatusClass(cyl.status)}">${getStatusLabel(cyl.status)}</span>
-      </div>
-    </div>
-
-    ${alerts.length ? `<div class="passport-alerts">${alertsHtml}</div>` : ''}
-
-    <div class="passport-grid">
-      <div class="passport-field">
-        <div class="passport-field-label">Manufacture Date</div>
-        <div class="passport-field-value">${fmtDate(cyl.manufactureDate)}</div>
-      </div>
-      <div class="passport-field">
-        <div class="passport-field-label">Capacity</div>
-        <div class="passport-field-value">${cyl.capacity} kg</div>
-      </div>
-      <div class="passport-field">
-        <div class="passport-field-label">Tare Weight</div>
-        <div class="passport-field-value">${cyl.tareWeight} kg</div>
-      </div>
-      <div class="passport-field">
-        <div class="passport-field-label">Fill Count</div>
-        <div class="passport-field-value ${pct >= 100 ? 'danger' : pct >= 90 ? 'warning' : ''}">${cyl.fillCount} / ${cyl.maxFills}</div>
-      </div>
-      <div class="passport-field">
-        <div class="passport-field-label">Max Fills</div>
-        <div class="passport-field-value">${cyl.maxFills}</div>
-      </div>
-      <div class="passport-field">
-        <div class="passport-field-label">Last Hydro Test</div>
-        <div class="passport-field-value ${hydroOverdue ? 'danger' : ''}">${fmtDate(cyl.lastHydroTest)}</div>
-      </div>
-    </div>
-
-    ${cyl.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:var(--bg);border-radius:8px;font-size:13px;color:var(--muted);">${escapeHtml(cyl.notes)}</div>` : ''}
-
-    <div class="timeline-title">Event History (${events.length})</div>
-    <div class="timeline">
-      ${events.length ? timelineHtml : '<div style="color:var(--dim);font-size:13px;">No events recorded</div>'}
-    </div>
-  `;
-
-  openModal('modal-cylinder');
-}
-
-// ── MODAL: REGISTER ───────────────────────────────────────────────────────────
+// ── Register modal ────────────────────────────────────────────────────────────
 
 function openRegisterModal(tagId) {
-  document.getElementById('reg-tag-id').value  = tagId;
-  document.getElementById('reg-serial').value  = '';
-  document.getElementById('reg-mfg-date').value = '';
-  document.getElementById('reg-tare').value     = '14.5';
-  document.getElementById('reg-capacity').value = '12';
-  document.getElementById('reg-maxfills').value = '500';
-  document.getElementById('reg-hydrotest').value = '';
-  document.getElementById('reg-notes').value    = '';
-
-  const submitBtn = document.getElementById('reg-submit-btn');
-  // Remove old listener
-  const newBtn = submitBtn.cloneNode(true);
-  submitBtn.replaceWith(newBtn);
-  newBtn.addEventListener('click', () => submitRegister(tagId));
-
+  regTag.value       = tagId;
+  regSerial.value    = '';
+  regManufDate.value = new Date().toISOString().slice(0,10);
+  regTare.value      = '14.5';
+  regCapacity.value  = '12';
+  regMaxFills.value  = '500';
+  regHydrotest.value = new Date().toISOString().slice(0,10);
+  regNotes.value     = '';
   openModal('modal-register');
 }
 
-async function submitRegister(tagId) {
-  const serial    = document.getElementById('reg-serial').value.trim();
-  const mfgDate   = document.getElementById('reg-mfg-date').value;
-  const tare      = parseFloat(document.getElementById('reg-tare').value)     || 14.5;
-  const capacity  = parseFloat(document.getElementById('reg-capacity').value) || 12;
-  const maxFills  = parseInt(document.getElementById('reg-maxfills').value)   || 500;
-  const hydrotest = document.getElementById('reg-hydrotest').value;
-  const notes     = document.getElementById('reg-notes').value.trim();
-
-  if (!serial) { showSnackbar('Serial number is required'); return; }
-  if (!mfgDate) { showSnackbar('Manufacture date is required'); return; }
-
-  const cylinder = {
-    id:              tagId,
-    serial,
-    manufactureDate: mfgDate,
-    tareWeight:      tare,
-    capacity,
-    maxFills,
+regSubmitBtn.addEventListener('click', async () => {
+  const tagId  = regTag.value.trim();
+  const serial = regSerial.value.trim();
+  if (!serial) { showSnackbar('Serial number is required.', 'error'); return; }
+  const allCyls = await txGetAll('cylinders');
+  if (allCyls.find(c => c.serial === serial)) { showSnackbar('Serial number already exists.', 'error'); return; }
+  const cyl = {
+    id: tagId, serial,
+    company:         Auth.session.company,
+    manufactureDate: regManufDate.value,
+    tareWeight:      parseFloat(regTare.value) || 14.5,
+    capacity:        parseInt(regCapacity.value, 10) || 12,
+    maxFills:        parseInt(regMaxFills.value, 10) || 500,
     fillCount:       0,
-    lastHydroTest:   hydrotest || null,
+    lastHydroTest:   regHydrotest.value,
     status:          'available',
-    notes,
+    notes:           regNotes.value.trim(),
   };
-
-  await DB.put('cylinders', cylinder);
-
-  const event = {
-    id:         makeId(),
-    cylinderId: tagId,
-    eventType:  'registered',
-    operatorId: State.operator || 'Unknown',
-    timestamp:  new Date().toISOString(),
-    location:   State.geo ? { lat: State.geo.lat, lng: State.geo.lng } : null,
-    batchId:    null,
-    synced:     false,
-  };
-  await DB.put('events', event);
-
+  await txPut('cylinders', cyl);
+  const event = { cylinderId: cyl.id, type: 'registered', timestamp: nowISO(), operatorId: Auth.session.operatorId, company: Auth.session.company, notes: 'Newly registered' };
+  await txPut('events', event);
+  State.scanEvents.unshift({ ...event, serial: cyl.serial });
+  renderScanEvent(State.scanEvents[0], true);
+  eventsEmpty.style.display = 'none';
+  lastScanResult.className   = 'last-scan-result success';
+  lastScanResult.textContent = `${serial} registered successfully.`;
   closeModal('modal-register');
-  showSnackbar(`Registered: ${serial}`);
-  await refreshUnsyncedBadge();
-  showLastScan({ tagId, found: true, cylinder, eventType: 'registered' });
-}
-
-// ── MODAL: OPERATOR ───────────────────────────────────────────────────────────
-
-function openOperatorModal() {
-  document.getElementById('op-input').value = State.operator;
-  openModal('modal-operator');
-  setTimeout(() => document.getElementById('op-input').focus(), 300);
-}
-
-function setOperator() {
-  const val = document.getElementById('op-input').value.trim();
-  if (!val) { showSnackbar('Enter an operator ID'); return; }
-  State.operator = val;
-  localStorage.setItem('lpg-operator', val);
-  updateOperatorPill();
-  closeModal('modal-operator');
-  showSnackbar(`Operator set: ${val}`);
-}
-
-function loadOperator() {
-  const saved = localStorage.getItem('lpg-operator');
-  if (saved) {
-    State.operator = saved;
-    updateOperatorPill();
-  }
-}
-
-function updateOperatorPill() {
-  const label = document.getElementById('operator-pill-label');
-  const pill  = document.getElementById('operator-pill');
-  if (State.operator) {
-    label.textContent = State.operator;
-    pill.classList.add('has-operator');
-  } else {
-    label.textContent = 'Set Operator';
-    pill.classList.remove('has-operator');
-  }
-}
-
-// ── MODAL: BATCH SUMMARY ──────────────────────────────────────────────────────
-
-function showBatchSummary(results, eventType) {
-  const ok   = results.filter(r => r.status === 'ok').length;
-  const warn = results.filter(r => r.status === 'warn').length;
-  const skip = results.filter(r => r.status === 'skip').length;
-
-  const listHtml = results.map(r => `
-    <li class="batch-result-item">
-      <div class="batch-result-dot ${r.status}"></div>
-      <div class="batch-result-serial">${escapeHtml(r.serial || r.tagId)}</div>
-      <div class="batch-result-note">${escapeHtml(r.note)}</div>
-    </li>
-  `).join('');
-
-  const body = document.getElementById('modal-batch-body');
-  body.innerHTML = `
-    <div class="batch-summary-stats">
-      <div class="batch-stat">
-        <div class="batch-stat-value ok">${ok}</div>
-        <div class="batch-stat-label">Logged</div>
-      </div>
-      <div class="batch-stat">
-        <div class="batch-stat-value warn">${warn}</div>
-        <div class="batch-stat-label">Unknown</div>
-      </div>
-      <div class="batch-stat">
-        <div class="batch-stat-value skip">${skip}</div>
-        <div class="batch-stat-label">Skipped</div>
-      </div>
-    </div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">
-      Event type: <strong style="color:var(--text)">${eventType}</strong>
-    </div>
-    <ul class="batch-result-list">${listHtml}</ul>
-    <button class="btn btn-primary btn-full" onclick="closeModal('modal-batch')">Done</button>
-  `;
-
-  openModal('modal-batch');
-}
-
-// ── MODALS (generic open/close) ───────────────────────────────────────────────
-
-function openModal(id) {
-  const el = document.getElementById(id);
-  el.style.display = '';
-  el.addEventListener('click', (e) => {
-    if (e.target === el) closeModal(id);
-  }, { once: false });
-}
-
-function closeModal(id) {
-  const el = document.getElementById(id);
-  el.style.display = 'none';
-}
-
-// Wire all modal close buttons
-document.querySelectorAll('.modal-close').forEach(btn => {
-  btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  showSnackbar(`${serial} registered.`, 'success');
+  renderCylinders();
 });
 
-// ── ROUTER ────────────────────────────────────────────────────────────────────
+// ── Cylinders view ────────────────────────────────────────────────────────────
 
-async function showView(name) {
-  State.currentView = name;
+let _cylAllData = [];
 
-  const views = document.querySelectorAll('.view');
-  views.forEach(v => { v.style.display = v.id === `view-${name}` ? '' : 'none'; });
-
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === name);
-  });
-
-  if (name === 'cylinders') {
-    initCylindersView();
-    await renderCylindersView();
-  } else if (name === 'alerts') {
-    await renderAlertsView();
-  } else if (name === 'reports') {
-    await renderReportsView();
+async function renderCylinders() {
+  _cylAllData = await txGetAll('cylinders');
+  if (Auth.session && Auth.session.role === 'lpgmc') {
+    _cylAllData = _cylAllData.filter(c => c.company === Auth.session.company);
   }
-
-  // Re-focus scanner input if on scan view
-  if (name === 'scan' && State.focused) {
-    scannerInput.focus();
-  }
+  applyCylFilters();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+function applyCylFilters() {
+  const q       = cylSearch.value.toLowerCase().trim();
+  const statusF = cylFilterStatus.value;
+  const compF   = cylFilterCompany.value;
+  let data = _cylAllData;
+  if (q)       data = data.filter(c => c.serial.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+  if (statusF) data = data.filter(c => c.status === statusF);
+  if (compF)   data = data.filter(c => c.company === compF);
+  const statuses = { available: 0, 'in-use': 0, condemned: 0, revalidation: 0 };
+  _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
+  cylStats.innerHTML = Object.entries(statuses).map(([k, v]) =>
+    `<div class="stat-chip"><span class="stat-chip-value">${v}</span><span class="stat-chip-label">${k}</span></div>`).join('');
+  cylindersList.innerHTML = '';
+  if (!data.length) { cylindersEmpty.style.display = ''; return; }
+  cylindersEmpty.style.display = 'none';
+  data.forEach(cyl => {
+    const li = document.createElement('li');
+    li.className = 'cylinder-item';
+    const fillPct   = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
+    const fillClass = fillPct >= 95 ? 'crit' : fillPct >= 80 ? 'warn' : '';
+    const dotClass  = 'dot-' + (cyl.status || 'available');
+    const statClass = 'status-' + (cyl.status || 'available');
+    const statLabel = { available:'Available', 'in-use':'In Use', condemned:'Condemned', revalidation:'Revalidation' }[cyl.status] || cyl.status;
+    const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
+    const hydroBadge = hydroDays > 0 ? `<span class="cylinder-meta-item" style="color:var(--red)">Hydro overdue ${hydroDays}d</span>` : '';
+    li.innerHTML = `
+      <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
+      <div class="cylinder-body">
+        <div class="cylinder-serial">${escapeHtml(cyl.serial)}</div>
+        <div class="cylinder-tag">${escapeHtml(cyl.id)}</div>
+        <div class="cylinder-meta">
+          <span class="cylinder-meta-item">${escapeHtml(cyl.company)}</span>
+          <span class="cylinder-meta-item">Fills: ${cyl.fillCount}/${cyl.maxFills}</span>
+          ${hydroBadge}
+        </div>
+      </div>
+      <div class="cylinder-badges">
+        <span class="status-badge ${escapeHtml(statClass)}">${escapeHtml(statLabel)}</span>
+        <div class="fill-bar"><div class="fill-bar-inner ${escapeHtml(fillClass)}" style="width:${fillPct}%"></div></div>
+      </div>`;
+    li.addEventListener('click', () => openPassportModal(cyl.id));
+    cylindersList.appendChild(li);
+  });
+}
+
+cylSearch.addEventListener('input',         applyCylFilters);
+cylFilterStatus.addEventListener('change',  applyCylFilters);
+cylFilterCompany.addEventListener('change', applyCylFilters);
+
+// ── Passport modal ────────────────────────────────────────────────────────────
+
+async function openPassportModal(cylId) {
+  State.passportCylinderId = cylId;
+  const cyl = await txGet('cylinders', cylId);
+  if (!cyl) return;
+  const events = await txGetIndex('events', 'cylinderId', cylId);
+  events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const fillPct   = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
+  const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
+  passportBody.innerHTML = `
+    <div class="passport-section">
+      <div class="passport-section-title">Identity</div>
+      <div class="passport-row"><span class="passport-key">Serial</span><span class="passport-value">${escapeHtml(cyl.serial)}</span></div>
+      <div class="passport-row"><span class="passport-key">RFID Tag</span><span class="passport-value mono">${escapeHtml(cyl.id)}</span></div>
+      <div class="passport-row"><span class="passport-key">Company</span><span class="passport-value">${escapeHtml(cyl.company)}</span></div>
+      <div class="passport-row"><span class="passport-key">Status</span><span class="passport-value">${escapeHtml(cyl.status)}</span></div>
+    </div>
+    <div class="passport-section">
+      <div class="passport-section-title">Specifications</div>
+      <div class="passport-row"><span class="passport-key">Manufacture Date</span><span class="passport-value">${formatDate(cyl.manufactureDate)}</span></div>
+      <div class="passport-row"><span class="passport-key">Tare Weight</span><span class="passport-value">${cyl.tareWeight} kg</span></div>
+      <div class="passport-row"><span class="passport-key">Capacity</span><span class="passport-value">${cyl.capacity} kg</span></div>
+      <div class="passport-row"><span class="passport-key">Max Fills</span><span class="passport-value">${cyl.maxFills}</span></div>
+    </div>
+    <div class="passport-section">
+      <div class="passport-section-title">Operational</div>
+      <div class="passport-row"><span class="passport-key">Fill Count</span><span class="passport-value">${cyl.fillCount} (${fillPct}%)</span></div>
+      <div class="passport-row"><span class="passport-key">Last Hydro Test</span><span class="passport-value" style="${hydroDays > 0 ? 'color:var(--red)' : ''}">${formatDate(cyl.lastHydroTest)}${hydroDays > 0 ? ' ⚠️ Overdue' : ''}</span></div>
+      ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
+    </div>
+    <div class="passport-section">
+      <div class="passport-section-title">Event History (${events.length})</div>
+      <ul class="passport-history">
+        ${events.length ? events.map(ev => `<li><span class="ph-time">${formatDateTime(ev.timestamp)}</span><span class="ph-desc">${escapeHtml(ev.type)}${ev.operatorId ? ' · ' + escapeHtml(ev.operatorId) : ''}${ev.newTagId ? ' → new tag: ' + escapeHtml(ev.newTagId) : ''}${ev.previousTagId ? ' ← prev tag: ' + escapeHtml(ev.previousTagId) : ''}</span></li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
+      </ul>
+    </div>`;
+  openModal('modal-passport');
+}
+
+passportExportBtn.addEventListener('click', async () => {
+  if (!State.passportCylinderId) return;
+  const cyl = await txGet('cylinders', State.passportCylinderId);
+  if (!cyl) return;
+  const events = await txGetIndex('events', 'cylinderId', cyl.id);
+  events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  let text = `LPG Cylinder Passport\n${'='.repeat(40)}\n`;
+  text += `Serial:   ${cyl.serial}\nTag:      ${cyl.id}\nCompany:  ${cyl.company}\nStatus:   ${cyl.status}\n`;
+  text += `Fills:    ${cyl.fillCount}/${cyl.maxFills}\nHydro:    ${cyl.lastHydroTest}\n\nEvents:\n`;
+  events.forEach(ev => { text += `  ${ev.timestamp}  ${ev.type}  ${ev.operatorId || ''}\n`; });
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `passport-${cyl.serial}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ── Alerts view ───────────────────────────────────────────────────────────────
+
+let _alertsData = [];
+
+async function renderAlerts() {
+  let cyls = await txGetAll('cylinders');
+  if (Auth.session && Auth.session.role === 'lpgmc') {
+    cyls = cyls.filter(c => c.company === Auth.session.company);
+  }
+  _alertsData = [];
+  cyls.forEach(cyl => {
+    const fillPct   = Math.round((cyl.fillCount / cyl.maxFills) * 100);
+    const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
+    if (cyl.status === 'condemned')
+      _alertsData.push({ severity:'critical', type:'condemned', cylinder:cyl, title:`${cyl.serial} — Condemned`, desc: cyl.notes || 'Cylinder has been condemned.' });
+    if (cyl.fillCount > cyl.maxFills)
+      _alertsData.push({ severity:'critical', type:'exceeded-capacity', cylinder:cyl, title:`${cyl.serial} — Exceeded Max Fills`, desc:`Fill count ${cyl.fillCount} exceeds max ${cyl.maxFills}.` });
+    if (hydroDays > 0)
+      _alertsData.push({ severity:'critical', type:'overdue-hydrotest', cylinder:cyl, title:`${cyl.serial} — Overdue Hydro Test`, desc:`Last test: ${cyl.lastHydroTest}. Overdue by ${hydroDays} days.` });
+    else if (hydroDays > -180)
+      _alertsData.push({ severity:'warning', type:'overdue-hydrotest', cylinder:cyl, title:`${cyl.serial} — Hydro Test Due Soon`, desc:`Last test: ${cyl.lastHydroTest}. Due in ${-hydroDays} days.` });
+    if (fillPct >= 95 && cyl.status !== 'condemned')
+      _alertsData.push({ severity:'warning', type:'near-capacity', cylinder:cyl, title:`${cyl.serial} — Near Fill Capacity`, desc:`${cyl.fillCount}/${cyl.maxFills} fills (${fillPct}%).` });
+  });
+  applyAlertFilters();
+}
+
+function applyAlertFilters() {
+  const sevF  = alertFilterSeverity.value;
+  const typeF = alertFilterType.value;
+  let data = _alertsData;
+  if (sevF)  data = data.filter(a => a.severity === sevF);
+  if (typeF) data = data.filter(a => a.type === typeF);
+  const counts = { critical: 0, warning: 0, info: 0 };
+  _alertsData.forEach(a => { if (counts[a.severity] !== undefined) counts[a.severity]++; });
+  alertSummary.innerHTML = Object.entries(counts).filter(([,v]) => v > 0).map(([k,v]) =>
+    `<span class="alert-summary-chip chip-${escapeHtml(k)}">${v} ${k}</span>`).join('');
+  alertsList.innerHTML = '';
+  if (!data.length) { alertsEmpty.style.display = ''; return; }
+  alertsEmpty.style.display = 'none';
+  data.forEach(al => {
+    const li = document.createElement('li');
+    li.className = 'alert-item';
+    li.innerHTML = `
+      <div class="alert-severity-bar sev-${escapeHtml(al.severity)}"></div>
+      <div class="alert-body">
+        <div class="alert-title">${escapeHtml(al.title)}</div>
+        <div class="alert-desc">${escapeHtml(al.desc)}</div>
+        <div class="alert-meta">${escapeHtml(al.cylinder.company)} · ${escapeHtml(al.severity)}</div>
+      </div>`;
+    li.style.cursor = 'pointer';
+    li.addEventListener('click', () => openPassportModal(al.cylinder.id));
+    alertsList.appendChild(li);
+  });
+}
+
+alertFilterSeverity.addEventListener('change', applyAlertFilters);
+alertFilterType.addEventListener('change',     applyAlertFilters);
+
+// ── Reports view ──────────────────────────────────────────────────────────────
+
+async function renderReports() {
+  let cyls   = await txGetAll('cylinders');
+  let events = await txGetAll('events');
+  if (Auth.session && Auth.session.role === 'lpgmc') {
+    cyls = cyls.filter(c => c.company === Auth.session.company);
+    const ownIds = new Set(cyls.map(c => c.id));
+    events = events.filter(e => ownIds.has(e.cylinderId));
+  }
+  const total     = cyls.length;
+  const available = cyls.filter(c => c.status === 'available').length;
+  const inUse     = cyls.filter(c => c.status === 'in-use').length;
+  const condemned = cyls.filter(c => c.status === 'condemned').length;
+  reportsGrid.innerHTML = `
+    <div class="report-card"><span class="report-card-value">${total}</span><div class="report-card-label">Total Cylinders</div></div>
+    <div class="report-card"><span class="report-card-value" style="color:var(--green)">${available}</span><div class="report-card-label">Available</div></div>
+    <div class="report-card"><span class="report-card-value" style="color:var(--blue)">${inUse}</span><div class="report-card-label">In Use</div></div>
+    <div class="report-card"><span class="report-card-value" style="color:var(--red)">${condemned}</span><div class="report-card-label">Condemned</div></div>`;
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recentEvents = events.filter(e => new Date(e.timestamp).getTime() >= cutoff);
+  const typeCounts = {};
+  recentEvents.forEach(e => { typeCounts[e.type] = (typeCounts[e.type] || 0) + 1; });
+  const maxCount = Math.max(...Object.values(typeCounts), 1);
+  reportChart.innerHTML = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]).map(([type, count]) => {
+    const pct = Math.round((count / maxCount) * 100);
+    return `<div class="chart-row"><span class="chart-label">${escapeHtml(type)}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div></div></div>`;
+  }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+  renderSyncStatus();
+}
+
+function renderSyncStatus() {
+  const labels = { idle:'Not synced yet.', syncing:'Syncing…', synced: State.lastSyncTime ? `Last synced: ${formatDateTime(State.lastSyncTime)}` : 'Synced.', error:'Sync failed. Check connection.' };
+  syncStatusText.textContent = labels[State.syncStatus] || '';
+  syncIndicator.className = 'sync-indicator ' + (State.syncStatus === 'idle' ? '' : State.syncStatus);
+}
+
+syncBtn.addEventListener('click', async () => {
+  State.syncStatus = 'syncing';
+  renderSyncStatus();
+  await new Promise(r => setTimeout(r, 1500));
+  State.syncStatus   = 'synced';
+  State.lastSyncTime = nowISO();
+  renderSyncStatus();
+  showSnackbar('Sync complete.', 'success');
+});
+
+exportReportBtn.addEventListener('click', async () => {
+  let cyls = await txGetAll('cylinders');
+  if (Auth.session && Auth.session.role === 'lpgmc') cyls = cyls.filter(c => c.company === Auth.session.company);
+  const header = 'id,serial,company,status,fillCount,maxFills,manufactureDate,lastHydroTest\n';
+  const rows = cyls.map(c => `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate}","${c.lastHydroTest}"`);
+  downloadCSV('lpg-report-' + new Date().toISOString().slice(0,10) + '.csv', header + rows.join('\n'));
+});
+
+function downloadCSV(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Licenses view ─────────────────────────────────────────────────────────────
+
+let _licensesData = [];
+
+async function renderLicenses() {
+  if (!Auth.can('license')) return;
+  _licensesData = await txGetAll('licenses');
+  applyLicenseFilters();
+}
+
+function applyLicenseFilters() {
+  const q     = licSearch.value.toLowerCase().trim();
+  const typeF = licFilterType.value;
+  const statF = licFilterStatus.value;
+  let data = _licensesData;
+  if (q)     data = data.filter(l => l.companyName.toLowerCase().includes(q) || l.licenseNumber.toLowerCase().includes(q));
+  if (typeF) data = data.filter(l => l.companyType === typeF);
+  if (statF) data = data.filter(l => l.status === statF);
+  licensesList.innerHTML = '';
+  if (!data.length) { licensesEmpty.style.display = ''; return; }
+  licensesEmpty.style.display = 'none';
+  data.forEach(lic => {
+    const li = document.createElement('li');
+    li.className = 'license-item';
+    li.innerHTML = `
+      <div class="license-body">
+        <div class="license-company">${escapeHtml(lic.companyName)}</div>
+        <div class="license-number">${escapeHtml(lic.licenseNumber)}</div>
+        <div class="license-dates">Issued: ${formatDate(lic.issuedDate)} · Expires: ${formatDate(lic.expiryDate)}</div>
+      </div>
+      <div class="license-badges">
+        <span class="type-chip type-${escapeHtml(lic.companyType)}">${escapeHtml(lic.companyType)}</span>
+        <span class="lic-status-badge lic-${escapeHtml(lic.status)}">${escapeHtml(lic.status)}</span>
+      </div>`;
+    licensesList.appendChild(li);
+  });
+}
+
+licSearch.addEventListener('input',         applyLicenseFilters);
+licFilterType.addEventListener('change',    applyLicenseFilters);
+licFilterStatus.addEventListener('change',  applyLicenseFilters);
+
+issueLicenseBtn.addEventListener('click', () => {
+  licCompanyName.value = '';
+  licCompanyType.value = 'LPGMC';
+  licNumber.value      = '';
+  licIssuedDate.value  = new Date().toISOString().slice(0,10);
+  licExpiryDate.value  = '';
+  licStatus.value      = 'active';
+  openModal('modal-issue-license');
+});
+
+licSubmitBtn.addEventListener('click', async () => {
+  const companyName = licCompanyName.value.trim();
+  const companyType = licCompanyType.value;
+  const number      = licNumber.value.trim();
+  const issued      = licIssuedDate.value;
+  const expiry      = licExpiryDate.value;
+  const status      = licStatus.value;
+  if (!companyName || !number || !issued || !expiry) { showSnackbar('Please fill in all required fields.', 'error'); return; }
+  const lic = { id: 'LIC-' + Date.now(), companyName, companyType, licenseNumber: number, issuedDate: issued, expiryDate: expiry, status };
+  await txPut('licenses', lic);
+  closeModal('modal-issue-license');
+  showSnackbar(`License ${number} issued.`, 'success');
+  renderLicenses();
+});
+
+// ── Re-tag workflow ───────────────────────────────────────────────────────────
+
+retagBtn.addEventListener('click', openRetagModal);
+
+function openRetagModal() {
+  State.retagStep        = 'scan-old';
+  State.retagOldCylinder = null;
+  retagStep1El.hidden    = false;
+  retagStep2El.hidden    = true;
+  retagStep1Next.hidden  = false;
+  retagStep2Submit.hidden= true;
+  retagOldInput.value    = '';
+  retagNewInput.value    = '';
+  retagOldError.hidden   = true;
+  retagNewError.hidden   = true;
+  retagOldInfo.hidden    = true;
+  retagOldSummary.textContent = '';
+  openModal('modal-retag');
+  setTimeout(() => retagOldInput.focus(), 100);
+}
+
+retagStep1Next.addEventListener('click', async () => {
+  const tagId = retagOldInput.value.trim();
+  if (!tagId) { retagOldError.textContent = 'Please scan or enter the old tag ID.'; retagOldError.hidden = false; return; }
+  const cyl = await txGet('cylinders', tagId);
+  if (!cyl) { retagOldError.textContent = 'Tag not registered.'; retagOldError.hidden = false; retagOldInfo.hidden = true; return; }
+  retagOldError.hidden = true;
+  State.retagOldCylinder = cyl;
+  retagOldInfo.hidden = false;
+  retagOldInfo.innerHTML = `<div class="ci-serial">${escapeHtml(cyl.serial)}</div><div class="ci-meta">Tag: ${escapeHtml(cyl.id)}<br>Company: ${escapeHtml(cyl.company)}<br>Status: ${escapeHtml(cyl.status)}<br>Fills: ${cyl.fillCount}/${cyl.maxFills}</div>`;
+  retagStep1El.hidden    = true;
+  retagStep2El.hidden    = false;
+  retagStep1Next.hidden  = true;
+  retagStep2Submit.hidden= false;
+  retagOldSummary.innerHTML = `Old cylinder: <strong>${escapeHtml(cyl.serial)}</strong> (${escapeHtml(cyl.id)})`;
+  State.retagStep = 'scan-new';
+  setTimeout(() => retagNewInput.focus(), 100);
+});
+
+retagStep2Submit.addEventListener('click', async () => {
+  const newTagId = retagNewInput.value.trim();
+  if (!newTagId) { retagNewError.textContent = 'Please scan or enter the new tag ID.'; retagNewError.hidden = false; return; }
+  const existing = await txGet('cylinders', newTagId);
+  if (existing) { retagNewError.textContent = 'New tag already registered to: ' + existing.serial; retagNewError.hidden = false; return; }
+  const oldCyl = State.retagOldCylinder;
+  const ts     = nowISO();
+  const newCyl = Object.assign({}, oldCyl, { id: newTagId, fillCount: 0, status: 'available', notes: `Re-tagged from ${oldCyl.serial} (${oldCyl.id}) on ${ts.slice(0,10)}.` });
+  await txPut('cylinders', newCyl);
+  await txPut('events', { cylinderId: oldCyl.id, type: 'retagged', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company, newTagId, notes: `Re-tagged. New tag: ${newTagId}` });
+  await txPut('cylinders', Object.assign({}, oldCyl, { status: 'condemned', notes: `Re-tagged. New tag assigned: ${newTagId} on ${ts.slice(0,10)}.` }));
+  await txPut('events', { cylinderId: newCyl.id, type: 'registered', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company, previousTagId: oldCyl.id, notes: `Re-tagged from ${oldCyl.id}` });
+  State.scanEvents.unshift({ cylinderId: newCyl.id, serial: newCyl.serial, type: 'registered', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company });
+  renderScanEvent(State.scanEvents[0], true);
+  eventsEmpty.style.display = 'none';
+  State.retagStep = null;
+  State.retagOldCylinder = null;
+  closeModal('modal-retag');
+  showSnackbar(`Re-tag complete: ${newCyl.serial} → new tag.`, 'success');
+  renderCylinders();
+});
+
+async function handleRetagScan(tagId) {
+  if (State.retagStep === 'scan-old') retagOldInput.value = tagId;
+  else if (State.retagStep === 'scan-new') retagNewInput.value = tagId;
+}
+
+// ── Modal close handlers ──────────────────────────────────────────────────────
+
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    closeModal(btn.dataset.close);
+    if (btn.dataset.close === 'modal-retag') { State.retagStep = null; State.retagOldCylinder = null; }
+  });
+});
+
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) {
+      backdrop.hidden = true;
+      if (backdrop.id === 'modal-retag') { State.retagStep = null; State.retagOldCylinder = null; }
+    }
+  });
+});
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+
+logoutBtn.addEventListener('click', () => {
+  State.focused = false;
+  setFocused(false);
+  State.scanEvents  = [];
+  State.batchQueue  = [];
+  State.batchMode   = false;
+  batchModeToggle.checked = false;
+  headerRoleBadge.hidden = true;
+  headerOpPill.hidden    = true;
+  logoutBtn.hidden       = true;
+  eventsList.innerHTML   = '';
+  eventsEmpty.style.display = '';
+  lastScanCard.hidden    = true;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  Auth.logout();
+});
+
+// ── Service Worker ────────────────────────────────────────────────────────────
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
-  await DB.open();
+  await openDB();
   await seedDemoData();
-  loadOperator();
-
-  // Wire operator pill
-  document.getElementById('operator-pill').addEventListener('click', openOperatorModal);
-  document.getElementById('op-save-btn').addEventListener('click',  setOperator);
-  document.getElementById('op-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') setOperator();
-  });
-
-  // Wire GPS pill
-  document.getElementById('gps-pill').addEventListener('click', () => requestGeo(false));
-
-  // Wire nav
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => showView(btn.dataset.view));
-  });
-
-  // Init scan view
-  renderScanView();
-
-  // Compute and show alerts badge on load
-  const cylinders = await DB.getAll('cylinders');
-  const totalAlerts = cylinders.reduce((acc, c) => acc + getCylinderAlerts(c).length, 0);
-  updateAlertsBadge(totalAlerts);
-
-  // Refresh unsynced badge
-  await refreshUnsyncedBadge();
-
-  // Try silent GPS on load
-  requestGeo(true);
-
-  // Service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
-  }
+  Auth.load();
+  if (Auth.session) { hideLoginOverlay(); applySession(); }
+  else              { showLoginOverlay(); }
 }
 
-init().catch(err => console.error('LPG Tracer init error:', err));
+init().catch(err => {
+  console.error('LPG Tracer init error:', err);
+  showSnackbar('Startup error. Please reload.', 'error');
+});
