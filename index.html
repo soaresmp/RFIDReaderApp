@@ -37,16 +37,43 @@
           <div class="role-card-icon">🏭</div>
           <div class="role-card-body">
             <div class="role-card-title">LPGMC</div>
-            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive</div>
+            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive · Send Revalidation</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="government" tabindex="0" role="button" aria-pressed="false">
+        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🔧</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Revalidator</div>
+            <div class="role-card-desc">Cylinders Revalidator<br>Receive · Revalidate &amp; Update · Return to LPGMC</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="ewura" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏛️</div>
           <div class="role-card-body">
-            <div class="role-card-title">Government</div>
-            <div class="role-card-desc">Regulatory Agency<br>Inspect · License · Oversee</div>
+            <div class="role-card-title">EWURA</div>
+            <div class="role-card-desc">Regulatory Authority<br>Grant &amp; Revoke Licences · Monitor Supply Chain</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="field-auditor" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🔍</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Field Auditor</div>
+            <div class="role-card-desc">Field Inspection Unit<br>Inspect Products · View All Cylinders</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="tra" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">💼</div>
+          <div class="role-card-body">
+            <div class="role-card-title">TRA</div>
+            <div class="role-card-desc">Tanzania Revenue Authority<br>Cross-check Refills · Register Shipments</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -55,7 +82,7 @@
           <div class="role-card-icon">🚛</div>
           <div class="role-card-body">
             <div class="role-card-title">Distributor</div>
-            <div class="role-card-desc">Distribution Company<br>Receive · Send to Retail · Return Empty</div>
+            <div class="role-card-desc">Distribution Company<br>Receive · Supply to Retailers · Return Empty</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -261,6 +288,7 @@
           <select id="lic-filter-type" class="filter-select">
             <option value="">All types</option>
             <option value="LPGMC">LPGMC</option>
+            <option value="Revalidator">Revalidator</option>
             <option value="Distributor">Distributor</option>
             <option value="Retailer">Retailer</option>
           </select>
@@ -427,6 +455,7 @@
           <label>Company Type</label>
           <select id="lic-company-type" class="form-control">
             <option value="LPGMC">LPGMC</option>
+            <option value="Revalidator">Revalidator</option>
             <option value="Distributor">Distributor</option>
             <option value="Retailer">Retailer</option>
           </select>

@@ -109,8 +109,10 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   white-space: nowrap;
 }
 .role-lpgmc        { background: #1d4ed8; color: #fff; }
-.role-government   { background: #7c3aed; color: #fff; }
-.role-revalidation { background: #0f766e; color: #fff; }
+.role-revalidator  { background: #0f766e; color: #fff; }
+.role-ewura        { background: #7c3aed; color: #fff; }
+.role-field-auditor{ background: #4338ca; color: #fff; }
+.role-tra          { background: #15803d; color: #fff; }
 .role-distributor  { background: #b45309; color: #fff; }
 .role-retailer     { background: #0369a1; color: #fff; }
 
@@ -478,16 +480,18 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   margin-top: 2px;
   white-space: nowrap;
 }
-.evt-registered      { background: #1d4ed8; color: #fff; }
-.evt-refilled        { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
-.evt-shipped         { background: #1e3a5f; color: #60a5fa; }
-.evt-received-empty  { background: #312e81; color: #a5b4fc; }
+.evt-registered        { background: #1d4ed8; color: #fff; }
+.evt-refilled          { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+.evt-shipped           { background: #1e3a5f; color: #60a5fa; }
+.evt-received-empty    { background: #312e81; color: #a5b4fc; }
 .evt-sent-revalidation { background: var(--amber-dim); color: var(--amber); }
-.evt-inspected       { background: #3b0764; color: #d8b4fe; }
-.evt-received-damaged{ background: var(--red-dim); color: #fca5a5; }
-.evt-revalidated     { background: var(--green-dim); color: #6ee7b7; }
-.evt-returned-lpgmc  { background: #0c4a6e; color: #7dd3fc; }
-.evt-retagged          { background: #44403c; color: #d6d3d1; }
+.evt-reval-received    { background: #164e63; color: #67e8f9; }
+.evt-revalidated       { background: var(--green-dim); color: #6ee7b7; }
+.evt-reval-returned    { background: #0c4a6e; color: #7dd3fc; }
+.evt-ewura-monitored   { background: #3b0764; color: #d8b4fe; }
+.evt-inspected         { background: #312e81; color: #c4b5fd; }
+.evt-tra-verified      { background: #064e3b; color: #6ee7b7; }
+.evt-tra-registered    { background: #14532d; color: #86efac; }
 .evt-dist-received     { background: #78350f; color: #fcd34d; }
 .evt-dist-sent-retail  { background: #1e3a5f; color: #60a5fa; }
 .evt-dist-returned-empty { background: #312e81; color: #a5b4fc; }
@@ -802,9 +806,9 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   letter-spacing: 0.3px;
 }
 .type-LPGMC       { background: rgba(59,130,246,0.2);  color: #93c5fd; }
+.type-Revalidator { background: rgba(15,118,110,0.2);  color: #5eead4; }
 .type-Distributor { background: rgba(124,58,237,0.2);  color: #c4b5fd; }
 .type-Retailer    { background: rgba(20,184,166,0.2);  color: #5eead4; }
-.type-Revalidation{ background: rgba(245,158,11,0.2);  color: var(--amber); }
 
 .lic-status-badge {
   padding: 2px 8px;

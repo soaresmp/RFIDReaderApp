@@ -37,38 +37,56 @@ const DEMO_LICENSES = [
 
 const ROLE_EVENTS = {
   lpgmc: [
-    { type: 'registered',        label: 'Registered',       icon: '🆕' },
-    { type: 'refilled',          label: 'Refilled',         icon: '🔄' },
-    { type: 'shipped',           label: 'Shipped',          icon: '🚚' },
-    { type: 'received-empty',    label: 'Received Empty',   icon: '📥' },
-    { type: 'sent-revalidation', label: 'Sent Revalidation',icon: '🔧' },
+    { type: 'registered',        label: 'Registered',          icon: '🆕' },
+    { type: 'refilled',          label: 'Refilled',            icon: '🔄' },
+    { type: 'shipped',           label: 'Shipped',             icon: '🚚' },
+    { type: 'received-empty',    label: 'Received Empty',      icon: '📥' },
+    { type: 'sent-revalidation', label: 'Sent Revalidation',   icon: '🔧' },
   ],
-  government: [
-    { type: 'inspected', label: 'Inspected', icon: '🏛️' },
+  revalidator: [
+    { type: 'reval-received',    label: 'Received',            icon: '📥' },
+    { type: 'revalidated',       label: 'Revalidated',         icon: '✅' },
+    { type: 'reval-returned',    label: 'Returned to LPGMC',   icon: '↩️' },
+  ],
+  ewura: [
+    { type: 'ewura-monitored',   label: 'Supply Monitored',    icon: '📊' },
+  ],
+  'field-auditor': [
+    { type: 'inspected',         label: 'Inspected',           icon: '🔍' },
+  ],
+  tra: [
+    { type: 'tra-verified',      label: 'Refills Verified',    icon: '✔️' },
+    { type: 'tra-registered',    label: 'Shipment Registered', icon: '📋' },
   ],
   distributor: [
-    { type: 'dist-received',      label: 'Received',         icon: '📦' },
-    { type: 'dist-sent-retail',   label: 'Sent to Retail',   icon: '🚚' },
-    { type: 'dist-returned-empty',label: 'Returned Empty',   icon: '↩️' },
+    { type: 'dist-received',       label: 'Received',          icon: '📦' },
+    { type: 'dist-sent-retail',    label: 'Sent to Retail',    icon: '🚚' },
+    { type: 'dist-returned-empty', label: 'Returned Empty',    icon: '↩️' },
   ],
   retailer: [
-    { type: 'ret-received',       label: 'Received',         icon: '📦' },
-    { type: 'ret-returned-empty', label: 'Returned Empty',   icon: '↩️' },
+    { type: 'ret-received',        label: 'Received',          icon: '📦' },
+    { type: 'ret-returned-empty',  label: 'Returned Empty',    icon: '↩️' },
   ],
 };
 
 const ROLE_TABS = {
-  lpgmc:       ['scan', 'cylinders', 'alerts', 'reports'],
-  government:  ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
-  distributor: ['scan', 'cylinders', 'alerts', 'reports'],
-  retailer:    ['scan', 'cylinders', 'reports'],
+  lpgmc:           ['scan', 'cylinders', 'alerts', 'reports'],
+  revalidator:     ['scan', 'cylinders', 'reports'],
+  ewura:           ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
+  'field-auditor': ['scan', 'cylinders', 'reports'],
+  tra:             ['scan', 'cylinders', 'reports'],
+  distributor:     ['scan', 'cylinders', 'alerts', 'reports'],
+  retailer:        ['scan', 'cylinders', 'reports'],
 };
 
 const ROLE_LABELS = {
-  lpgmc:       'LPGMC',
-  government:  'Government',
-  distributor: 'Distributor',
-  retailer:    'Retailer',
+  lpgmc:           'LPGMC',
+  revalidator:     'Revalidator',
+  ewura:           'EWURA',
+  'field-auditor': 'Field Auditor',
+  tra:             'TRA',
+  distributor:     'Distributor',
+  retailer:        'Retailer',
 };
 
 const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
@@ -105,10 +123,10 @@ const Auth = {
     const { role } = this.session;
     switch (action) {
       case 'register':  return role === 'lpgmc';
-      case 'inspect':   return role === 'government';
-      case 'license':   return role === 'government';
-      case 'viewAll':   return role === 'government' || role === 'distributor' || role === 'retailer';
-      case 'alerts':    return role === 'lpgmc' || role === 'government' || role === 'distributor';
+      case 'inspect':   return role === 'field-auditor';
+      case 'license':   return role === 'ewura';
+      case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator'].includes(role);
+      case 'alerts':    return ['lpgmc', 'ewura', 'field-auditor', 'distributor'].includes(role);
       default:          return false;
     }
   },
@@ -493,8 +511,11 @@ function selectRole(role) {
     loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     loginCompSel.style.display = '';
   } else {
-    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency'
-      : role === 'distributor'  ? 'e.g. ABC Distributors'
+    loginCompText.placeholder = role === 'ewura'          ? 'EWURA'
+      : role === 'tra'           ? 'TRA'
+      : role === 'revalidator'   ? 'e.g. ProRevalid Ltd'
+      : role === 'field-auditor' ? 'e.g. Field Inspection Unit'
+      : role === 'distributor'   ? 'e.g. ABC Distributors'
       : 'e.g. QuickGas Retail';
     loginCompText.style.display = '';
   }
@@ -566,7 +587,7 @@ function applySession() {
 
   // Licenses view visibility
   const licView = $('view-licenses');
-  licView.style.display = s.role === 'government' ? '' : 'none';
+  licView.style.display = s.role === 'ewura' ? '' : 'none';
 
   // Build event pills
   buildEventPills();
@@ -581,7 +602,7 @@ function applySession() {
   renderCylinders();
   renderAlerts();
   renderReports();
-  if (s.role === 'government') renderLicenses();
+  if (s.role === 'ewura') renderLicenses();
 }
 
 function buildEventPills() {
@@ -825,11 +846,15 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     if (updatedCyl.fillCount >= updatedCyl.maxFills) {
       updatedCyl.status = 'condemned';
     }
-  } else if (eventType === 'sent-revalidation' || eventType === 'received-damaged') {
+  } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
     updatedCyl.status = 'revalidation';
-  } else if (eventType === 'revalidated' || eventType === 'returned-lpgmc') {
+  } else if (eventType === 'revalidated') {
     updatedCyl.status = 'available';
     updatedCyl.fillCount = 0;
+    updatedCyl.lastRequalDate = new Date().toISOString().slice(0, 10);
+    updatedCyl.requalPlant = session.company;
+  } else if (eventType === 'reval-returned') {
+    updatedCyl.status = 'available';
   } else if (eventType === 'shipped' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-use';
   } else if (eventType === 'received-empty' || eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
