@@ -1245,3 +1245,24 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   .modal { border-radius: var(--radius); }
   .modal-backdrop { align-items: center; padding: 24px; }
 }
+
+/* ── Input with action button ─────────────────────────────────────────────── */
+.input-with-action {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.input-with-action .form-control { flex: 1; min-width: 0; }
+.input-with-action .btn { flex-shrink: 0; }
+
+/* ── Register form section titles ─────────────────────────────────────────── */
+.form-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--blue);
+  margin: 20px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}

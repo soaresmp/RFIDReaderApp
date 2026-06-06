@@ -51,15 +51,6 @@
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="revalidation" tabindex="0" role="button" aria-pressed="false">
-          <div class="role-card-icon">🔧</div>
-          <div class="role-card-body">
-            <div class="role-card-title">Revalidation</div>
-            <div class="role-card-desc">Revalidation Company<br>Receive Damaged · Refurbish · Re-tag</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-
         <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🚛</div>
           <div class="role-card-body">
@@ -149,9 +140,6 @@
           <span class="toggle-slider"></span>
           <span class="toggle-text">Batch mode</span>
         </label>
-        <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">
-          🔄 Re-tag
-        </button>
       </div>
 
       <!-- Focus / scanning button -->
@@ -275,7 +263,6 @@
             <option value="LPGMC">LPGMC</option>
             <option value="Distributor">Distributor</option>
             <option value="Retailer">Retailer</option>
-            <option value="Revalidation">Revalidation</option>
           </select>
           <select id="lic-filter-status" class="filter-select">
             <option value="">All statuses</option>
@@ -304,34 +291,97 @@
         <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
+        <div class="form-section-title">RFID &amp; Serial</div>
         <div class="form-group">
           <label>RFID Tag</label>
           <input id="reg-tag" type="text" class="form-control font-mono" readonly />
         </div>
         <div class="form-group">
           <label>Serial Number</label>
-          <input id="reg-serial" type="text" class="form-control" placeholder="e.g. LPG-2026-013" />
+          <div class="input-with-action">
+            <input id="reg-serial" type="text" class="form-control" placeholder="Enter or scan serial barcode" />
+            <button id="reg-serial-scan-btn" class="btn btn-sm btn-outline" type="button">📷 Scan</button>
+          </div>
+        </div>
+
+        <div class="form-section-title">Cylinder Marking</div>
+        <div class="form-group">
+          <label>Brand Owner Colour &amp; Mark</label>
+          <input id="reg-brand-colour" type="text" class="form-control" placeholder="e.g. Red — VV" />
         </div>
         <div class="form-group">
-          <label>Manufacture Date</label>
+          <label>Owner Brand Name</label>
+          <input id="reg-brand-name" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Manufacturer Name</label>
+          <input id="reg-manufacturer" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input id="reg-product-name" type="text" class="form-control" value="LPG" />
+        </div>
+
+        <div class="form-section-title">Dates &amp; Requalification</div>
+        <div class="form-group">
+          <label>Date of Manufacture</label>
           <input id="reg-manufacture-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Last Requalification Date</label>
+          <input id="reg-requalification-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Requalifying Plant Name</label>
+          <input id="reg-requalification-plant" type="text" class="form-control" placeholder="e.g. ProRevalid Ltd" />
+        </div>
+
+        <div class="form-section-title">Physical Specifications</div>
+        <div class="form-group">
+          <label>Water Capacity (L)</label>
+          <input id="reg-water-capacity" type="number" class="form-control" value="26.1" step="0.1" min="0" />
         </div>
         <div class="form-group">
           <label>Tare Weight (kg)</label>
           <input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" />
         </div>
         <div class="form-group">
-          <label>Capacity (kg)</label>
-          <input id="reg-capacity" type="number" class="form-control" value="12" step="1" />
+          <label>Net Weight / Gas Content (kg)</label>
+          <input id="reg-net-weight" type="number" class="form-control" value="12" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Gross Weight (kg)</label>
+          <input id="reg-gross-weight" type="number" class="form-control" value="26.5" step="0.1" />
         </div>
         <div class="form-group">
           <label>Max Fills</label>
           <input id="reg-max-fills" type="number" class="form-control" value="500" step="1" />
         </div>
+
+        <div class="form-section-title">Pressure &amp; Testing</div>
+        <div class="form-group">
+          <label>Pressure Test Values</label>
+          <input id="reg-pressure-test" type="text" class="form-control" placeholder="e.g. WP 17.2 bar / TP 34.5 bar" />
+        </div>
         <div class="form-group">
           <label>Last Hydro Test Date</label>
           <input id="reg-hydrotest" type="date" class="form-control" />
         </div>
+
+        <div class="form-section-title">Company Details</div>
+        <div class="form-group">
+          <label>Brand Name</label>
+          <input id="reg-company-brand" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Customer Service Number</label>
+          <input id="reg-customer-service" type="tel" class="form-control" placeholder="e.g. 0800 123 456" />
+        </div>
+        <div class="form-group">
+          <label>Emergency Contacts</label>
+          <input id="reg-emergency-contacts" type="text" class="form-control" placeholder="e.g. 999 / 0722 123 456" />
+        </div>
+
         <div class="form-group">
           <label>Notes</label>
           <textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea>
@@ -361,49 +411,6 @@
     </div>
   </div>
 
-  <!-- Re-tag modal -->
-  <div id="modal-retag" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Re-tag Cylinder">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Re-tag Cylinder</h2>
-        <button class="modal-close" data-close="modal-retag" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <!-- Step 1 -->
-        <div id="retag-step1" class="retag-step">
-          <div class="retag-step-num">Step 1 of 2</div>
-          <p class="retag-step-desc">Scan the <strong>old (damaged) RFID tag</strong> on the cylinder to be re-tagged.</p>
-          <div class="form-group">
-            <label>Old RFID Tag</label>
-            <input id="retag-old-input" type="text" class="form-control font-mono"
-                   placeholder="Scan or type old tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-          </div>
-          <div id="retag-old-error" class="form-error" hidden></div>
-          <div id="retag-old-info" class="retag-cylinder-info" hidden>
-            <!-- Cylinder info shown after valid scan -->
-          </div>
-        </div>
-        <!-- Step 2 -->
-        <div id="retag-step2" class="retag-step" hidden>
-          <div class="retag-step-num">Step 2 of 2</div>
-          <p class="retag-step-desc">Scan the <strong>new RFID tag</strong> to assign to the refurbished cylinder.</p>
-          <div id="retag-old-summary" class="retag-old-summary"></div>
-          <div class="form-group">
-            <label>New RFID Tag</label>
-            <input id="retag-new-input" type="text" class="form-control font-mono"
-                   placeholder="Scan or type new tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-          </div>
-          <div id="retag-new-error" class="form-error" hidden></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-retag" type="button">Cancel</button>
-        <button id="retag-step1-next" class="btn btn-primary" type="button">Confirm Old Tag →</button>
-        <button id="retag-step2-submit" class="btn btn-primary" type="button" hidden>Complete Re-tag</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Issue License modal -->
   <div id="modal-issue-license" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Issue License">
     <div class="modal">
@@ -422,7 +429,6 @@
             <option value="LPGMC">LPGMC</option>
             <option value="Distributor">Distributor</option>
             <option value="Retailer">Retailer</option>
-            <option value="Revalidation">Revalidation</option>
           </select>
         </div>
         <div class="form-group">
