@@ -1,5 +1,9 @@
 'use strict';
 
+// ══════════════════════════════════════════════════════════════════════════════
+// CONSTANTS & DEMO DATA
+// ══════════════════════════════════════════════════════════════════════════════
+
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
 const SEED_KEY   = 'seeded-v2';
@@ -20,22 +24,24 @@ const DEMO_CYLINDERS = [
 ];
 
 const DEMO_LICENSES = [
-  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',        licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active' },
-  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',        licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active' },
-  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',        licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active' },
-  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',  licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired' },
-  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',     licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired' },
-  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidation', licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
-  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',     licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active' },
+  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',         licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active' },
+  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',         licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active' },
+  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',         licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active' },
+  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',   licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired' },
+  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired' },
+  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidation',  licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
+  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active' },
 ];
+
+// ── Role configuration ────────────────────────────────────────────────────────
 
 const ROLE_EVENTS = {
   lpgmc: [
-    { type: 'registered',        label: 'Registered',        icon: '🆕' },
-    { type: 'refilled',          label: 'Refilled',          icon: '🔄' },
-    { type: 'shipped',           label: 'Shipped',           icon: '🚚' },
-    { type: 'received-empty',    label: 'Received Empty',    icon: '📥' },
-    { type: 'sent-revalidation', label: 'Sent Revalidation', icon: '🔧' },
+    { type: 'registered',        label: 'Registered',       icon: '🆕' },
+    { type: 'refilled',          label: 'Refilled',         icon: '🔄' },
+    { type: 'shipped',           label: 'Shipped',          icon: '🚚' },
+    { type: 'received-empty',    label: 'Received Empty',   icon: '📥' },
+    { type: 'sent-revalidation', label: 'Sent Revalidation',icon: '🔧' },
   ],
   government: [
     { type: 'inspected', label: 'Inspected', icon: '🏛️' },
@@ -45,23 +51,38 @@ const ROLE_EVENTS = {
     { type: 'revalidated',      label: 'Revalidated',       icon: '✅' },
     { type: 'returned-lpgmc',   label: 'Returned to LPGMC', icon: '📤' },
   ],
+  distributor: [
+    { type: 'dist-received',      label: 'Received',         icon: '📦' },
+    { type: 'dist-sent-retail',   label: 'Sent to Retail',   icon: '🚚' },
+    { type: 'dist-returned-empty',label: 'Returned Empty',   icon: '↩️' },
+  ],
+  retailer: [
+    { type: 'ret-received',       label: 'Received',         icon: '📦' },
+    { type: 'ret-returned-empty', label: 'Returned Empty',   icon: '↩️' },
+  ],
 };
 
 const ROLE_TABS = {
   lpgmc:       ['scan', 'cylinders', 'alerts', 'reports'],
   government:  ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
   revalidation:['scan', 'cylinders', 'reports'],
+  distributor: ['scan', 'cylinders', 'alerts', 'reports'],
+  retailer:    ['scan', 'cylinders', 'reports'],
 };
 
 const ROLE_LABELS = {
   lpgmc:       'LPGMC',
   government:  'Government',
   revalidation:'Revalidation',
+  distributor: 'Distributor',
+  retailer:    'Retailer',
 };
 
-const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas'];
+const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTH MODULE
+// ══════════════════════════════════════════════════════════════════════════════
 
 const Auth = {
   session: null,
@@ -90,36 +111,40 @@ const Auth = {
     if (!this.session) return false;
     const { role } = this.session;
     switch (action) {
-      case 'register': return role === 'lpgmc';
-      case 'inspect':  return role === 'government';
-      case 'license':  return role === 'government';
-      case 'retag':    return role === 'revalidation';
-      case 'viewAll':  return role === 'government' || role === 'revalidation';
-      case 'alerts':   return role === 'lpgmc' || role === 'government';
-      default:         return false;
+      case 'register':  return role === 'lpgmc';
+      case 'inspect':   return role === 'government';
+      case 'license':   return role === 'government';
+      case 'retag':     return role === 'revalidation';
+      case 'viewAll':   return role === 'government' || role === 'revalidation' || role === 'distributor' || role === 'retailer';
+      case 'alerts':    return role === 'lpgmc' || role === 'government' || role === 'distributor';
+      default:          return false;
     }
   },
 };
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════════════════
 
 const State = {
   activeView:        'scan',
   activeEventType:   null,
   batchMode:         false,
   batchQueue:        [],
-  gpsEnabled:        false,
-  gpsCoords:         null,
   focused:           false,
   scanEvents:        [],
-  syncStatus:        'idle',
+  syncStatus:        'idle',   // idle | syncing | synced | error
   lastSyncTime:      null,
-  retagStep:         null,
+  // Re-tag
+  retagStep:         null,     // null | 'scan-old' | 'scan-new'
   retagOldCylinder:  null,
+  // Passport
   passportCylinderId: null,
 };
 
-// ── IndexedDB ─────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// INDEXED DB
+// ══════════════════════════════════════════════════════════════════════════════
 
 let db = null;
 
@@ -129,24 +154,28 @@ function openDB() {
 
     req.onupgradeneeded = (e) => {
       const d = e.target.result;
+
       if (!d.objectStoreNames.contains('cylinders')) {
-        const s = d.createObjectStore('cylinders', { keyPath: 'id' });
-        s.createIndex('serial',  'serial',  { unique: true });
-        s.createIndex('company', 'company', { unique: false });
-        s.createIndex('status',  'status',  { unique: false });
+        const cylStore = d.createObjectStore('cylinders', { keyPath: 'id' });
+        cylStore.createIndex('serial',  'serial',  { unique: true });
+        cylStore.createIndex('company', 'company', { unique: false });
+        cylStore.createIndex('status',  'status',  { unique: false });
       }
+
       if (!d.objectStoreNames.contains('events')) {
-        const s = d.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
-        s.createIndex('cylinderId', 'cylinderId', { unique: false });
-        s.createIndex('timestamp',  'timestamp',  { unique: false });
+        const evStore = d.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
+        evStore.createIndex('cylinderId', 'cylinderId', { unique: false });
+        evStore.createIndex('timestamp',  'timestamp',  { unique: false });
       }
+
       if (!d.objectStoreNames.contains('meta')) {
         d.createObjectStore('meta', { keyPath: 'key' });
       }
+
       if (!d.objectStoreNames.contains('licenses')) {
-        const s = d.createObjectStore('licenses', { keyPath: 'id' });
-        s.createIndex('companyType', 'companyType', { unique: false });
-        s.createIndex('status',      'status',      { unique: false });
+        const licStore = d.createObjectStore('licenses', { keyPath: 'id' });
+        licStore.createIndex('companyType', 'companyType', { unique: false });
+        licStore.createIndex('status',      'status',      { unique: false });
       }
     };
 
@@ -155,55 +184,97 @@ function openDB() {
   });
 }
 
-function txGet(store, key) {
-  return new Promise((res, rej) => {
-    const r = db.transaction(store, 'readonly').objectStore(store).get(key);
-    r.onsuccess = () => res(r.result);
-    r.onerror   = () => rej(r.error);
+function txGet(storeName, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
   });
 }
 
-function txGetAll(store) {
-  return new Promise((res, rej) => {
-    const r = db.transaction(store, 'readonly').objectStore(store).getAll();
-    r.onsuccess = () => res(r.result);
-    r.onerror   = () => rej(r.error);
+function txGetAll(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
   });
 }
 
-function txPut(store, record) {
-  return new Promise((res, rej) => {
-    const r = db.transaction(store, 'readwrite').objectStore(store).put(record);
-    r.onsuccess = () => res(r.result);
-    r.onerror   = () => rej(r.error);
+function txPut(storeName, record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const req = tx.objectStore(storeName).put(record);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
   });
 }
 
-function txGetIndex(store, index, value) {
-  return new Promise((res, rej) => {
-    const r = db.transaction(store, 'readonly').objectStore(store).index(index).getAll(value);
-    r.onsuccess = () => res(r.result);
-    r.onerror   = () => rej(r.error);
+function txDelete(storeName, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const req = tx.objectStore(storeName).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function txGetIndex(storeName, indexName, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const idx = tx.objectStore(storeName).index(indexName);
+    const req = idx.getAll(value);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
   });
 }
 
 async function seedDemoData() {
   const seeded = await txGet('meta', SEED_KEY);
   if (seeded) return;
-  for (const cyl of DEMO_CYLINDERS) await txPut('cylinders', cyl);
+
+  for (const cyl of DEMO_CYLINDERS) {
+    await txPut('cylinders', cyl);
+  }
+
+  // Generate some historical events
   const now = Date.now();
   for (const cyl of DEMO_CYLINDERS) {
-    await txPut('events', { cylinderId: cyl.id, type: 'registered', timestamp: new Date(cyl.manufactureDate).toISOString(), operatorId: 'SYSTEM', company: cyl.company, notes: 'Initial registration' });
+    const regDate = new Date(cyl.manufactureDate);
+    await txPut('events', {
+      cylinderId: cyl.id,
+      type:       'registered',
+      timestamp:  regDate.toISOString(),
+      operatorId: 'SYSTEM',
+      company:    cyl.company,
+      notes:      'Initial registration',
+    });
+    // Add a few fills
     const fills = Math.min(cyl.fillCount, 3);
     for (let i = 0; i < fills; i++) {
-      await txPut('events', { cylinderId: cyl.id, type: 'refilled', timestamp: new Date(now - (fills - i) * 30 * 24 * 60 * 60 * 1000).toISOString(), operatorId: 'SYSTEM', company: cyl.company, notes: '' });
+      const d = new Date(now - (fills - i) * 30 * 24 * 60 * 60 * 1000);
+      await txPut('events', {
+        cylinderId: cyl.id,
+        type:       'refilled',
+        timestamp:  d.toISOString(),
+        operatorId: 'SYSTEM',
+        company:    cyl.company,
+        notes:      '',
+      });
     }
   }
-  for (const lic of DEMO_LICENSES) await txPut('licenses', lic);
+
+  for (const lic of DEMO_LICENSES) {
+    await txPut('licenses', lic);
+  }
+
   await txPut('meta', { key: SEED_KEY, value: true });
 }
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// DOM REFS
+// ══════════════════════════════════════════════════════════════════════════════
 
 const $ = (id) => document.getElementById(id);
 
@@ -218,6 +289,7 @@ const headerOpPill     = $('header-operator-pill');
 const headerSubtitle   = $('header-subtitle');
 const snackbar         = $('snackbar');
 
+// Login
 const loginOverlay     = $('login-overlay');
 const roleCards        = $('role-cards');
 const loginFormWrapper = $('login-form-wrapper');
@@ -228,9 +300,9 @@ const loginCompSel     = $('login-company-select');
 const loginCompText    = $('login-company-text');
 const loginOperator    = $('login-operator');
 
+// Scan view
 const scanEventBar     = $('scan-event-bar');
 const batchModeToggle  = $('batch-mode-toggle');
-const gpsToggle        = $('gps-toggle');
 const retagBtn         = $('retag-btn');
 const lastScanCard     = $('last-scan-card');
 const lastScanTime     = $('last-scan-time');
@@ -245,6 +317,7 @@ const eventsList       = $('events-list');
 const eventsEmpty      = $('events-empty');
 const exportEventsBtn  = $('export-events-btn');
 
+// Cylinders view
 const cylSearch        = $('cyl-search');
 const cylFilterStatus  = $('cyl-filter-status');
 const cylFilterCompany = $('cyl-filter-company');
@@ -252,12 +325,14 @@ const cylStats         = $('cyl-stats');
 const cylindersList    = $('cylinders-list');
 const cylindersEmpty   = $('cylinders-empty');
 
+// Alerts view
 const alertFilterSeverity = $('alert-filter-severity');
 const alertFilterType     = $('alert-filter-type');
 const alertSummary        = $('alert-summary');
 const alertsList          = $('alerts-list');
 const alertsEmpty         = $('alerts-empty');
 
+// Reports view
 const reportsGrid      = $('reports-grid');
 const reportChart      = $('report-chart');
 const exportReportBtn  = $('export-report-btn');
@@ -265,6 +340,7 @@ const syncBtn          = $('sync-btn');
 const syncStatusText   = $('sync-status-text');
 const syncIndicator    = $('sync-indicator');
 
+// Licenses view
 const licSearch        = $('lic-search');
 const licFilterType    = $('lic-filter-type');
 const licFilterStatus  = $('lic-filter-status');
@@ -272,6 +348,7 @@ const issueLicenseBtn  = $('issue-license-btn');
 const licensesList     = $('licenses-list');
 const licensesEmpty    = $('licenses-empty');
 
+// Modals
 const modalRegister    = $('modal-register');
 const regTag           = $('reg-tag');
 const regSerial        = $('reg-serial');
@@ -308,28 +385,41 @@ const licExpiryDate    = $('lic-expiry-date');
 const licStatus        = $('lic-status');
 const licSubmitBtn     = $('lic-submit-btn');
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 function formatDateTime(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+  const d = new Date(iso);
+  return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
 }
 
 function formatDate(iso) {
   if (!iso) return '—';
-  return new Date(iso + 'T00:00:00').toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
 }
 
 function formatTime(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 
 function nowISO() { return new Date().toISOString(); }
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
 let _snackTimer = null;
 function showSnackbar(msg, type = '') {
@@ -339,21 +429,50 @@ function showSnackbar(msg, type = '') {
   _snackTimer = setTimeout(() => { snackbar.className = ''; }, 2500);
 }
 
-function openModal(id)  { const el = $(id); if (el) { el.hidden = false; el.focus(); } }
-function closeModal(id) { const el = $(id); if (el) el.hidden = true; }
+function openModal(id) {
+  const el = $(id);
+  if (el) { el.hidden = false; el.focus(); }
+}
+
+function closeModal(id) {
+  const el = $(id);
+  if (el) el.hidden = true;
+}
 
 function hydroTestDaysOverdue(lastHydroTest) {
   if (!lastHydroTest) return Infinity;
-  const due = new Date(new Date(lastHydroTest + 'T00:00:00').getTime() + 5 * 365 * 24 * 60 * 60 * 1000);
-  return Math.floor((Date.now() - due.getTime()) / (24 * 60 * 60 * 1000));
+  const tested = new Date(lastHydroTest + 'T00:00:00');
+  const fiveYears = 5 * 365 * 24 * 60 * 60 * 1000;
+  const due = new Date(tested.getTime() + fiveYears);
+  const now = new Date();
+  return Math.floor((now - due) / (24 * 60 * 60 * 1000));
 }
 
-// ── Login screen ──────────────────────────────────────────────────────────────
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showSnackbar('Copied!');
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showSnackbar('Copied!');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LOGIN SCREEN
+// ══════════════════════════════════════════════════════════════════════════════
 
 let _selectedRole = null;
 
 function showLoginOverlay() {
   loginOverlay.classList.remove('hidden');
+  // Reset to card selection
   loginFormWrapper.hidden = true;
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   loginOperator.value = '';
@@ -372,20 +491,28 @@ function selectRole(role) {
     c.classList.toggle('selected', c.dataset.role === role);
     c.setAttribute('aria-pressed', String(c.dataset.role === role));
   });
+
+  // Configure company input
   loginFormLabel.textContent = ROLE_LABELS[role] || role;
   loginCompSel.style.display  = 'none';
   loginCompText.style.display = 'none';
+
   if (role === 'lpgmc') {
     loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     loginCompSel.style.display = '';
   } else {
-    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency' : 'e.g. ProRevalid Ltd';
+    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency'
+      : role === 'revalidation' ? 'e.g. ProRevalid Ltd'
+      : role === 'distributor'  ? 'e.g. ABC Distributors'
+      : 'e.g. QuickGas Retail';
     loginCompText.style.display = '';
   }
+
   loginFormWrapper.hidden = false;
   loginOperator.focus();
 }
 
+// Role card clicks
 roleCards.addEventListener('click', (e) => {
   const card = e.target.closest('.role-card');
   if (card) selectRole(card.dataset.role);
@@ -409,38 +536,60 @@ loginBackBtn.addEventListener('click', () => {
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!_selectedRole) return;
-  const company = _selectedRole === 'lpgmc' ? loginCompSel.value.trim() : loginCompText.value.trim();
+
+  const company = _selectedRole === 'lpgmc'
+    ? loginCompSel.value.trim()
+    : loginCompText.value.trim();
+
   const operatorId = loginOperator.value.trim();
-  if (!company)    { showSnackbar('Please enter a company name.', 'error'); return; }
+
+  if (!company) { showSnackbar('Please enter a company name.', 'error'); return; }
   if (!operatorId) { showSnackbar('Please enter an Operator ID.', 'error'); return; }
+
   Auth.login(_selectedRole, company, operatorId);
 });
 
-// ── Session application ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// SESSION APPLICATION
+// ══════════════════════════════════════════════════════════════════════════════
 
 function applySession() {
   const s = Auth.session;
   if (!s) return;
 
+  // Header badges
   headerRoleBadge.textContent = ROLE_LABELS[s.role] || s.role;
   headerRoleBadge.className   = 'header-role-badge role-' + s.role;
   headerRoleBadge.hidden      = false;
-  headerOpPill.textContent    = s.company + ' · ' + s.operatorId;
-  headerOpPill.hidden         = false;
-  logoutBtn.hidden            = false;
 
+  headerOpPill.textContent = s.company + ' · ' + s.operatorId;
+  headerOpPill.hidden      = false;
+
+  logoutBtn.hidden = false;
+
+  // Nav tabs
   const allowed = ROLE_TABS[s.role] || [];
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.style.display = allowed.includes(tab.dataset.view) ? '' : 'none';
   });
 
-  $('view-licenses').style.display = s.role === 'government' ? '' : 'none';
+  // Licenses view visibility
+  const licView = $('view-licenses');
+  licView.style.display = s.role === 'government' ? '' : 'none';
 
+  // Build event pills
   buildEventPills();
+
+  // Re-tag button
   retagBtn.style.display = s.role === 'revalidation' ? '' : 'none';
+
+  // Company filter: hide for LPGMC (they see only own)
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
 
+  // Navigate to scan (reset)
   showView('scan');
+
+  // Refresh data-bound views
   renderCylinders();
   renderAlerts();
   renderReports();
@@ -449,14 +598,14 @@ function applySession() {
 
 function buildEventPills() {
   scanEventBar.innerHTML = '';
-  const role   = Auth.session ? Auth.session.role : null;
+  const role = Auth.session ? Auth.session.role : null;
   const events = ROLE_EVENTS[role] || [];
   events.forEach((ev, i) => {
     const btn = document.createElement('button');
-    btn.className   = 'event-pill' + (i === 0 ? ' active' : '');
+    btn.className = 'event-pill' + (i === 0 ? ' active' : '');
     btn.dataset.type = ev.type;
-    btn.textContent  = ev.label;
-    btn.type         = 'button';
+    btn.textContent = ev.label;
+    btn.type = 'button';
     btn.addEventListener('click', () => {
       document.querySelectorAll('.event-pill').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
@@ -464,24 +613,43 @@ function buildEventPills() {
     });
     scanEventBar.appendChild(btn);
   });
+  // Set default active event type
   State.activeEventType = events.length > 0 ? events[0].type : null;
 }
 
-// ── View routing ──────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// VIEW ROUTING
+// ══════════════════════════════════════════════════════════════════════════════
 
 function showView(name) {
   const s = Auth.session;
   if (!s) return;
+
   const allowed = ROLE_TABS[s.role] || [];
-  if (!allowed.includes(name)) name = allowed[0] || 'scan';
+  if (!allowed.includes(name)) {
+    name = allowed[0] || 'scan';
+  }
+
   State.activeView = name;
+
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
   const viewEl = $('view-' + name);
   if (viewEl) viewEl.classList.add('active');
+
   const tabEl = document.querySelector(`.nav-tab[data-view="${name}"]`);
   if (tabEl) tabEl.classList.add('active');
-  headerSubtitle.textContent = { scan:'Scanning', cylinders:'Cylinders', alerts:'Alerts', reports:'Reports', licenses:'Licenses' }[name] || name;
+
+  headerSubtitle.textContent = {
+    scan:      'Scanning',
+    cylinders: 'Cylinders',
+    alerts:    'Alerts',
+    reports:   'Reports',
+    licenses:  'Licenses',
+  }[name] || name;
+
+  // Lazy render
   if (name === 'cylinders') renderCylinders();
   if (name === 'alerts')    renderAlerts();
   if (name === 'reports')   renderReports();
@@ -492,7 +660,9 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => showView(tab.dataset.view));
 });
 
-// ── Scanner input (HID) ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// SCANNER INPUT (HID pattern)
+// ══════════════════════════════════════════════════════════════════════════════
 
 let inputBuffer = '';
 let flushTimer  = null;
@@ -506,11 +676,13 @@ function flushBuffer() {
 scannerInput.addEventListener('input', () => {
   inputBuffer += scannerInput.value;
   scannerInput.value = '';
+
   if (inputBuffer.includes('\n') || inputBuffer.includes('\r')) {
     clearTimeout(flushTimer);
     flushBuffer();
     return;
   }
+
   clearTimeout(flushTimer);
   flushTimer = setTimeout(flushBuffer, 300);
 });
@@ -525,24 +697,26 @@ scannerInput.addEventListener('keydown', (e) => {
   }
 });
 
-// ── Focus management ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// FOCUS MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
 
 function setFocused(yes) {
   State.focused = yes;
   if (yes) {
     scannerInput.focus();
     focusBtn.classList.add('active');
-    focusIcon.textContent  = '🟢';
+    focusIcon.textContent = '🟢';
     focusLabel.textContent = 'Scanning active — tap to pause';
     statusBadge.textContent = 'Active';
-    statusBadge.className   = 'badge badge-active';
+    statusBadge.className = 'badge badge-active';
   } else {
     scannerInput.blur();
     focusBtn.classList.remove('active');
-    focusIcon.textContent  = '📡';
+    focusIcon.textContent = '📡';
     focusLabel.textContent = 'Tap to start scanning';
     statusBadge.textContent = 'Idle';
-    statusBadge.className   = 'badge badge-idle';
+    statusBadge.className = 'badge badge-idle';
   }
 }
 
@@ -550,67 +724,90 @@ focusBtn.addEventListener('click', () => setFocused(!State.focused));
 
 document.addEventListener('click', (e) => {
   if (!State.focused) return;
-  if (!e.target.closest('.modal-backdrop, .login-overlay, #app-nav, .btn, button, input, select, textarea')) {
-    scannerInput.focus();
-  }
+  const tag = e.target.tagName;
+  const inModal = e.target.closest('.modal-backdrop, .login-overlay, #app-nav, .btn, button, input, select, textarea');
+  if (!inModal) scannerInput.focus();
 });
 
 scannerInput.addEventListener('blur', () => {
-  if (State.focused) { statusBadge.textContent = 'Unfocused'; statusBadge.className = 'badge badge-scanning'; }
-});
-scannerInput.addEventListener('focus', () => {
-  if (State.focused) { statusBadge.textContent = 'Active'; statusBadge.className = 'badge badge-active'; }
+  if (State.focused) {
+    statusBadge.textContent = 'Unfocused';
+    statusBadge.className = 'badge badge-scanning';
+  }
 });
 
-// ── Scan handler ──────────────────────────────────────────────────────────────
+scannerInput.addEventListener('focus', () => {
+  if (State.focused) {
+    statusBadge.textContent = 'Active';
+    statusBadge.className = 'badge badge-active';
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCAN HANDLER
+// ══════════════════════════════════════════════════════════════════════════════
 
 async function handleScan(tagId) {
   if (!Auth.session) return;
-  if (State.retagStep) { handleRetagScan(tagId); return; }
+
+  // Route to re-tag modal if active
+  if (State.retagStep) {
+    handleRetagScan(tagId);
+    return;
+  }
+
+  // Only process scans in Scan view
   if (State.activeView !== 'scan') return;
 
   const ts = nowISO();
+
+  // Show last scan card
   lastScanCard.hidden = false;
   lastScanTime.textContent = formatTime(ts);
   lastScanTag.textContent  = tagId;
   lastScanResult.className = 'last-scan-result';
   lastScanResult.textContent = 'Looking up…';
 
+  // Lookup cylinder
   const cyl = await txGet('cylinders', tagId);
 
   if (!cyl) {
+    // Unknown tag
     if (Auth.can('register')) {
-      lastScanResult.className   = 'last-scan-result warning';
+      lastScanResult.className = 'last-scan-result warning';
       lastScanResult.textContent = 'Unknown tag — opening registration…';
       openRegisterModal(tagId);
     } else if (Auth.session.role === 'government') {
-      lastScanResult.className   = 'last-scan-result error';
+      lastScanResult.className = 'last-scan-result error';
       lastScanResult.textContent = 'Tag not registered. Contact LPGMC to register.';
     } else {
-      lastScanResult.className   = 'last-scan-result error';
+      lastScanResult.className = 'last-scan-result error';
       lastScanResult.textContent = 'Tag not registered.';
     }
     return;
   }
 
+  // LPGMC: filter own cylinders
   if (Auth.session.role === 'lpgmc' && cyl.company !== Auth.session.company) {
-    lastScanResult.className   = 'last-scan-result error';
+    lastScanResult.className = 'last-scan-result error';
     lastScanResult.textContent = `Cylinder belongs to ${escapeHtml(cyl.company)} — not your company.`;
     return;
   }
 
   if (State.batchMode) {
+    // Add to batch queue
     const already = State.batchQueue.find(b => b.id === cyl.id);
     if (already) {
-      lastScanResult.className   = 'last-scan-result warning';
+      lastScanResult.className = 'last-scan-result warning';
       lastScanResult.textContent = `${escapeHtml(cyl.serial)} already in batch queue.`;
     } else {
       State.batchQueue.push({ id: cyl.id, serial: cyl.serial, timestamp: ts });
-      lastScanResult.className   = 'last-scan-result success';
+      lastScanResult.className = 'last-scan-result success';
       lastScanResult.textContent = `${escapeHtml(cyl.serial)} added to batch.`;
       renderBatchQueue();
     }
   } else {
+    // Immediate commit
     await commitScanEvent(cyl, ts);
   }
 }
@@ -629,57 +826,66 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     notes:      '',
   };
 
-  if (State.gpsEnabled && State.gpsCoords) {
-    event.lat = State.gpsCoords.latitude;
-    event.lng = State.gpsCoords.longitude;
-  }
-
   await txPut('events', event);
 
+  // Update cylinder status
   const updatedCyl = Object.assign({}, cyl);
   if (eventType === 'refilled') {
     updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
-    if (updatedCyl.fillCount >= updatedCyl.maxFills) updatedCyl.status = 'condemned';
+    if (updatedCyl.fillCount >= updatedCyl.maxFills) {
+      updatedCyl.status = 'condemned';
+    }
   } else if (eventType === 'sent-revalidation' || eventType === 'received-damaged') {
     updatedCyl.status = 'revalidation';
   } else if (eventType === 'revalidated' || eventType === 'returned-lpgmc') {
     updatedCyl.status = 'available';
     updatedCyl.fillCount = 0;
-  } else if (eventType === 'shipped') {
+  } else if (eventType === 'shipped' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-use';
-  } else if (eventType === 'received-empty') {
+  } else if (eventType === 'received-empty' || eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
     updatedCyl.status = 'available';
+  } else if (eventType === 'dist-received' || eventType === 'ret-received') {
+    updatedCyl.status = 'in-use';
   }
   await txPut('cylinders', updatedCyl);
 
+  // UI feedback
   lastScanCard.hidden = false;
-  lastScanTime.textContent   = formatTime(event.timestamp);
-  lastScanTag.textContent    = cyl.id;
-  lastScanResult.className   = 'last-scan-result success';
+  lastScanTime.textContent = formatTime(event.timestamp);
+  lastScanTag.textContent  = cyl.id;
+  lastScanResult.className = 'last-scan-result success';
   lastScanResult.textContent = `${escapeHtml(cyl.serial)} — ${eventType} recorded.`;
 
+  // Prepend to events list
   State.scanEvents.unshift({ ...event, serial: cyl.serial });
   renderScanEvent(State.scanEvents[0], true);
   eventsEmpty.style.display = 'none';
+
   showSnackbar(`${cyl.serial}: ${eventType}`, 'success');
 }
 
-// ── Scan view rendering ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// SCAN VIEW RENDERING
+// ══════════════════════════════════════════════════════════════════════════════
 
 function renderScanEvent(ev, prepend = false) {
   const li = document.createElement('li');
   li.className = 'scan-event-item';
+
   const evClass = 'evt-' + ev.type;
-  const label = (ROLE_EVENTS[Auth.session ? Auth.session.role : 'lpgmc'] || []).find(r => r.type === ev.type)?.label || ev.type;
+  const label   = (ROLE_EVENTS[Auth.session ? Auth.session.role : 'lpgmc'] || [])
+    .find(r => r.type === ev.type)?.label || ev.type;
+
   let meta = formatDateTime(ev.timestamp);
   if (ev.operatorId) meta += ` · ${escapeHtml(ev.operatorId)}`;
-  if (ev.lat) meta += ` · 📍${ev.lat.toFixed(4)},${ev.lng.toFixed(4)}`;
+
   li.innerHTML = `
     <span class="event-type-badge ${escapeHtml(evClass)}">${escapeHtml(label)}</span>
     <div class="event-body">
       <div class="event-serial">${escapeHtml(ev.serial || ev.cylinderId)}</div>
       <div class="event-meta">${meta}</div>
     </div>`;
+
   if (prepend) eventsList.prepend(li);
   else         eventsList.append(li);
 }
@@ -704,7 +910,10 @@ function renderBatchQueue() {
 
 batchModeToggle.addEventListener('change', () => {
   State.batchMode = batchModeToggle.checked;
-  if (!State.batchMode) { State.batchQueue = []; renderBatchQueue(); }
+  if (!State.batchMode) {
+    State.batchQueue = [];
+    renderBatchQueue();
+  }
 });
 
 batchCommitBtn.addEventListener('click', async () => {
@@ -720,42 +929,34 @@ batchCommitBtn.addEventListener('click', async () => {
   showSnackbar(`Committed ${count} events.`, 'success');
 });
 
-batchClearBtn.addEventListener('click', () => { State.batchQueue = []; renderBatchQueue(); });
-
-gpsToggle.addEventListener('change', async () => {
-  State.gpsEnabled = gpsToggle.checked;
-  if (State.gpsEnabled) {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        pos => { State.gpsCoords = pos.coords; showSnackbar('GPS acquired.', 'success'); },
-        ()  => { State.gpsEnabled = false; gpsToggle.checked = false; showSnackbar('GPS unavailable.', 'error'); }
-      );
-    } else {
-      State.gpsEnabled = false; gpsToggle.checked = false;
-      showSnackbar('GPS not supported.', 'error');
-    }
-  }
+batchClearBtn.addEventListener('click', () => {
+  State.batchQueue = [];
+  renderBatchQueue();
 });
 
+// Export events CSV
 exportEventsBtn.addEventListener('click', () => {
   if (!State.scanEvents.length) { showSnackbar('No events to export.'); return; }
-  const header = 'cylinderId,serial,type,timestamp,operatorId,company,lat,lng\n';
+  const header = 'cylinderId,serial,type,timestamp,operatorId,company\n';
   const rows = State.scanEvents.map(ev =>
-    `"${ev.cylinderId}","${ev.serial||''}","${ev.type}","${ev.timestamp}","${ev.operatorId||''}","${ev.company||''}","${ev.lat||''}","${ev.lng||''}"`);
-  downloadCSV('lpg-events-' + new Date().toISOString().slice(0,10) + '.csv', header + rows.join('\n'));
+    `"${ev.cylinderId}","${ev.serial || ''}","${ev.type}","${ev.timestamp}","${ev.operatorId || ''}","${ev.company || ''}"`
+  ).join('\n');
+  downloadCSV('lpg-events-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
 });
 
-// ── Register modal ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// REGISTER CYLINDER MODAL
+// ══════════════════════════════════════════════════════════════════════════════
 
 function openRegisterModal(tagId) {
-  regTag.value       = tagId;
-  regSerial.value    = '';
-  regManufDate.value = new Date().toISOString().slice(0,10);
-  regTare.value      = '14.5';
-  regCapacity.value  = '12';
-  regMaxFills.value  = '500';
-  regHydrotest.value = new Date().toISOString().slice(0,10);
-  regNotes.value     = '';
+  regTag.value           = tagId;
+  regSerial.value        = '';
+  regManufDate.value     = new Date().toISOString().slice(0,10);
+  regTare.value          = '14.5';
+  regCapacity.value      = '12';
+  regMaxFills.value      = '500';
+  regHydrotest.value     = new Date().toISOString().slice(0,10);
+  regNotes.value         = '';
   openModal('modal-register');
 }
 
@@ -763,10 +964,16 @@ regSubmitBtn.addEventListener('click', async () => {
   const tagId  = regTag.value.trim();
   const serial = regSerial.value.trim();
   if (!serial) { showSnackbar('Serial number is required.', 'error'); return; }
+
+  // Check serial uniqueness
   const allCyls = await txGetAll('cylinders');
-  if (allCyls.find(c => c.serial === serial)) { showSnackbar('Serial number already exists.', 'error'); return; }
+  if (allCyls.find(c => c.serial === serial)) {
+    showSnackbar('Serial number already exists.', 'error'); return;
+  }
+
   const cyl = {
-    id: tagId, serial,
+    id:              tagId,
+    serial:          serial,
     company:         Auth.session.company,
     manufactureDate: regManufDate.value,
     tareWeight:      parseFloat(regTare.value) || 14.5,
@@ -777,28 +984,45 @@ regSubmitBtn.addEventListener('click', async () => {
     status:          'available',
     notes:           regNotes.value.trim(),
   };
+
   await txPut('cylinders', cyl);
-  const event = { cylinderId: cyl.id, type: 'registered', timestamp: nowISO(), operatorId: Auth.session.operatorId, company: Auth.session.company, notes: 'Newly registered' };
+
+  const event = {
+    cylinderId: cyl.id,
+    type:       'registered',
+    timestamp:  nowISO(),
+    operatorId: Auth.session.operatorId,
+    company:    Auth.session.company,
+    notes:      'Newly registered',
+  };
   await txPut('events', event);
+
   State.scanEvents.unshift({ ...event, serial: cyl.serial });
   renderScanEvent(State.scanEvents[0], true);
   eventsEmpty.style.display = 'none';
-  lastScanResult.className   = 'last-scan-result success';
+
+  lastScanResult.className  = 'last-scan-result success';
   lastScanResult.textContent = `${serial} registered successfully.`;
+
   closeModal('modal-register');
   showSnackbar(`${serial} registered.`, 'success');
   renderCylinders();
 });
 
-// ── Cylinders view ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// CYLINDERS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
 
 let _cylAllData = [];
 
 async function renderCylinders() {
   _cylAllData = await txGetAll('cylinders');
+
+  // Filter by company for LPGMC
   if (Auth.session && Auth.session.role === 'lpgmc') {
     _cylAllData = _cylAllData.filter(c => c.company === Auth.session.company);
   }
+
   applyCylFilters();
 }
 
@@ -806,27 +1030,44 @@ function applyCylFilters() {
   const q       = cylSearch.value.toLowerCase().trim();
   const statusF = cylFilterStatus.value;
   const compF   = cylFilterCompany.value;
+
   let data = _cylAllData;
   if (q)       data = data.filter(c => c.serial.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
   if (statusF) data = data.filter(c => c.status === statusF);
   if (compF)   data = data.filter(c => c.company === compF);
+
+  // Stats
   const statuses = { available: 0, 'in-use': 0, condemned: 0, revalidation: 0 };
   _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
   cylStats.innerHTML = Object.entries(statuses).map(([k, v]) =>
-    `<div class="stat-chip"><span class="stat-chip-value">${v}</span><span class="stat-chip-label">${k}</span></div>`).join('');
+    `<div class="stat-chip">
+       <span class="stat-chip-value">${v}</span>
+       <span class="stat-chip-label">${k}</span>
+     </div>`
+  ).join('');
+
   cylindersList.innerHTML = '';
-  if (!data.length) { cylindersEmpty.style.display = ''; return; }
+  if (!data.length) {
+    cylindersEmpty.style.display = '';
+    return;
+  }
   cylindersEmpty.style.display = 'none';
+
   data.forEach(cyl => {
     const li = document.createElement('li');
     li.className = 'cylinder-item';
-    const fillPct   = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
+
+    const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
     const fillClass = fillPct >= 95 ? 'crit' : fillPct >= 80 ? 'warn' : '';
     const dotClass  = 'dot-' + (cyl.status || 'available');
     const statClass = 'status-' + (cyl.status || 'available');
     const statLabel = { available:'Available', 'in-use':'In Use', condemned:'Condemned', revalidation:'Revalidation' }[cyl.status] || cyl.status;
+
     const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
-    const hydroBadge = hydroDays > 0 ? `<span class="cylinder-meta-item" style="color:var(--red)">Hydro overdue ${hydroDays}d</span>` : '';
+    const hydroBadge = hydroDays > 0
+      ? `<span class="cylinder-meta-item" style="color:var(--red)">Hydro overdue ${hydroDays}d</span>`
+      : '';
+
     li.innerHTML = `
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
       <div class="cylinder-body">
@@ -840,8 +1081,11 @@ function applyCylFilters() {
       </div>
       <div class="cylinder-badges">
         <span class="status-badge ${escapeHtml(statClass)}">${escapeHtml(statLabel)}</span>
-        <div class="fill-bar"><div class="fill-bar-inner ${escapeHtml(fillClass)}" style="width:${fillPct}%"></div></div>
+        <div class="fill-bar">
+          <div class="fill-bar-inner ${escapeHtml(fillClass)}" style="width:${fillPct}%"></div>
+        </div>
       </div>`;
+
     li.addEventListener('click', () => openPassportModal(cyl.id));
     cylindersList.appendChild(li);
   });
@@ -851,43 +1095,83 @@ cylSearch.addEventListener('input',         applyCylFilters);
 cylFilterStatus.addEventListener('change',  applyCylFilters);
 cylFilterCompany.addEventListener('change', applyCylFilters);
 
-// ── Passport modal ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// CYLINDER PASSPORT MODAL
+// ══════════════════════════════════════════════════════════════════════════════
 
 async function openPassportModal(cylId) {
   State.passportCylinderId = cylId;
   const cyl = await txGet('cylinders', cylId);
   if (!cyl) return;
+
   const events = await txGetIndex('events', 'cylinderId', cylId);
   events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const fillPct   = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
+
+  const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
   const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
+
   passportBody.innerHTML = `
     <div class="passport-section">
       <div class="passport-section-title">Identity</div>
-      <div class="passport-row"><span class="passport-key">Serial</span><span class="passport-value">${escapeHtml(cyl.serial)}</span></div>
-      <div class="passport-row"><span class="passport-key">RFID Tag</span><span class="passport-value mono">${escapeHtml(cyl.id)}</span></div>
-      <div class="passport-row"><span class="passport-key">Company</span><span class="passport-value">${escapeHtml(cyl.company)}</span></div>
-      <div class="passport-row"><span class="passport-key">Status</span><span class="passport-value">${escapeHtml(cyl.status)}</span></div>
+      <div class="passport-row">
+        <span class="passport-key">Serial</span>
+        <span class="passport-value">${escapeHtml(cyl.serial)}</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">RFID Tag</span>
+        <span class="passport-value mono">${escapeHtml(cyl.id)}</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Company</span>
+        <span class="passport-value">${escapeHtml(cyl.company)}</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Status</span>
+        <span class="passport-value">${escapeHtml(cyl.status)}</span>
+      </div>
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Specifications</div>
-      <div class="passport-row"><span class="passport-key">Manufacture Date</span><span class="passport-value">${formatDate(cyl.manufactureDate)}</span></div>
-      <div class="passport-row"><span class="passport-key">Tare Weight</span><span class="passport-value">${cyl.tareWeight} kg</span></div>
-      <div class="passport-row"><span class="passport-key">Capacity</span><span class="passport-value">${cyl.capacity} kg</span></div>
-      <div class="passport-row"><span class="passport-key">Max Fills</span><span class="passport-value">${cyl.maxFills}</span></div>
+      <div class="passport-row">
+        <span class="passport-key">Manufacture Date</span>
+        <span class="passport-value">${formatDate(cyl.manufactureDate)}</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Tare Weight</span>
+        <span class="passport-value">${cyl.tareWeight} kg</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Capacity</span>
+        <span class="passport-value">${cyl.capacity} kg</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Max Fills</span>
+        <span class="passport-value">${cyl.maxFills}</span>
+      </div>
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
-      <div class="passport-row"><span class="passport-key">Fill Count</span><span class="passport-value">${cyl.fillCount} (${fillPct}%)</span></div>
-      <div class="passport-row"><span class="passport-key">Last Hydro Test</span><span class="passport-value" style="${hydroDays > 0 ? 'color:var(--red)' : ''}">${formatDate(cyl.lastHydroTest)}${hydroDays > 0 ? ' ⚠️ Overdue' : ''}</span></div>
+      <div class="passport-row">
+        <span class="passport-key">Fill Count</span>
+        <span class="passport-value">${cyl.fillCount} (${fillPct}%)</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">Last Hydro Test</span>
+        <span class="passport-value" style="${hydroDays > 0 ? 'color:var(--red)' : ''}">${formatDate(cyl.lastHydroTest)}${hydroDays > 0 ? ' ⚠️ Overdue' : ''}</span>
+      </div>
       ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Event History (${events.length})</div>
       <ul class="passport-history">
-        ${events.length ? events.map(ev => `<li><span class="ph-time">${formatDateTime(ev.timestamp)}</span><span class="ph-desc">${escapeHtml(ev.type)}${ev.operatorId ? ' · ' + escapeHtml(ev.operatorId) : ''}${ev.newTagId ? ' → new tag: ' + escapeHtml(ev.newTagId) : ''}${ev.previousTagId ? ' ← prev tag: ' + escapeHtml(ev.previousTagId) : ''}</span></li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
+        ${events.length ? events.map(ev => `
+          <li>
+            <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
+            <span class="ph-desc">${escapeHtml(ev.type)}${ev.operatorId ? ' · ' + escapeHtml(ev.operatorId) : ''}${ev.newTagId ? ' → new tag: ' + escapeHtml(ev.newTagId) : ''}${ev.previousTagId ? ' ← prev tag: ' + escapeHtml(ev.previousTagId) : ''}</span>
+          </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
       </ul>
     </div>`;
+
   openModal('modal-passport');
 }
 
@@ -897,10 +1181,12 @@ passportExportBtn.addEventListener('click', async () => {
   if (!cyl) return;
   const events = await txGetIndex('events', 'cylinderId', cyl.id);
   events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
   let text = `LPG Cylinder Passport\n${'='.repeat(40)}\n`;
   text += `Serial:   ${cyl.serial}\nTag:      ${cyl.id}\nCompany:  ${cyl.company}\nStatus:   ${cyl.status}\n`;
   text += `Fills:    ${cyl.fillCount}/${cyl.maxFills}\nHydro:    ${cyl.lastHydroTest}\n\nEvents:\n`;
   events.forEach(ev => { text += `  ${ev.timestamp}  ${ev.type}  ${ev.operatorId || ''}\n`; });
+
   const blob = new Blob([text], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -909,46 +1195,75 @@ passportExportBtn.addEventListener('click', async () => {
   URL.revokeObjectURL(a.href);
 });
 
-// ── Alerts view ───────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ALERTS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
 
 let _alertsData = [];
 
 async function renderAlerts() {
   let cyls = await txGetAll('cylinders');
+
+  // LPGMC: only own
   if (Auth.session && Auth.session.role === 'lpgmc') {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
+
   _alertsData = [];
+
   cyls.forEach(cyl => {
-    const fillPct   = Math.round((cyl.fillCount / cyl.maxFills) * 100);
+    const fillPct = Math.round((cyl.fillCount / cyl.maxFills) * 100);
     const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
-    if (cyl.status === 'condemned')
-      _alertsData.push({ severity:'critical', type:'condemned', cylinder:cyl, title:`${cyl.serial} — Condemned`, desc: cyl.notes || 'Cylinder has been condemned.' });
-    if (cyl.fillCount > cyl.maxFills)
-      _alertsData.push({ severity:'critical', type:'exceeded-capacity', cylinder:cyl, title:`${cyl.serial} — Exceeded Max Fills`, desc:`Fill count ${cyl.fillCount} exceeds max ${cyl.maxFills}.` });
-    if (hydroDays > 0)
-      _alertsData.push({ severity:'critical', type:'overdue-hydrotest', cylinder:cyl, title:`${cyl.serial} — Overdue Hydro Test`, desc:`Last test: ${cyl.lastHydroTest}. Overdue by ${hydroDays} days.` });
-    else if (hydroDays > -180)
-      _alertsData.push({ severity:'warning', type:'overdue-hydrotest', cylinder:cyl, title:`${cyl.serial} — Hydro Test Due Soon`, desc:`Last test: ${cyl.lastHydroTest}. Due in ${-hydroDays} days.` });
-    if (fillPct >= 95 && cyl.status !== 'condemned')
-      _alertsData.push({ severity:'warning', type:'near-capacity', cylinder:cyl, title:`${cyl.serial} — Near Fill Capacity`, desc:`${cyl.fillCount}/${cyl.maxFills} fills (${fillPct}%).` });
+
+    if (cyl.status === 'condemned') {
+      _alertsData.push({ severity:'critical', type:'condemned', cylinder: cyl,
+        title: `${cyl.serial} — Condemned`,
+        desc:  cyl.notes || 'Cylinder has been condemned.' });
+    }
+    if (cyl.fillCount > cyl.maxFills) {
+      _alertsData.push({ severity:'critical', type:'exceeded-capacity', cylinder: cyl,
+        title: `${cyl.serial} — Exceeded Max Fills`,
+        desc:  `Fill count ${cyl.fillCount} exceeds max ${cyl.maxFills}.` });
+    }
+    if (hydroDays > 0) {
+      _alertsData.push({ severity:'critical', type:'overdue-hydrotest', cylinder: cyl,
+        title: `${cyl.serial} — Overdue Hydro Test`,
+        desc:  `Last test: ${cyl.lastHydroTest}. Overdue by ${hydroDays} days.` });
+    } else if (hydroDays > -180) {
+      _alertsData.push({ severity:'warning', type:'overdue-hydrotest', cylinder: cyl,
+        title: `${cyl.serial} — Hydro Test Due Soon`,
+        desc:  `Last test: ${cyl.lastHydroTest}. Due in ${-hydroDays} days.` });
+    }
+    if (fillPct >= 95 && cyl.status !== 'condemned') {
+      _alertsData.push({ severity:'warning', type:'near-capacity', cylinder: cyl,
+        title: `${cyl.serial} — Near Fill Capacity`,
+        desc:  `${cyl.fillCount}/${cyl.maxFills} fills (${fillPct}%).` });
+    }
   });
+
   applyAlertFilters();
 }
 
 function applyAlertFilters() {
   const sevF  = alertFilterSeverity.value;
   const typeF = alertFilterType.value;
+
   let data = _alertsData;
   if (sevF)  data = data.filter(a => a.severity === sevF);
   if (typeF) data = data.filter(a => a.type === typeF);
+
+  // Summary chips
   const counts = { critical: 0, warning: 0, info: 0 };
   _alertsData.forEach(a => { if (counts[a.severity] !== undefined) counts[a.severity]++; });
-  alertSummary.innerHTML = Object.entries(counts).filter(([,v]) => v > 0).map(([k,v]) =>
-    `<span class="alert-summary-chip chip-${escapeHtml(k)}">${v} ${k}</span>`).join('');
+  alertSummary.innerHTML = Object.entries(counts)
+    .filter(([,v]) => v > 0)
+    .map(([k, v]) => `<span class="alert-summary-chip chip-${escapeHtml(k)}">${v} ${k}</span>`)
+    .join('');
+
   alertsList.innerHTML = '';
   if (!data.length) { alertsEmpty.style.display = ''; return; }
   alertsEmpty.style.display = 'none';
+
   data.forEach(al => {
     const li = document.createElement('li');
     li.className = 'alert-item';
@@ -968,39 +1283,77 @@ function applyAlertFilters() {
 alertFilterSeverity.addEventListener('change', applyAlertFilters);
 alertFilterType.addEventListener('change',     applyAlertFilters);
 
-// ── Reports view ──────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// REPORTS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
 
 async function renderReports() {
   let cyls   = await txGetAll('cylinders');
   let events = await txGetAll('events');
+
+  // LPGMC: filter own
   if (Auth.session && Auth.session.role === 'lpgmc') {
-    cyls = cyls.filter(c => c.company === Auth.session.company);
+    cyls   = cyls.filter(c => c.company === Auth.session.company);
     const ownIds = new Set(cyls.map(c => c.id));
     events = events.filter(e => ownIds.has(e.cylinderId));
   }
+
   const total     = cyls.length;
   const available = cyls.filter(c => c.status === 'available').length;
   const inUse     = cyls.filter(c => c.status === 'in-use').length;
   const condemned = cyls.filter(c => c.status === 'condemned').length;
+
   reportsGrid.innerHTML = `
-    <div class="report-card"><span class="report-card-value">${total}</span><div class="report-card-label">Total Cylinders</div></div>
-    <div class="report-card"><span class="report-card-value" style="color:var(--green)">${available}</span><div class="report-card-label">Available</div></div>
-    <div class="report-card"><span class="report-card-value" style="color:var(--blue)">${inUse}</span><div class="report-card-label">In Use</div></div>
-    <div class="report-card"><span class="report-card-value" style="color:var(--red)">${condemned}</span><div class="report-card-label">Condemned</div></div>`;
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    <div class="report-card">
+      <span class="report-card-value">${total}</span>
+      <div class="report-card-label">Total Cylinders</div>
+    </div>
+    <div class="report-card">
+      <span class="report-card-value" style="color:var(--green)">${available}</span>
+      <div class="report-card-label">Available</div>
+    </div>
+    <div class="report-card">
+      <span class="report-card-value" style="color:var(--blue)">${inUse}</span>
+      <div class="report-card-label">In Use</div>
+    </div>
+    <div class="report-card">
+      <span class="report-card-value" style="color:var(--red)">${condemned}</span>
+      <div class="report-card-label">Condemned</div>
+    </div>`;
+
+  // Activity chart — last 30 days by event type
+  const now = Date.now();
+  const cutoff = now - 30 * 24 * 60 * 60 * 1000;
   const recentEvents = events.filter(e => new Date(e.timestamp).getTime() >= cutoff);
+
   const typeCounts = {};
   recentEvents.forEach(e => { typeCounts[e.type] = (typeCounts[e.type] || 0) + 1; });
+
   const maxCount = Math.max(...Object.values(typeCounts), 1);
-  reportChart.innerHTML = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]).map(([type, count]) => {
-    const pct = Math.round((count / maxCount) * 100);
-    return `<div class="chart-row"><span class="chart-label">${escapeHtml(type)}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div></div></div>`;
-  }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+
+  reportChart.innerHTML = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => {
+      const pct = Math.round((count / maxCount) * 100);
+      return `<div class="chart-row">
+        <span class="chart-label">${escapeHtml(type)}</span>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
+        </div>
+      </div>`;
+    }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+
+  // Sync status
   renderSyncStatus();
 }
 
 function renderSyncStatus() {
-  const labels = { idle:'Not synced yet.', syncing:'Syncing…', synced: State.lastSyncTime ? `Last synced: ${formatDateTime(State.lastSyncTime)}` : 'Synced.', error:'Sync failed. Check connection.' };
+  const labels = {
+    idle:    'Not synced yet.',
+    syncing: 'Syncing…',
+    synced:  State.lastSyncTime ? `Last synced: ${formatDateTime(State.lastSyncTime)}` : 'Synced.',
+    error:   'Sync failed. Check connection.',
+  };
   syncStatusText.textContent = labels[State.syncStatus] || '';
   syncIndicator.className = 'sync-indicator ' + (State.syncStatus === 'idle' ? '' : State.syncStatus);
 }
@@ -1008,8 +1361,9 @@ function renderSyncStatus() {
 syncBtn.addEventListener('click', async () => {
   State.syncStatus = 'syncing';
   renderSyncStatus();
+  // Simulate async sync
   await new Promise(r => setTimeout(r, 1500));
-  State.syncStatus   = 'synced';
+  State.syncStatus  = 'synced';
   State.lastSyncTime = nowISO();
   renderSyncStatus();
   showSnackbar('Sync complete.', 'success');
@@ -1017,10 +1371,14 @@ syncBtn.addEventListener('click', async () => {
 
 exportReportBtn.addEventListener('click', async () => {
   let cyls = await txGetAll('cylinders');
-  if (Auth.session && Auth.session.role === 'lpgmc') cyls = cyls.filter(c => c.company === Auth.session.company);
+  if (Auth.session && Auth.session.role === 'lpgmc') {
+    cyls = cyls.filter(c => c.company === Auth.session.company);
+  }
   const header = 'id,serial,company,status,fillCount,maxFills,manufactureDate,lastHydroTest\n';
-  const rows = cyls.map(c => `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate}","${c.lastHydroTest}"`);
-  downloadCSV('lpg-report-' + new Date().toISOString().slice(0,10) + '.csv', header + rows.join('\n'));
+  const rows = cyls.map(c =>
+    `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate}","${c.lastHydroTest}"`
+  ).join('\n');
+  downloadCSV('lpg-report-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
 });
 
 function downloadCSV(filename, content) {
@@ -1032,7 +1390,9 @@ function downloadCSV(filename, content) {
   URL.revokeObjectURL(a.href);
 }
 
-// ── Licenses view ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// LICENSES VIEW (Government only)
+// ══════════════════════════════════════════════════════════════════════════════
 
 let _licensesData = [];
 
@@ -1043,16 +1403,19 @@ async function renderLicenses() {
 }
 
 function applyLicenseFilters() {
-  const q     = licSearch.value.toLowerCase().trim();
-  const typeF = licFilterType.value;
-  const statF = licFilterStatus.value;
+  const q      = licSearch.value.toLowerCase().trim();
+  const typeF  = licFilterType.value;
+  const statF  = licFilterStatus.value;
+
   let data = _licensesData;
-  if (q)     data = data.filter(l => l.companyName.toLowerCase().includes(q) || l.licenseNumber.toLowerCase().includes(q));
-  if (typeF) data = data.filter(l => l.companyType === typeF);
-  if (statF) data = data.filter(l => l.status === statF);
+  if (q)      data = data.filter(l => l.companyName.toLowerCase().includes(q) || l.licenseNumber.toLowerCase().includes(q));
+  if (typeF)  data = data.filter(l => l.companyType === typeF);
+  if (statF)  data = data.filter(l => l.status === statF);
+
   licensesList.innerHTML = '';
   if (!data.length) { licensesEmpty.style.display = ''; return; }
   licensesEmpty.style.display = 'none';
+
   data.forEach(lic => {
     const li = document.createElement('li');
     li.className = 'license-item';
@@ -1091,31 +1454,49 @@ licSubmitBtn.addEventListener('click', async () => {
   const issued      = licIssuedDate.value;
   const expiry      = licExpiryDate.value;
   const status      = licStatus.value;
-  if (!companyName || !number || !issued || !expiry) { showSnackbar('Please fill in all required fields.', 'error'); return; }
-  const lic = { id: 'LIC-' + Date.now(), companyName, companyType, licenseNumber: number, issuedDate: issued, expiryDate: expiry, status };
+
+  if (!companyName || !number || !issued || !expiry) {
+    showSnackbar('Please fill in all required fields.', 'error'); return;
+  }
+
+  const lic = {
+    id:           'LIC-' + Date.now(),
+    companyName,
+    companyType,
+    licenseNumber: number,
+    issuedDate:   issued,
+    expiryDate:   expiry,
+    status,
+  };
+
   await txPut('licenses', lic);
   closeModal('modal-issue-license');
   showSnackbar(`License ${number} issued.`, 'success');
   renderLicenses();
 });
 
-// ── Re-tag workflow ───────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// RE-TAG WORKFLOW (Revalidation only)
+// ══════════════════════════════════════════════════════════════════════════════
 
 retagBtn.addEventListener('click', openRetagModal);
 
 function openRetagModal() {
-  State.retagStep        = 'scan-old';
-  State.retagOldCylinder = null;
-  retagStep1El.hidden    = false;
-  retagStep2El.hidden    = true;
-  retagStep1Next.hidden  = false;
-  retagStep2Submit.hidden= true;
-  retagOldInput.value    = '';
-  retagNewInput.value    = '';
-  retagOldError.hidden   = true;
-  retagNewError.hidden   = true;
-  retagOldInfo.hidden    = true;
+  State.retagStep         = 'scan-old';
+  State.retagOldCylinder  = null;
+
+  retagStep1El.hidden     = false;
+  retagStep2El.hidden     = true;
+  retagStep1Next.hidden   = false;
+  retagStep2Submit.hidden = true;
+
+  retagOldInput.value     = '';
+  retagNewInput.value     = '';
+  retagOldError.hidden    = true;
+  retagNewError.hidden    = true;
+  retagOldInfo.hidden     = true;
   retagOldSummary.textContent = '';
+
   openModal('modal-retag');
   setTimeout(() => retagOldInput.focus(), 100);
 }
@@ -1123,17 +1504,36 @@ function openRetagModal() {
 retagStep1Next.addEventListener('click', async () => {
   const tagId = retagOldInput.value.trim();
   if (!tagId) { retagOldError.textContent = 'Please scan or enter the old tag ID.'; retagOldError.hidden = false; return; }
+
   const cyl = await txGet('cylinders', tagId);
-  if (!cyl) { retagOldError.textContent = 'Tag not registered.'; retagOldError.hidden = false; retagOldInfo.hidden = true; return; }
+  if (!cyl) {
+    retagOldError.textContent = 'Tag not registered.';
+    retagOldError.hidden = false;
+    retagOldInfo.hidden  = true;
+    return;
+  }
+
   retagOldError.hidden = true;
   State.retagOldCylinder = cyl;
+
   retagOldInfo.hidden = false;
-  retagOldInfo.innerHTML = `<div class="ci-serial">${escapeHtml(cyl.serial)}</div><div class="ci-meta">Tag: ${escapeHtml(cyl.id)}<br>Company: ${escapeHtml(cyl.company)}<br>Status: ${escapeHtml(cyl.status)}<br>Fills: ${cyl.fillCount}/${cyl.maxFills}</div>`;
-  retagStep1El.hidden    = true;
-  retagStep2El.hidden    = false;
-  retagStep1Next.hidden  = true;
-  retagStep2Submit.hidden= false;
+  retagOldInfo.innerHTML = `
+    <div class="ci-serial">${escapeHtml(cyl.serial)}</div>
+    <div class="ci-meta">
+      Tag: ${escapeHtml(cyl.id)}<br>
+      Company: ${escapeHtml(cyl.company)}<br>
+      Status: ${escapeHtml(cyl.status)}<br>
+      Fills: ${cyl.fillCount}/${cyl.maxFills}
+    </div>`;
+
+  // Advance to step 2
+  retagStep1El.hidden     = true;
+  retagStep2El.hidden     = false;
+  retagStep1Next.hidden   = true;
+  retagStep2Submit.hidden = false;
+
   retagOldSummary.innerHTML = `Old cylinder: <strong>${escapeHtml(cyl.serial)}</strong> (${escapeHtml(cyl.id)})`;
+
   State.retagStep = 'scan-new';
   setTimeout(() => retagNewInput.focus(), 100);
 });
@@ -1141,82 +1541,164 @@ retagStep1Next.addEventListener('click', async () => {
 retagStep2Submit.addEventListener('click', async () => {
   const newTagId = retagNewInput.value.trim();
   if (!newTagId) { retagNewError.textContent = 'Please scan or enter the new tag ID.'; retagNewError.hidden = false; return; }
+
   const existing = await txGet('cylinders', newTagId);
-  if (existing) { retagNewError.textContent = 'New tag already registered to: ' + existing.serial; retagNewError.hidden = false; return; }
+  if (existing) {
+    retagNewError.textContent = 'New tag already registered to: ' + existing.serial;
+    retagNewError.hidden = false;
+    return;
+  }
+
   const oldCyl = State.retagOldCylinder;
   const ts     = nowISO();
-  const newCyl = Object.assign({}, oldCyl, { id: newTagId, fillCount: 0, status: 'available', notes: `Re-tagged from ${oldCyl.serial} (${oldCyl.id}) on ${ts.slice(0,10)}.` });
+
+  // Create new cylinder record
+  const newCyl = Object.assign({}, oldCyl, {
+    id:            newTagId,
+    fillCount:     0,
+    status:        'available',
+    notes:         `Re-tagged from ${oldCyl.serial} (${oldCyl.id}) on ${ts.slice(0,10)}.`,
+  });
   await txPut('cylinders', newCyl);
-  await txPut('events', { cylinderId: oldCyl.id, type: 'retagged', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company, newTagId, notes: `Re-tagged. New tag: ${newTagId}` });
-  await txPut('cylinders', Object.assign({}, oldCyl, { status: 'condemned', notes: `Re-tagged. New tag assigned: ${newTagId} on ${ts.slice(0,10)}.` }));
-  await txPut('events', { cylinderId: newCyl.id, type: 'registered', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company, previousTagId: oldCyl.id, notes: `Re-tagged from ${oldCyl.id}` });
-  State.scanEvents.unshift({ cylinderId: newCyl.id, serial: newCyl.serial, type: 'registered', timestamp: ts, operatorId: Auth.session.operatorId, company: Auth.session.company });
+
+  // Log retagged event on old cylinder
+  await txPut('events', {
+    cylinderId: oldCyl.id,
+    type:       'retagged',
+    timestamp:  ts,
+    operatorId: Auth.session.operatorId,
+    company:    Auth.session.company,
+    newTagId:   newTagId,
+    notes:      `Re-tagged. New tag: ${newTagId}`,
+  });
+
+  // Update old cylinder status
+  const updatedOld = Object.assign({}, oldCyl, {
+    status: 'condemned',
+    notes:  `Re-tagged. New tag assigned: ${newTagId} on ${ts.slice(0,10)}.`,
+  });
+  await txPut('cylinders', updatedOld);
+
+  // Log registered event on new cylinder
+  await txPut('events', {
+    cylinderId:    newCyl.id,
+    type:          'registered',
+    timestamp:     ts,
+    operatorId:    Auth.session.operatorId,
+    company:       Auth.session.company,
+    previousTagId: oldCyl.id,
+    notes:         `Re-tagged from ${oldCyl.id}`,
+  });
+
+  // Update scan events list
+  State.scanEvents.unshift({
+    cylinderId: newCyl.id,
+    serial:     newCyl.serial,
+    type:       'registered',
+    timestamp:  ts,
+    operatorId: Auth.session.operatorId,
+    company:    Auth.session.company,
+  });
   renderScanEvent(State.scanEvents[0], true);
   eventsEmpty.style.display = 'none';
-  State.retagStep = null;
+
+  State.retagStep        = null;
   State.retagOldCylinder = null;
+
   closeModal('modal-retag');
   showSnackbar(`Re-tag complete: ${newCyl.serial} → new tag.`, 'success');
   renderCylinders();
 });
 
+// Handle scanner input arriving while retag modal open
 async function handleRetagScan(tagId) {
-  if (State.retagStep === 'scan-old') retagOldInput.value = tagId;
-  else if (State.retagStep === 'scan-new') retagNewInput.value = tagId;
+  if (State.retagStep === 'scan-old') {
+    retagOldInput.value = tagId;
+  } else if (State.retagStep === 'scan-new') {
+    retagNewInput.value = tagId;
+  }
 }
 
-// ── Modal close handlers ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// MODAL CLOSE HANDLERS
+// ══════════════════════════════════════════════════════════════════════════════
 
 document.querySelectorAll('[data-close]').forEach(btn => {
   btn.addEventListener('click', () => {
     closeModal(btn.dataset.close);
-    if (btn.dataset.close === 'modal-retag') { State.retagStep = null; State.retagOldCylinder = null; }
-  });
-});
-
-document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) {
-      backdrop.hidden = true;
-      if (backdrop.id === 'modal-retag') { State.retagStep = null; State.retagOldCylinder = null; }
+    if (btn.dataset.close === 'modal-retag') {
+      State.retagStep        = null;
+      State.retagOldCylinder = null;
     }
   });
 });
 
-// ── Logout ────────────────────────────────────────────────────────────────────
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) {
+      backdrop.hidden = true;
+      if (backdrop.id === 'modal-retag') {
+        State.retagStep        = null;
+        State.retagOldCylinder = null;
+      }
+    }
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LOGOUT
+// ══════════════════════════════════════════════════════════════════════════════
 
 logoutBtn.addEventListener('click', () => {
+  // Reset UI
   State.focused = false;
   setFocused(false);
-  State.scanEvents  = [];
-  State.batchQueue  = [];
-  State.batchMode   = false;
+  State.scanEvents    = [];
+  State.batchQueue    = [];
+  State.batchMode     = false;
   batchModeToggle.checked = false;
+
   headerRoleBadge.hidden = true;
   headerOpPill.hidden    = true;
   logoutBtn.hidden       = true;
   eventsList.innerHTML   = '';
   eventsEmpty.style.display = '';
   lastScanCard.hidden    = true;
+
+  // Hide all views
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
   Auth.logout();
 });
 
-// ── Service Worker ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICE WORKER
+// ══════════════════════════════════════════════════════════════════════════════
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════════
 
 async function init() {
   await openDB();
   await seedDemoData();
+
   Auth.load();
-  if (Auth.session) { hideLoginOverlay(); applySession(); }
-  else              { showLoginOverlay(); }
+
+  if (Auth.session) {
+    hideLoginOverlay();
+    applySession();
+  } else {
+    showLoginOverlay();
+  }
 }
 
 init().catch(err => {
