@@ -15,11 +15,9 @@
 </head>
 <body>
 
-  <!-- Hidden HID scanner capture input (always in DOM) -->
   <input id="scanner-input" autocomplete="off" autocorrect="off" autocapitalize="off"
          spellcheck="false" inputmode="none" aria-hidden="true" tabindex="-1" />
 
-  <!-- LOGIN OVERLAY -->
   <div id="login-overlay" class="login-overlay" aria-modal="true" role="dialog" aria-label="Login">
     <div class="login-container">
       <div class="login-header">
@@ -37,7 +35,6 @@
           </div>
           <div class="role-card-chevron">›</div>
         </div>
-
         <div class="role-card" data-role="government" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏛️</div>
           <div class="role-card-body">
@@ -46,12 +43,27 @@
           </div>
           <div class="role-card-chevron">›</div>
         </div>
-
         <div class="role-card" data-role="revalidation" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🔧</div>
           <div class="role-card-body">
             <div class="role-card-title">Revalidation</div>
             <div class="role-card-desc">Revalidation Company<br>Receive Damaged · Refurbish · Re-tag</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+        <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🚛</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Distributor</div>
+            <div class="role-card-desc">Distribution Company<br>Receive · Send to Retail · Return Empty</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+        <div class="role-card" data-role="retailer" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏪</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Retailer</div>
+            <div class="role-card-desc">Retail Outlet<br>Receive Cylinders · Return Empty</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -78,7 +90,6 @@
     </div>
   </div>
 
-  <!-- MAIN APP -->
   <div id="app">
     <header id="app-header">
       <div class="header-left">
@@ -104,7 +115,6 @@
       <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
     </nav>
 
-    <!-- SCAN VIEW -->
     <div id="view-scan" class="view active">
       <div class="scan-event-bar" id="scan-event-bar"></div>
       <div class="scan-options-bar">
@@ -112,11 +122,6 @@
           <input type="checkbox" id="batch-mode-toggle" />
           <span class="toggle-slider"></span>
           <span class="toggle-text">Batch mode</span>
-        </label>
-        <label class="toggle-label" id="gps-label">
-          <input type="checkbox" id="gps-toggle" />
-          <span class="toggle-slider"></span>
-          <span class="toggle-text">GPS tag</span>
         </label>
         <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">🔄 Re-tag</button>
       </div>
@@ -153,7 +158,6 @@
       <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
     </div>
 
-    <!-- CYLINDERS VIEW -->
     <div id="view-cylinders" class="view">
       <div class="view-toolbar">
         <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
@@ -170,6 +174,7 @@
             <option value="Vivo LPG">Vivo LPG</option>
             <option value="Total Energies">Total Energies</option>
             <option value="Shell Gas">Shell Gas</option>
+            <option value="Lake Gas">Lake Gas</option>
           </select>
         </div>
       </div>
@@ -178,7 +183,6 @@
       <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
     </div>
 
-    <!-- ALERTS VIEW -->
     <div id="view-alerts" class="view">
       <div class="view-toolbar">
         <select id="alert-filter-severity" class="filter-select">
@@ -200,7 +204,6 @@
       <p id="alerts-empty" class="list-empty">No alerts.</p>
     </div>
 
-    <!-- REPORTS VIEW -->
     <div id="view-reports" class="view">
       <div class="reports-grid" id="reports-grid"></div>
       <div class="section-header" style="margin: 16px 16px 8px">
@@ -218,7 +221,6 @@
       </div>
     </div>
 
-    <!-- LICENSES VIEW (Government only) -->
     <div id="view-licenses" class="view" style="display:none">
       <div class="view-toolbar">
         <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
@@ -244,7 +246,6 @@
     </div>
   </div>
 
-  <!-- MODALS -->
   <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
     <div class="modal">
       <div class="modal-header">

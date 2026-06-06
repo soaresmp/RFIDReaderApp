@@ -1,4 +1,3 @@
-/* ── Reset & base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -24,45 +23,13 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
 
-#scanner-input {
-  position: fixed;
-  opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
-  top: 0; left: 0;
-}
+#scanner-input { position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px; top: 0; left: 0; }
 
-#app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
+#app { display: flex; flex-direction: column; min-height: 100dvh; max-width: 640px; margin: 0 auto; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  gap: 8px;
-}
-
+header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; gap: 8px; }
 .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .header-logo { font-size: 22px; flex-shrink: 0; }
 .header-left h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
@@ -74,9 +41,10 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .role-lpgmc        { background: #1d4ed8; color: #fff; }
 .role-government   { background: #7c3aed; color: #fff; }
 .role-revalidation { background: #0f766e; color: #fff; }
+.role-distributor  { background: #b45309; color: #fff; }
+.role-retailer     { background: #0369a1; color: #fff; }
 
 .header-operator-pill { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; background: var(--border); color: var(--muted); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
-
 .logout-btn { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent; }
 .logout-btn:hover { color: var(--red); border-color: var(--red); }
 
@@ -87,7 +55,6 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 
 .app-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; position: sticky; top: 57px; z-index: 9; }
 .app-nav::-webkit-scrollbar { display: none; }
-
 .nav-tab { flex-shrink: 0; padding: 10px 16px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
 .nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
 .nav-tab:hover:not(.active) { color: var(--text); }
@@ -96,12 +63,9 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .view.active { display: flex; }
 
 .view-toolbar { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
-
 .search-input { width: 100%; padding: 9px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; transition: border-color 0.15s; }
 .search-input:focus { border-color: var(--blue); }
-
 .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
 .filter-select { flex: 1; min-width: 120px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; outline: none; cursor: pointer; }
 
 .section-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
@@ -109,13 +73,11 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 
 .scan-event-bar { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; background: var(--surface); border-bottom: 1px solid var(--border); }
 .scan-event-bar::-webkit-scrollbar { display: none; }
-
 .event-pill { flex-shrink: 0; padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
 .event-pill.active { border-color: var(--blue); background: rgba(59,130,246,0.15); color: #93c5fd; }
 .event-pill:hover:not(.active) { border-color: var(--dim); color: var(--text); }
 
 .scan-options-bar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-
 .toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .toggle-label input[type="checkbox"] { display: none; }
 .toggle-slider { position: relative; width: 36px; height: 20px; border-radius: 999px; background: var(--dim); transition: background 0.2s; flex-shrink: 0; }
@@ -164,6 +126,11 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .evt-revalidated       { background: var(--green-dim); color: #6ee7b7; }
 .evt-returned-lpgmc    { background: #0c4a6e; color: #7dd3fc; }
 .evt-retagged          { background: #44403c; color: #d6d3d1; }
+.evt-dist-received     { background: #78350f; color: #fcd34d; }
+.evt-dist-sent-retail  { background: #1e3a5f; color: #60a5fa; }
+.evt-dist-returned-empty { background: #312e81; color: #a5b4fc; }
+.evt-ret-received      { background: #083344; color: #67e8f9; }
+.evt-ret-returned-empty { background: #312e81; color: #a5b4fc; }
 
 .event-body { flex: 1; min-width: 0; }
 .event-serial { font-size: 14px; font-weight: 600; color: var(--text); }
@@ -183,7 +150,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .dot-available   { background: var(--green); }
 .dot-in-use      { background: var(--blue); }
 .dot-condemned   { background: var(--red); }
-.dot-revalidation{ background: var(--amber); }
+.dot-revalidation { background: var(--amber); }
 .cylinder-body { flex: 1; min-width: 0; }
 .cylinder-serial { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
 .cylinder-tag { font-family: var(--font-mono); font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -246,8 +213,8 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .license-badges  { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .type-chip { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
 .type-LPGMC        { background: rgba(59,130,246,0.2);  color: #93c5fd; }
-.type-Distributor  { background: rgba(124,58,237,0.2);  color: #c4b5fd; }
-.type-Retailer     { background: rgba(20,184,166,0.2);  color: #5eead4; }
+.type-Distributor  { background: rgba(180,83,9,0.2);    color: #fcd34d; }
+.type-Retailer     { background: rgba(3,105,161,0.2);   color: #67e8f9; }
 .type-Revalidation { background: rgba(245,158,11,0.2);  color: var(--amber); }
 .lic-status-badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .lic-active    { background: rgba(16,185,129,0.15); color: var(--green); }
