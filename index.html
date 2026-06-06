@@ -60,6 +60,24 @@
           <div class="role-card-chevron">›</div>
         </div>
 
+        <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🚛</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Distributor</div>
+            <div class="role-card-desc">Distribution Company<br>Receive · Send to Retail · Return Empty</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="retailer" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏪</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Retailer</div>
+            <div class="role-card-desc">Retail Outlet<br>Receive Cylinders · Return Empty</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
       </div>
 
       <!-- Inline login sub-form (hidden until role selected) -->
@@ -131,11 +149,6 @@
           <span class="toggle-slider"></span>
           <span class="toggle-text">Batch mode</span>
         </label>
-        <label class="toggle-label" id="gps-label">
-          <input type="checkbox" id="gps-toggle" />
-          <span class="toggle-slider"></span>
-          <span class="toggle-text">GPS tag</span>
-        </label>
         <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">
           🔄 Re-tag
         </button>
@@ -200,6 +213,7 @@
             <option value="Vivo LPG">Vivo LPG</option>
             <option value="Total Energies">Total Energies</option>
             <option value="Shell Gas">Shell Gas</option>
+            <option value="Lake Gas">Lake Gas</option>
           </select>
         </div>
       </div>

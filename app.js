@@ -51,21 +51,34 @@ const ROLE_EVENTS = {
     { type: 'revalidated',      label: 'Revalidated',       icon: '✅' },
     { type: 'returned-lpgmc',   label: 'Returned to LPGMC', icon: '📤' },
   ],
+  distributor: [
+    { type: 'dist-received',      label: 'Received',         icon: '📦' },
+    { type: 'dist-sent-retail',   label: 'Sent to Retail',   icon: '🚚' },
+    { type: 'dist-returned-empty',label: 'Returned Empty',   icon: '↩️' },
+  ],
+  retailer: [
+    { type: 'ret-received',       label: 'Received',         icon: '📦' },
+    { type: 'ret-returned-empty', label: 'Returned Empty',   icon: '↩️' },
+  ],
 };
 
 const ROLE_TABS = {
   lpgmc:       ['scan', 'cylinders', 'alerts', 'reports'],
   government:  ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
   revalidation:['scan', 'cylinders', 'reports'],
+  distributor: ['scan', 'cylinders', 'alerts', 'reports'],
+  retailer:    ['scan', 'cylinders', 'reports'],
 };
 
 const ROLE_LABELS = {
   lpgmc:       'LPGMC',
   government:  'Government',
   revalidation:'Revalidation',
+  distributor: 'Distributor',
+  retailer:    'Retailer',
 };
 
-const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas'];
+const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
 
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH MODULE
@@ -102,8 +115,8 @@ const Auth = {
       case 'inspect':   return role === 'government';
       case 'license':   return role === 'government';
       case 'retag':     return role === 'revalidation';
-      case 'viewAll':   return role === 'government' || role === 'revalidation';
-      case 'alerts':    return role === 'lpgmc' || role === 'government';
+      case 'viewAll':   return role === 'government' || role === 'revalidation' || role === 'distributor' || role === 'retailer';
+      case 'alerts':    return role === 'lpgmc' || role === 'government' || role === 'distributor';
       default:          return false;
     }
   },
@@ -118,8 +131,6 @@ const State = {
   activeEventType:   null,
   batchMode:         false,
   batchQueue:        [],
-  gpsEnabled:        false,
-  gpsCoords:         null,
   focused:           false,
   scanEvents:        [],
   syncStatus:        'idle',   // idle | syncing | synced | error
@@ -228,7 +239,6 @@ async function seedDemoData() {
   }
 
   // Generate some historical events
-  const eventTypes = ['registered', 'refilled', 'shipped', 'received-empty', 'inspected'];
   const now = Date.now();
   for (const cyl of DEMO_CYLINDERS) {
     const regDate = new Date(cyl.manufactureDate);
@@ -293,7 +303,6 @@ const loginOperator    = $('login-operator');
 // Scan view
 const scanEventBar     = $('scan-event-bar');
 const batchModeToggle  = $('batch-mode-toggle');
-const gpsToggle        = $('gps-toggle');
 const retagBtn         = $('retag-btn');
 const lastScanCard     = $('last-scan-card');
 const lastScanTime     = $('last-scan-time');
@@ -492,7 +501,10 @@ function selectRole(role) {
     loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     loginCompSel.style.display = '';
   } else {
-    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency' : 'e.g. ProRevalid Ltd';
+    loginCompText.placeholder = role === 'government' ? 'e.g. NPA Regulatory Agency'
+      : role === 'revalidation' ? 'e.g. ProRevalid Ltd'
+      : role === 'distributor'  ? 'e.g. ABC Distributors'
+      : 'e.g. QuickGas Retail';
     loginCompText.style.display = '';
   }
 
@@ -814,11 +826,6 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     notes:      '',
   };
 
-  if (State.gpsEnabled && State.gpsCoords) {
-    event.lat = State.gpsCoords.latitude;
-    event.lng = State.gpsCoords.longitude;
-  }
-
   await txPut('events', event);
 
   // Update cylinder status
@@ -833,10 +840,12 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
   } else if (eventType === 'revalidated' || eventType === 'returned-lpgmc') {
     updatedCyl.status = 'available';
     updatedCyl.fillCount = 0;
-  } else if (eventType === 'shipped') {
+  } else if (eventType === 'shipped' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-use';
-  } else if (eventType === 'received-empty') {
+  } else if (eventType === 'received-empty' || eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
     updatedCyl.status = 'available';
+  } else if (eventType === 'dist-received' || eventType === 'ret-received') {
+    updatedCyl.status = 'in-use';
   }
   await txPut('cylinders', updatedCyl);
 
@@ -869,7 +878,6 @@ function renderScanEvent(ev, prepend = false) {
 
   let meta = formatDateTime(ev.timestamp);
   if (ev.operatorId) meta += ` · ${escapeHtml(ev.operatorId)}`;
-  if (ev.lat) meta += ` · 📍${ev.lat.toFixed(4)},${ev.lng.toFixed(4)}`;
 
   li.innerHTML = `
     <span class="event-type-badge ${escapeHtml(evClass)}">${escapeHtml(label)}</span>
@@ -926,29 +934,12 @@ batchClearBtn.addEventListener('click', () => {
   renderBatchQueue();
 });
 
-// GPS toggle
-gpsToggle.addEventListener('change', async () => {
-  State.gpsEnabled = gpsToggle.checked;
-  if (State.gpsEnabled) {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        pos => { State.gpsCoords = pos.coords; showSnackbar('GPS acquired.', 'success'); },
-        ()  => { State.gpsEnabled = false; gpsToggle.checked = false; showSnackbar('GPS unavailable.', 'error'); }
-      );
-    } else {
-      State.gpsEnabled = false;
-      gpsToggle.checked = false;
-      showSnackbar('GPS not supported.', 'error');
-    }
-  }
-});
-
 // Export events CSV
 exportEventsBtn.addEventListener('click', () => {
   if (!State.scanEvents.length) { showSnackbar('No events to export.'); return; }
-  const header = 'cylinderId,serial,type,timestamp,operatorId,company,lat,lng\n';
+  const header = 'cylinderId,serial,type,timestamp,operatorId,company\n';
   const rows = State.scanEvents.map(ev =>
-    `"${ev.cylinderId}","${ev.serial || ''}","${ev.type}","${ev.timestamp}","${ev.operatorId || ''}","${ev.company || ''}","${ev.lat || ''}","${ev.lng || ''}"`
+    `"${ev.cylinderId}","${ev.serial || ''}","${ev.type}","${ev.timestamp}","${ev.operatorId || ''}","${ev.company || ''}"`
   ).join('\n');
   downloadCSV('lpg-events-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
 });
