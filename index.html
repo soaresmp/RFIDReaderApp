@@ -15,9 +15,13 @@
 </head>
 <body>
 
+  <!-- Hidden HID scanner capture input (always in DOM) -->
   <input id="scanner-input" autocomplete="off" autocorrect="off" autocapitalize="off"
          spellcheck="false" inputmode="none" aria-hidden="true" tabindex="-1" />
 
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- LOGIN OVERLAY                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="login-overlay" class="login-overlay" aria-modal="true" role="dialog" aria-label="Login">
     <div class="login-container">
       <div class="login-header">
@@ -26,39 +30,63 @@
         <p class="login-subtitle">Select your role to continue</p>
       </div>
 
+      <!-- Role cards -->
       <div class="role-cards" id="role-cards">
+
         <div class="role-card" data-role="lpgmc" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏭</div>
           <div class="role-card-body">
             <div class="role-card-title">LPGMC</div>
-            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive</div>
+            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive · Send Revalidation</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
-        <div class="role-card" data-role="government" tabindex="0" role="button" aria-pressed="false">
-          <div class="role-card-icon">🏛️</div>
-          <div class="role-card-body">
-            <div class="role-card-title">Government</div>
-            <div class="role-card-desc">Regulatory Agency<br>Inspect · License · Oversee</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-        <div class="role-card" data-role="revalidation" tabindex="0" role="button" aria-pressed="false">
+
+        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🔧</div>
           <div class="role-card-body">
-            <div class="role-card-title">Revalidation</div>
-            <div class="role-card-desc">Revalidation Company<br>Receive Damaged · Refurbish · Re-tag</div>
+            <div class="role-card-title">Revalidator</div>
+            <div class="role-card-desc">Cylinders Revalidator<br>Receive · Revalidate &amp; Update · Return to LPGMC</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
+
+        <div class="role-card" data-role="ewura" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏛️</div>
+          <div class="role-card-body">
+            <div class="role-card-title">EWURA</div>
+            <div class="role-card-desc">Regulatory Authority<br>Grant &amp; Revoke Licences · Monitor Supply Chain</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="field-auditor" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🔍</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Field Auditor</div>
+            <div class="role-card-desc">Field Inspection Unit<br>Inspect Products · View All Cylinders</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="tra" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">💼</div>
+          <div class="role-card-body">
+            <div class="role-card-title">TRA</div>
+            <div class="role-card-desc">Tanzania Revenue Authority<br>Cross-check Refills · Register Shipments</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
         <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🚛</div>
           <div class="role-card-body">
             <div class="role-card-title">Distributor</div>
-            <div class="role-card-desc">Distribution Company<br>Receive · Send to Retail · Return Empty</div>
+            <div class="role-card-desc">Distribution Company<br>Receive · Supply to Retailers · Return Empty</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
+
         <div class="role-card" data-role="retailer" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏪</div>
           <div class="role-card-body">
@@ -67,8 +95,10 @@
           </div>
           <div class="role-card-chevron">›</div>
         </div>
+
       </div>
 
+      <!-- Inline login sub-form (hidden until role selected) -->
       <div id="login-form-wrapper" class="login-form-wrapper" hidden>
         <div class="login-form-header">
           <button id="login-back-btn" class="login-back-btn" type="button">‹ Back</button>
@@ -87,10 +117,16 @@
           <button type="submit" class="btn btn-primary login-enter-btn">Enter App →</button>
         </form>
       </div>
+
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MAIN APP                                                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="app">
+
+    <!-- Header -->
     <header id="app-header">
       <div class="header-left">
         <span class="header-logo">⛽</span>
@@ -107,6 +143,7 @@
       </div>
     </header>
 
+    <!-- Nav tabs -->
     <nav id="app-nav" class="app-nav">
       <button class="nav-tab active" data-view="scan">Scan</button>
       <button class="nav-tab" data-view="cylinders">Cylinders</button>
@@ -115,16 +152,24 @@
       <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
     </nav>
 
+    <!-- ── SCAN VIEW ─────────────────────────────────────────────────── -->
     <div id="view-scan" class="view active">
-      <div class="scan-event-bar" id="scan-event-bar"></div>
+
+      <!-- Event type selector -->
+      <div class="scan-event-bar" id="scan-event-bar">
+        <!-- pills injected by JS per role -->
+      </div>
+
+      <!-- Batch mode toggle -->
       <div class="scan-options-bar">
         <label class="toggle-label">
           <input type="checkbox" id="batch-mode-toggle" />
           <span class="toggle-slider"></span>
           <span class="toggle-text">Batch mode</span>
         </label>
-        <button id="retag-btn" class="btn btn-sm btn-outline-amber" style="display:none" type="button">🔄 Re-tag</button>
       </div>
+
+      <!-- Focus / scanning button -->
       <div id="focus-section" class="focus-section">
         <button id="focus-btn" class="focus-btn" type="button">
           <span id="focus-icon">📡</span>
@@ -132,6 +177,8 @@
         </button>
         <p class="focus-hint">Keep this app in focus while scanning</p>
       </div>
+
+      <!-- Last scan result card -->
       <div id="last-scan-card" class="last-scan-card" hidden>
         <div class="last-scan-header">
           <span class="last-scan-label">Last Scan</span>
@@ -140,6 +187,8 @@
         <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
         <div id="last-scan-result" class="last-scan-result"></div>
       </div>
+
+      <!-- Batch queue -->
       <div id="batch-queue-section" class="batch-queue-section" hidden>
         <div class="section-header">
           <span>Batch Queue (<span id="batch-count">0</span>)</span>
@@ -150,15 +199,20 @@
         </div>
         <ul id="batch-list" class="compact-list"></ul>
       </div>
+
+      <!-- Recent scan events -->
       <div class="section-header" style="margin:12px 16px 0">
         <span>Recent Events</span>
         <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
       </div>
       <ul id="events-list" class="scan-events-list"></ul>
       <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
-    </div>
 
+    </div><!-- /view-scan -->
+
+    <!-- ── CYLINDERS VIEW ────────────────────────────────────────────── -->
     <div id="view-cylinders" class="view">
+
       <div class="view-toolbar">
         <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
         <div class="filter-row">
@@ -178,11 +232,15 @@
           </select>
         </div>
       </div>
+
       <div id="cyl-stats" class="cyl-stats-row"></div>
+
       <ul id="cylinders-list" class="cylinders-list"></ul>
       <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
-    </div>
 
+    </div><!-- /view-cylinders -->
+
+    <!-- ── ALERTS VIEW ────────────────────────────────────────────────── -->
     <div id="view-alerts" class="view">
       <div class="view-toolbar">
         <select id="alert-filter-severity" class="filter-select">
@@ -202,8 +260,9 @@
       <div id="alert-summary" class="alert-summary-row"></div>
       <ul id="alerts-list" class="alerts-list"></ul>
       <p id="alerts-empty" class="list-empty">No alerts.</p>
-    </div>
+    </div><!-- /view-alerts -->
 
+    <!-- ── REPORTS VIEW ───────────────────────────────────────────────── -->
     <div id="view-reports" class="view">
       <div class="reports-grid" id="reports-grid"></div>
       <div class="section-header" style="margin: 16px 16px 8px">
@@ -219,8 +278,9 @@
         <span id="sync-status-text">Not synced yet.</span>
         <span id="sync-indicator" class="sync-indicator"></span>
       </div>
-    </div>
+    </div><!-- /view-reports -->
 
+    <!-- ── LICENSES VIEW (Government only) ───────────────────────────── -->
     <div id="view-licenses" class="view" style="display:none">
       <div class="view-toolbar">
         <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
@@ -228,9 +288,9 @@
           <select id="lic-filter-type" class="filter-select">
             <option value="">All types</option>
             <option value="LPGMC">LPGMC</option>
+            <option value="Revalidator">Revalidator</option>
             <option value="Distributor">Distributor</option>
             <option value="Retailer">Retailer</option>
-            <option value="Revalidation">Revalidation</option>
           </select>
           <select id="lic-filter-status" class="filter-select">
             <option value="">All statuses</option>
@@ -243,9 +303,15 @@
       </div>
       <ul id="licenses-list" class="licenses-list"></ul>
       <p id="licenses-empty" class="list-empty">No licenses found.</p>
-    </div>
-  </div>
+    </div><!-- /view-licenses -->
 
+  </div><!-- /app -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODALS                                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Register cylinder modal -->
   <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
     <div class="modal">
       <div class="modal-header">
@@ -253,14 +319,101 @@
         <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-group"><label>RFID Tag</label><input id="reg-tag" type="text" class="form-control font-mono" readonly /></div>
-        <div class="form-group"><label>Serial Number</label><input id="reg-serial" type="text" class="form-control" placeholder="e.g. LPG-2026-013" /></div>
-        <div class="form-group"><label>Manufacture Date</label><input id="reg-manufacture-date" type="date" class="form-control" /></div>
-        <div class="form-group"><label>Tare Weight (kg)</label><input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" /></div>
-        <div class="form-group"><label>Capacity (kg)</label><input id="reg-capacity" type="number" class="form-control" value="12" step="1" /></div>
-        <div class="form-group"><label>Max Fills</label><input id="reg-max-fills" type="number" class="form-control" value="500" step="1" /></div>
-        <div class="form-group"><label>Last Hydro Test Date</label><input id="reg-hydrotest" type="date" class="form-control" /></div>
-        <div class="form-group"><label>Notes</label><textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea></div>
+        <div class="form-section-title">RFID &amp; Serial</div>
+        <div class="form-group">
+          <label>RFID Tag</label>
+          <input id="reg-tag" type="text" class="form-control font-mono" readonly />
+        </div>
+        <div class="form-group">
+          <label>Serial Number</label>
+          <div class="input-with-action">
+            <input id="reg-serial" type="text" class="form-control" placeholder="Enter or scan serial barcode" />
+            <button id="reg-serial-scan-btn" class="btn btn-sm btn-outline" type="button">📷 Scan</button>
+          </div>
+        </div>
+
+        <div class="form-section-title">Cylinder Marking</div>
+        <div class="form-group">
+          <label>Brand Owner Colour &amp; Mark</label>
+          <input id="reg-brand-colour" type="text" class="form-control" placeholder="e.g. Red — VV" />
+        </div>
+        <div class="form-group">
+          <label>Owner Brand Name</label>
+          <input id="reg-brand-name" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Manufacturer Name</label>
+          <input id="reg-manufacturer" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input id="reg-product-name" type="text" class="form-control" value="LPG" />
+        </div>
+
+        <div class="form-section-title">Dates &amp; Requalification</div>
+        <div class="form-group">
+          <label>Date of Manufacture</label>
+          <input id="reg-manufacture-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Last Requalification Date</label>
+          <input id="reg-requalification-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Requalifying Plant Name</label>
+          <input id="reg-requalification-plant" type="text" class="form-control" placeholder="e.g. ProRevalid Ltd" />
+        </div>
+
+        <div class="form-section-title">Physical Specifications</div>
+        <div class="form-group">
+          <label>Water Capacity (L)</label>
+          <input id="reg-water-capacity" type="number" class="form-control" value="26.1" step="0.1" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Tare Weight (kg)</label>
+          <input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Net Weight / Gas Content (kg)</label>
+          <input id="reg-net-weight" type="number" class="form-control" value="12" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Gross Weight (kg)</label>
+          <input id="reg-gross-weight" type="number" class="form-control" value="26.5" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Max Fills</label>
+          <input id="reg-max-fills" type="number" class="form-control" value="500" step="1" />
+        </div>
+
+        <div class="form-section-title">Pressure &amp; Testing</div>
+        <div class="form-group">
+          <label>Pressure Test Values</label>
+          <input id="reg-pressure-test" type="text" class="form-control" placeholder="e.g. WP 17.2 bar / TP 34.5 bar" />
+        </div>
+        <div class="form-group">
+          <label>Last Hydro Test Date</label>
+          <input id="reg-hydrotest" type="date" class="form-control" />
+        </div>
+
+        <div class="form-section-title">Company Details</div>
+        <div class="form-group">
+          <label>Brand Name</label>
+          <input id="reg-company-brand" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label>Customer Service Number</label>
+          <input id="reg-customer-service" type="tel" class="form-control" placeholder="e.g. 0800 123 456" />
+        </div>
+        <div class="form-group">
+          <label>Emergency Contacts</label>
+          <input id="reg-emergency-contacts" type="text" class="form-control" placeholder="e.g. 999 / 0722 123 456" />
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-register" type="button">Cancel</button>
@@ -269,13 +422,16 @@
     </div>
   </div>
 
+  <!-- Cylinder passport / detail modal -->
   <div id="modal-passport" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Cylinder Passport">
     <div class="modal modal-wide">
       <div class="modal-header">
         <h2>Cylinder Passport</h2>
         <button class="modal-close" data-close="modal-passport" type="button" aria-label="Close">✕</button>
       </div>
-      <div class="modal-body" id="passport-body"></div>
+      <div class="modal-body" id="passport-body">
+        <!-- Injected by JS -->
+      </div>
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-passport" type="button">Close</button>
         <button id="passport-export-btn" class="btn btn-blue" type="button">↓ Export</button>
@@ -283,36 +439,7 @@
     </div>
   </div>
 
-  <div id="modal-retag" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Re-tag Cylinder">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Re-tag Cylinder</h2>
-        <button class="modal-close" data-close="modal-retag" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="retag-step1" class="retag-step">
-          <div class="retag-step-num">Step 1 of 2</div>
-          <p class="retag-step-desc">Scan the <strong>old (damaged) RFID tag</strong> on the cylinder to be re-tagged.</p>
-          <div class="form-group"><label>Old RFID Tag</label><input id="retag-old-input" type="text" class="form-control font-mono" placeholder="Scan or type old tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /></div>
-          <div id="retag-old-error" class="form-error" hidden></div>
-          <div id="retag-old-info" class="retag-cylinder-info" hidden></div>
-        </div>
-        <div id="retag-step2" class="retag-step" hidden>
-          <div class="retag-step-num">Step 2 of 2</div>
-          <p class="retag-step-desc">Scan the <strong>new RFID tag</strong> to assign to the refurbished cylinder.</p>
-          <div id="retag-old-summary" class="retag-old-summary"></div>
-          <div class="form-group"><label>New RFID Tag</label><input id="retag-new-input" type="text" class="form-control font-mono" placeholder="Scan or type new tag ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /></div>
-          <div id="retag-new-error" class="form-error" hidden></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-retag" type="button">Cancel</button>
-        <button id="retag-step1-next" class="btn btn-primary" type="button">Confirm Old Tag →</button>
-        <button id="retag-step2-submit" class="btn btn-primary" type="button" hidden>Complete Re-tag</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- Issue License modal -->
   <div id="modal-issue-license" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Issue License">
     <div class="modal">
       <div class="modal-header">
@@ -320,12 +447,39 @@
         <button class="modal-close" data-close="modal-issue-license" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-group"><label>Company Name</label><input id="lic-company-name" type="text" class="form-control" placeholder="e.g. Sunrise Gas Ltd" /></div>
-        <div class="form-group"><label>Company Type</label><select id="lic-company-type" class="form-control"><option value="LPGMC">LPGMC</option><option value="Distributor">Distributor</option><option value="Retailer">Retailer</option><option value="Revalidation">Revalidation</option></select></div>
-        <div class="form-group"><label>License Number</label><input id="lic-number" type="text" class="form-control font-mono" placeholder="e.g. LPGMC-2026-008" /></div>
-        <div class="form-group"><label>Issued Date</label><input id="lic-issued-date" type="date" class="form-control" /></div>
-        <div class="form-group"><label>Expiry Date</label><input id="lic-expiry-date" type="date" class="form-control" /></div>
-        <div class="form-group"><label>Status</label><select id="lic-status" class="form-control"><option value="active">Active</option><option value="suspended">Suspended</option><option value="expired">Expired</option></select></div>
+        <div class="form-group">
+          <label>Company Name</label>
+          <input id="lic-company-name" type="text" class="form-control" placeholder="e.g. Sunrise Gas Ltd" />
+        </div>
+        <div class="form-group">
+          <label>Company Type</label>
+          <select id="lic-company-type" class="form-control">
+            <option value="LPGMC">LPGMC</option>
+            <option value="Revalidator">Revalidator</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Retailer">Retailer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>License Number</label>
+          <input id="lic-number" type="text" class="form-control font-mono" placeholder="e.g. LPGMC-2026-008" />
+        </div>
+        <div class="form-group">
+          <label>Issued Date</label>
+          <input id="lic-issued-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input id="lic-expiry-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="lic-status" class="form-control">
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-issue-license" type="button">Cancel</button>
@@ -334,7 +488,9 @@
     </div>
   </div>
 
+  <!-- Snackbar -->
   <div id="snackbar" role="status" aria-live="polite"></div>
+
   <script src="app.js"></script>
 </body>
 </html>
