@@ -6,7 +6,66 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v9';
+const SEED_KEY   = 'seeded-v10';
+
+// ── i18n ─────────────────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  en: {
+    'nav.dashboard':'Dashboard','nav.scan':'Scan','nav.cylinders':'Cylinders',
+    'nav.network':'Network','nav.alerts':'Alerts','nav.reports':'Reports','nav.licenses':'Licenses',
+    'login.subtitle':'Select your role to continue','login.enter':'Enter App →',
+    'login.company':'Company','login.back':'‹ Back',
+    'page.dashboard':'📊 Dashboard','page.scan':'📡 Scan','page.cylinders':'🔥 Cylinders',
+    'page.network':'🏪 Network','page.alerts':'🔔 Alerts','page.reports':'📈 Management Reports','page.licenses':'📋 Licenses',
+    'dash.lifecycle':'Cylinder Lifecycle','dash.supplychain':'Supply Chain','dash.alerts':'Alerts',
+    'kpi.inrefill':'In Refill','kpi.incirc':'In Circulation','kpi.inreval':'In Revalidation','kpi.inuse':'In Use',
+    'kpi.total':'Total','kpi.distributors':'Distributors','kpi.retailers':'Retailers',
+    'filter.allTypes':'All Types','filter.allStatuses':'All statuses','filter.allYears':'All years','filter.allMonths':'All months',
+    'btn.exportCsv':'↓ Export CSV','btn.exportPdf':'↓ Print / PDF',
+    'mgmt.status':'Cylinders by Status','mgmt.refills':'Refills','mgmt.salesRegion':'Sales by Region',
+    'mgmt.topPartners':'Top 10 Partners by Sales','mgmt.topPartnersAll':'Top 10 Partners by Cylinder Count',
+    'alert.requalOverdue':'Requalification Overdue','alert.requalSoon':'Requalification Due (2yr)',
+    'alert.stuck':'Stuck in Circulation','alert.misplaced':'Misplaced',
+    'status.active':'active','status.inactive':'inactive',
+  },
+  sw: {
+    'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
+    'nav.network':'Mtandao','nav.alerts':'Tahadhari','nav.reports':'Ripoti','nav.licenses':'Leseni',
+    'login.subtitle':'Chagua jukumu lako kuendelea','login.enter':'Ingia →',
+    'login.company':'Kampuni','login.back':'‹ Rudi',
+    'page.dashboard':'📊 Dashibodi','page.scan':'📡 Changanua','page.cylinders':'🔥 Mitungi',
+    'page.network':'🏪 Mtandao','page.alerts':'🔔 Tahadhari','page.reports':'📈 Ripoti za Usimamizi','page.licenses':'📋 Leseni',
+    'dash.lifecycle':'Mzunguko wa Mitungi','dash.supplychain':'Mnyororo wa Ugavi','dash.alerts':'Tahadhari',
+    'kpi.inrefill':'Kwenye Kujaza','kpi.incirc':'Kwenye Mzunguko','kpi.inreval':'Kwenye Uhakiki Upya','kpi.inuse':'Inatumika',
+    'kpi.total':'Jumla','kpi.distributors':'Wasambazaji','kpi.retailers':'Wauzaji',
+    'filter.allTypes':'Aina Zote','filter.allStatuses':'Hali Zote','filter.allYears':'Miaka Yote','filter.allMonths':'Miezi Yote',
+    'btn.exportCsv':'↓ Hamisha CSV','btn.exportPdf':'↓ Chapisha / PDF',
+    'mgmt.status':'Mitungi kwa Hali','mgmt.refills':'Kujaza','mgmt.salesRegion':'Mauzo kwa Mkoa',
+    'mgmt.topPartners':'Washirika 10 Bora kwa Mauzo','mgmt.topPartnersAll':'Washirika 10 Bora kwa Idadi ya Mitungi',
+    'alert.requalOverdue':'Uhakiki Upya Umechelewa','alert.requalSoon':'Uhakiki Upya (Miaka 2)',
+    'alert.stuck':'Imekwama kwenye Mzunguko','alert.misplaced':'Imepotea',
+    'status.active':'hai','status.inactive':'haifanyi kazi',
+  },
+};
+
+let _lang = localStorage.getItem('lpg-lang') || 'en';
+function t(key) { return (TRANSLATIONS[_lang] || TRANSLATIONS.en)[key] || TRANSLATIONS.en[key] || key; }
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  const btn = $('lang-toggle');
+  if (btn) btn.textContent = _lang === 'sw' ? '🇹🇿 SW' : '🇬🇧 EN';
+  // Re-render current view if it uses dynamic text
+  const activeView = document.querySelector('.view.active');
+  if (activeView) {
+    const viewName = activeView.id.replace('view-','');
+    if (viewName === 'reports')       renderReports().catch(() => {});
+    if (viewName === 'mgmt-reports')  renderMgmtReports().catch(() => {});
+    if (viewName === 'network')       renderNetwork().catch(() => {});
+    if (viewName === 'alerts')        renderAlerts().catch(() => {});
+  }
+}
 
 const DEMO_CYLINDERS = [
   // Vivo LPG (12)
@@ -368,6 +427,46 @@ function txGetIndex(storeName, indexName, value) {
   });
 }
 
+function buildGeneratedCylinders() {
+  const companies = [
+    { name:'Vivo LPG',       prefix:'VLG', code:'01' },
+    { name:'Total Energies', prefix:'TEN', code:'02' },
+    { name:'Shell Gas',      prefix:'SHG', code:'03' },
+    { name:'Lake Gas',       prefix:'LKG', code:'04' },
+  ];
+  // Status distribution (cycles through): target ~35% in-use, 30% in-circulation, 25% in-refill, 10% revalidation
+  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circulation','in-use','in-refill','in-use','in-circulation','revalidation'];
+  const capacities  = [12,12,15,12,12,12,15,12,12,12];
+  const result = [];
+  // Existing demo cylinders: Vivo LPG 15, TEN 15, SHG 15, LKG 12 → generate enough to reach 300 each
+  const existingCounts = { 'Vivo LPG':15, 'Total Energies':15, 'Shell Gas':15, 'Lake Gas':12 };
+  companies.forEach((co, ci) => {
+    const needed = 300 - (existingCounts[co.name] || 0);
+    for (let i = 1; i <= needed; i++) {
+      const year = 2010 + (i % 16);
+      const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
+      const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
+      const mfgDate  = `${year}-${month}-${day}`;
+      const hydroDate = `${year + 5}-${month}-${day}`;
+      const age = 2026 - year;
+      const fillCount = Math.max(1, age * 30 + (i % 50));
+      result.push({
+        id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
+        serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
+        company: co.name,
+        manufactureDate: mfgDate,
+        tareWeight: 14.5,
+        capacity: capacities[i % capacities.length],
+        fillCount,
+        lastHydroTest: hydroDate,
+        status: statusCycle[i % statusCycle.length],
+        notes: '',
+      });
+    }
+  });
+  return result;
+}
+
 async function seedDemoData() {
   const seeded = await txGet('meta', SEED_KEY);
   if (seeded) return;
@@ -494,6 +593,47 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
       await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
       await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    }
+  }
+
+  // Seed generated bulk cylinders (300 per LPGMC)
+  const generatedCyls = buildGeneratedCylinders();
+  for (const cyl of generatedCyls) {
+    const existing = await txGet('cylinders', cyl.id);
+    if (existing) continue; // already seeded
+    await txPut('cylinders', cyl);
+    const mfgTime = new Date(cyl.manufactureDate).getTime();
+    await txPut('events', {
+      cylinderId: cyl.id, type: 'registered',
+      timestamp: new Date(mfgTime).toISOString(),
+      operatorId: 'SYSTEM', company: cyl.company, location: cyl.company, notes: 'Initial registration',
+    });
+    // Seed final-state events only (lightweight seeding)
+    const now2  = Date.now();
+    const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
+    if (cyl.status === 'in-refill') {
+      const base = now2 - 2 * MONTH;
+      await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    } else if (cyl.status === 'in-circulation') {
+      const base = now2 - 50 * DAY;
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 8*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 10*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    } else if (cyl.status === 'in-use') {
+      const base = now2 - 3 * MONTH;
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base).toISOString(),           operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base + 7*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 9*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 15*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 17*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',         timestamp:new Date(base + 22*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    } else if (cyl.status === 'revalidation') {
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now2 - 6*MONTH).toISOString(),            operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now2 - 5*MONTH).toISOString(),            operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now2 - 5*MONTH + 3*DAY).toISOString(),    operatorId:'SYSTEM', company:'ProRevalid Ltd', location:'ProRevalid Ltd', region:'Dar es Salaam' });
     }
   }
 
@@ -2288,16 +2428,19 @@ async function renderMgmtReports() {
       months.push({ label: `${new Date(y, filterMonth, 1).toLocaleString('default', { month: 'short' })}'${String(y).slice(2)}`, year: y, month: filterMonth, count: 0 });
     }
   } else {
-    // Default: last 6 months
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push({ label: d.toLocaleString('default', { month: 'short', year: '2-digit' }), year: d.getFullYear(), month: d.getMonth(), count: 0 });
+    // All years: one bar per year found in data
+    const yearSet = new Set();
+    allEvents.forEach(ev => { if (ev.type === 'refilled') yearSet.add(new Date(ev.timestamp).getFullYear()); });
+    [...yearSet].sort().forEach(y => months.push({ label: String(y), year: y, month: -1, count: 0 }));
+    if (!months.length) {
+      const d0 = new Date(now.getFullYear(), now.getMonth(), 1);
+      months.push({ label: String(d0.getFullYear()), year: d0.getFullYear(), month: -1, count: 0 });
     }
   }
   allEvents.forEach(ev => {
     if (ev.type !== 'refilled') return;
     const d = new Date(ev.timestamp);
-    const m = months.find(mo => mo.year === d.getFullYear() && mo.month === d.getMonth());
+    const m = months.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
     if (m) m.count++;
   });
   const maxFills = Math.max(...months.map(m => m.count), 1);
