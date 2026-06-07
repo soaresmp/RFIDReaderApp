@@ -857,8 +857,10 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .network-item {
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
 }
 .network-item:last-child { border-bottom: none; }
+.network-item:hover { background: rgba(255,255,255,0.02); }
 
 .network-item-header {
   display: flex;

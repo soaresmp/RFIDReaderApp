@@ -912,13 +912,13 @@ function setFocused(yes) {
     focusLabel.textContent = 'Scanning active — tap to pause';
     statusBadge.textContent = 'Active';
     statusBadge.className = 'badge badge-active';
+    statusBadge.hidden = false;
   } else {
     scannerInput.blur();
     focusBtn.classList.remove('active');
     focusIcon.textContent = '📡';
     focusLabel.textContent = 'Tap to start scanning';
-    statusBadge.textContent = 'Idle';
-    statusBadge.className = 'badge badge-idle';
+    statusBadge.hidden = true;
   }
 }
 
@@ -934,6 +934,7 @@ scannerInput.addEventListener('blur', () => {
   if (State.focused) {
     statusBadge.textContent = 'Unfocused';
     statusBadge.className = 'badge badge-scanning';
+    statusBadge.hidden = false;
   }
 });
 
@@ -941,6 +942,7 @@ scannerInput.addEventListener('focus', () => {
   if (State.focused) {
     statusBadge.textContent = 'Active';
     statusBadge.className = 'badge badge-active';
+    statusBadge.hidden = false;
   }
 });
 
@@ -1267,6 +1269,7 @@ regSerialScanBtn.addEventListener('click', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 let _cylAllData = [];
+let _cylLocations = {}; // cylinderId → { location, region }
 
 async function renderCylinders() {
   _cylAllData = await txGetAll('cylinders');
@@ -1276,7 +1279,22 @@ async function renderCylinders() {
     _cylAllData = _cylAllData.filter(c => c.company === Auth.session.company);
   }
 
+  // Build last-known-location cache for cylinders not in-use
+  const allEvents = await txGetAll('events');
+  buildCylLocations(_cylAllData, allEvents);
+
   applyCylFilters();
+}
+
+function buildCylLocations(cyls, allEvents) {
+  _cylLocations = {};
+  const sorted = allEvents.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  sorted.forEach(ev => {
+    if (_cylLocations[ev.cylinderId]) return; // already have the most recent
+    const locName = ev.location || ev.company;
+    if (!locName) return;
+    _cylLocations[ev.cylinderId] = { location: locName, region: ev.region || '' };
+  });
 }
 
 function applyCylFilters() {
@@ -1327,6 +1345,11 @@ function applyCylFilters() {
     const statClass = 'status-' + (cyl.status || 'in-refill');
     const statLabel = statLabelMap[cyl.status] || cyl.status;
 
+    const locData = cyl.status !== 'in-use' ? _cylLocations[cyl.id] : null;
+    const locLine = locData
+      ? `<span class="cylinder-meta-item">📍 ${[locData.region, locData.location].filter(Boolean).map(escapeHtml).join(' · ')}</span>`
+      : '';
+
     li.innerHTML = `
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
       <div class="cylinder-body">
@@ -1336,6 +1359,7 @@ function applyCylFilters() {
           <span class="cylinder-meta-item">${escapeHtml(cyl.company)}</span>
           ${cyl.lastHydroTest ? `<span class="cylinder-meta-item">Hydro: ${escapeHtml(cyl.lastHydroTest)}</span>` : ''}
           ${cyl.manufactureDate ? `<span class="cylinder-meta-item">Mfg: ${escapeHtml(cyl.manufactureDate)}</span>` : ''}
+          ${locLine}
         </div>
       </div>
       <div class="cylinder-badges">
@@ -1370,6 +1394,8 @@ if (exportDashboardBtn) {
 // CYLINDER PASSPORT MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
+let _passportMap = null;
+
 function getNextActions(cyl, role) {
   const s = cyl.status;
   const validByStatus = {
@@ -1383,12 +1409,27 @@ function getNextActions(cyl, role) {
 }
 
 async function openPassportModal(cylId) {
+  // Destroy any previous passport map
+  if (_passportMap) { _passportMap.remove(); _passportMap = null; }
+
   State.passportCylinderId = cylId;
   const cyl = await txGet('cylinders', cylId);
   if (!cyl) return;
 
   const events = await txGetIndex('events', 'cylinderId', cylId);
   events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  // Resolve last known network partner location (shown on map when not in-use)
+  let passportMapPartner = null;
+  if (cyl.status !== 'in-use') {
+    for (const ev of events) {
+      const locName = ev.location || ev.company;
+      if (locName) {
+        const match = DEMO_NETWORK.find(n => n.name === locName);
+        if (match) { passportMapPartner = match; break; }
+      }
+    }
+  }
 
   passportBody.innerHTML = `
     <div class="passport-section">
@@ -1456,6 +1497,12 @@ async function openPassportModal(cylId) {
           </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
       </ul>
     </div>
+    ${passportMapPartner ? `
+    <div class="passport-section">
+      <div class="passport-section-title">Current Location</div>
+      <div style="font-size:12px;color:var(--dim);margin-bottom:8px">📍 ${escapeHtml(passportMapPartner.name)} · ${escapeHtml(passportMapPartner.city)}, ${escapeHtml(passportMapPartner.region)}</div>
+      <div id="passport-location-map" style="height:200px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
+    </div>` : ''}
     ${(() => {
       const acts = getNextActions(cyl, Auth.session?.role || '');
       if (!acts.length) return '';
@@ -1468,6 +1515,30 @@ async function openPassportModal(cylId) {
     })()}`;
 
   openModal('modal-passport');
+
+  if (passportMapPartner) {
+    setTimeout(() => {
+      try {
+        const el = $('passport-location-map');
+        if (!el) return;
+        _passportMap = L.map('passport-location-map').setView([passportMapPartner.lat, passportMapPartner.lng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors', maxZoom: 18
+        }).addTo(_passportMap);
+        const color = passportMapPartner.type === 'Distributor' ? '#3b82f6' : '#10b981';
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.4)"></div>`,
+          iconSize: [14, 14], iconAnchor: [7, 7],
+        });
+        L.marker([passportMapPartner.lat, passportMapPartner.lng], { icon })
+          .addTo(_passportMap)
+          .bindPopup(`<strong>${passportMapPartner.name}</strong><br>${passportMapPartner.address}`)
+          .openPopup();
+        _passportMap.invalidateSize();
+      } catch (e) { console.warn('Passport map error:', e); }
+    }, 150);
+  }
 }
 
 passportBody.addEventListener('click', async (e) => {
@@ -1589,6 +1660,7 @@ async function renderAlerts() {
     }
   }
 
+  buildCylLocations(cyls, allEvents);
   applyAlertFilters();
 }
 
@@ -1612,7 +1684,19 @@ function applyAlertFilters() {
   if (!data.length) { alertsEmpty.style.display = ''; return; }
   alertsEmpty.style.display = 'none';
 
+  const statLabelMap = {
+    'in-refill': 'In Refill', 'in-circulation': 'In Circulation',
+    'revalidation': 'In Revalidation', 'in-use': 'In Use',
+  };
   data.forEach(al => {
+    const cyl = al.cylinder;
+    const statClass = 'status-' + (cyl.status || 'in-refill');
+    const statLabel = statLabelMap[cyl.status] || cyl.status;
+    const locData   = cyl.status !== 'in-use' ? _cylLocations[cyl.id] : null;
+    const locLine   = locData
+      ? `<span class="cylinder-meta-item">📍 ${[locData.region, locData.location].filter(Boolean).map(escapeHtml).join(' · ')}</span>`
+      : '';
+
     const li = document.createElement('li');
     li.className = 'alert-item';
     li.innerHTML = `
@@ -1620,10 +1704,13 @@ function applyAlertFilters() {
       <div class="alert-body">
         <div class="alert-title">${escapeHtml(al.title)}</div>
         <div class="alert-desc">${escapeHtml(al.desc)}</div>
-        <div class="alert-meta">${escapeHtml(al.cylinder.company)} · ${escapeHtml(al.severity)}</div>
+        <div class="alert-meta">${escapeHtml(cyl.company)} · ${locLine}</div>
+      </div>
+      <div class="cylinder-badges">
+        <span class="status-badge ${escapeHtml(statClass)}">${escapeHtml(statLabel)}</span>
       </div>`;
     li.style.cursor = 'pointer';
-    li.addEventListener('click', () => openPassportModal(al.cylinder.id));
+    li.addEventListener('click', () => openPassportModal(cyl.id));
     alertsList.appendChild(li);
   });
 }
@@ -1657,6 +1744,16 @@ async function renderReports() {
     const distCount     = allLicenses.filter(l => l.companyType === 'Distributor').length;
     const retailCount   = allLicenses.filter(l => l.companyType === 'Retailer').length;
 
+    const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
+    const requalSoon = cyls.filter(c => {
+      const baseDate = c.lastRequalDate || c.manufactureDate;
+      if (!baseDate) return false;
+      const base = new Date(baseDate + 'T00:00:00');
+      const dueDate = new Date(base);
+      dueDate.setFullYear(dueDate.getFullYear() + 10);
+      return (dueDate - new Date()) <= twoYears;
+    }).length;
+
     reportsGrid.innerHTML = `
       <div class="dashboard-section-title">Cylinder Lifecycle</div>
       <div class="report-card">
@@ -1678,6 +1775,10 @@ async function renderReports() {
       <div class="report-card report-card-full">
         <span class="report-card-value">${total}</span>
         <div class="report-card-label">Total Cylinders</div>
+      </div>
+      <div class="report-card" style="border-color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
+        <div class="report-card-label">Requalification Due (2yr)</div>
       </div>`;
 
     if (actSec) actSec.style.display = 'none';
@@ -1772,14 +1873,13 @@ async function renderNetwork() {
     filtered.forEach(partner => {
       const li = document.createElement('li');
       li.className = 'network-item';
+      li.style.cursor = 'pointer';
+      li.dataset.id = partner.id;
       const typeClass = 'type-' + partner.type.toLowerCase();
       li.innerHTML = `
         <div class="network-item-header">
           <span class="network-item-name">${escapeHtml(partner.name)}</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
-            <button class="btn btn-sm btn-outline partner-detail-btn" data-id="${escapeHtml(partner.id)}" type="button">📍 Details</button>
-          </div>
+          <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
         </div>
         <div class="network-item-meta">
           📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
@@ -1804,10 +1904,10 @@ document.querySelectorAll('.network-filters .btn').forEach(btn => {
   });
 });
 
-// Partner detail button delegation
+// Network item click → open partner modal
 $('network-list').addEventListener('click', e => {
-  const btn = e.target.closest('.partner-detail-btn');
-  if (btn) openPartnerModal(btn.dataset.id);
+  const item = e.target.closest('.network-item');
+  if (item) openPartnerModal(item.dataset.id);
 });
 
 let _partnerDetailMap = null;
@@ -1959,14 +2059,24 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
-  // 2. Monthly fills — show full year if filter active, else last 6 months
+  // 2. Refills — axes depend on filter selection
   const now = new Date();
   const months = [];
-  if (filterYear !== null) {
+  if (filterYear !== null && filterMonth !== null) {
+    // Single month/year → one bar
+    months.push({ label: new Date(filterYear, filterMonth, 1).toLocaleString('default', { month: 'long' }) + ' ' + filterYear, year: filterYear, month: filterMonth, count: 0 });
+  } else if (filterYear !== null) {
+    // Year selected → all 12 months of that year
     for (let mo = 0; mo < 12; mo++) {
       months.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
     }
+  } else if (filterMonth !== null) {
+    // Month selected → show that month across last 5 years
+    for (let y = now.getFullYear() - 4; y <= now.getFullYear(); y++) {
+      months.push({ label: `${new Date(y, filterMonth, 1).toLocaleString('default', { month: 'short' })}'${String(y).slice(2)}`, year: y, month: filterMonth, count: 0 });
+    }
   } else {
+    // Default: last 6 months
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({ label: d.toLocaleString('default', { month: 'short', year: '2-digit' }), year: d.getFullYear(), month: d.getMonth(), count: 0 });
@@ -2049,25 +2159,13 @@ async function renderMgmtReports() {
       }).join('')
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
 
-  // 4. Cylinders needing requalification within 2 years
-  const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
-  const requalSoon = cyls.filter(c => {
-    const baseDate = c.lastRequalDate || c.manufactureDate;
-    if (!baseDate) return false;
-    const base = new Date(baseDate + 'T00:00:00');
-    const dueDate = new Date(base);
-    dueDate.setFullYear(dueDate.getFullYear() + 10);
-    const msUntilDue = dueDate - now;
-    return msUntilDue <= twoYears; // due within 2 years (or overdue)
-  }).length;
-
   grid.innerHTML = `
     <div class="mgmt-card">
       <div class="mgmt-card-title">Cylinders by Status</div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Monthly Fills (Last 6 Months)</div>
+      <div class="mgmt-card-title">Refills</div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
@@ -2075,12 +2173,7 @@ async function renderMgmtReports() {
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Requalification Due (Next 2 Years)</div>
-      <div class="mgmt-stat-big" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</div>
-      <div class="mgmt-stat-desc">cylinders need requalification within 24 months</div>
-    </div>
-    <div class="mgmt-card">
-      <div class="mgmt-card-title">Sales by Region${filterYear ? ` (${filterYear}${filterMonth !== null ? '/' + (filterMonth+1) : ''})` : ' (All Time)'}</div>
+      <div class="mgmt-card-title">Sales by Region</div>
       ${regionBarsHtml}
     </div>`;
 }
@@ -2218,10 +2311,10 @@ logoutBtn.addEventListener('click', () => {
   eventsEmpty.style.display = '';
   lastScanCard.hidden    = true;
 
-  // Destroy network map so it re-initializes on next visit
-  if (_networkMap) {
-    _networkMap.remove();
-    _networkMap = null;
+  // Destroy partner detail map
+  if (_partnerDetailMap) {
+    _partnerDetailMap.remove();
+    _partnerDetailMap = null;
   }
 
   // Hide all views
