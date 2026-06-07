@@ -1526,17 +1526,14 @@ async function openPassportModal(cylId) {
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
-      <div class="passport-row">
-        <span class="passport-key">Last Hydro Test</span>
-        <span class="passport-value">${formatDate(cyl.lastHydroTest)}</span>
-      </div>
       ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Event History (${events.length})</div>
       <ul class="passport-history">
-        ${events.length ? events.map(ev => `
+        ${events.length ? events.slice().reverse().map((ev, idx) => `
           <li>
+            <span class="ph-step">${idx + 1}</span>
             <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
             <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
           </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
@@ -1800,17 +1797,32 @@ async function renderReports() {
       return (dueDate - new Date()) <= twoYears;
     }).length;
 
-    // Alerts total — compute inline so it doesn't depend on renderAlerts timing
-    let alertTotal = requalSoon;
+    // Alerts — compute inline per type
+    const now = new Date();
+    let alertRequalOverdue = 0, alertStuck = 0, alertMisplaced = 0;
     cyls.forEach(cyl => {
+      const baseDate = cyl.lastRequalDate || cyl.manufactureDate;
+      if (baseDate) {
+        const due = new Date(baseDate + 'T00:00:00');
+        due.setFullYear(due.getFullYear() + 10);
+        if (due < now) alertRequalOverdue++;
+      }
       if (cyl.status === 'in-circulation') {
         const cylEvs = events.filter(e => e.cylinderId === cyl.id)
           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         if (cylEvs.length) {
-          const days = Math.floor((Date.now() - new Date(cylEvs[0].timestamp)) / 86400000);
-          if (days > 45) alertTotal++;
+          const days = Math.floor((now - new Date(cylEvs[0].timestamp)) / 86400000);
+          if (days > 45) alertStuck++;
         }
       }
+    });
+    // Misplaced: shipped to X received by Y
+    const shipEvs = events.filter(e => e.type === 'shipped' && e.destinedFor);
+    shipEvs.forEach(ev => {
+      const cylEvs = events.filter(e => e.cylinderId === ev.cylinderId && new Date(e.timestamp) > new Date(ev.timestamp))
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const recvEv = cylEvs.find(e => e.type === 'dist-received' || e.type === 'ret-received');
+      if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) alertMisplaced++;
     });
 
     reportsGrid.innerHTML = `
@@ -1836,18 +1848,26 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
         <div class="report-card-label">In Use</div>
       </div>
-      <div class="report-card report-card-full">
+      <div class="report-card">
         <span class="report-card-value">${total}</span>
         <div class="report-card-label">Total Cylinders</div>
       </div>
       <div class="dashboard-section-title">Alerts</div>
-      <div class="report-card" style="border-color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
+      <div class="report-card" style="border-color:${requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
         <div class="report-card-label">Requalification Due (2yr)</div>
       </div>
-      <div class="report-card" style="border-color:${alertTotal > 10 ? 'var(--red)' : alertTotal > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${alertTotal > 10 ? 'var(--red)' : alertTotal > 0 ? 'var(--amber)' : 'var(--green)'}">${alertTotal}</span>
-        <div class="report-card-label">Total Alerts</div>
+      <div class="report-card" style="border-color:${alertRequalOverdue > 0 ? 'var(--red)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${alertRequalOverdue > 0 ? 'var(--red)' : 'var(--green)'}">${alertRequalOverdue}</span>
+        <div class="report-card-label">Requalification Overdue</div>
+      </div>
+      <div class="report-card" style="border-color:${alertStuck > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${alertStuck > 0 ? 'var(--amber)' : 'var(--green)'}">${alertStuck}</span>
+        <div class="report-card-label">Stuck in Circulation</div>
+      </div>
+      <div class="report-card" style="border-color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--green)'}">${alertMisplaced}</span>
+        <div class="report-card-label">Misplaced</div>
       </div>`;
 
     if (actSec) actSec.style.display = 'none';

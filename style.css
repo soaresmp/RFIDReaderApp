@@ -1269,6 +1269,20 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   font-size: 12px;
 }
 .passport-history li:last-child { border-bottom: none; }
+.ph-step {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .ph-time { color: var(--dim); flex-shrink: 0; min-width: 100px; }
 .ph-desc { color: var(--muted); flex: 1; }
 
