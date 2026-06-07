@@ -25,7 +25,7 @@
       <div class="login-header">
         <div class="login-logo">⛽</div>
         <h1 class="login-title">LPG Tracer</h1>
-        <p class="login-subtitle">Select your role to continue</p>
+        <p class="login-subtitle" data-i18n="login.subtitle">Select your role to continue</p>
       </div>
 
       <!-- Role cards -->
@@ -100,7 +100,7 @@
       <!-- Inline login sub-form (hidden until role selected) -->
       <div id="login-form-wrapper" class="login-form-wrapper" hidden>
         <div class="login-form-header">
-          <button id="login-back-btn" class="login-back-btn" type="button">‹ Back</button>
+          <button id="login-back-btn" class="login-back-btn" type="button" data-i18n="login.back">‹ Back</button>
           <span id="login-form-role-label" class="login-form-role-label"></span>
         </div>
         <form id="login-form" class="login-form" novalidate>
@@ -109,7 +109,7 @@
             <select id="login-company-select" class="form-control" style="display:none"></select>
             <input id="login-company-text" type="text" class="form-control" placeholder="Company name" style="display:none" />
           </div>
-          <button type="submit" class="btn btn-primary login-enter-btn">Enter App →</button>
+          <button type="submit" class="btn btn-primary login-enter-btn" data-i18n="login.enter">Enter App →</button>
         </form>
       </div>
 
@@ -131,6 +131,7 @@
         </div>
       </div>
       <div class="header-right">
+        <button id="lang-toggle" class="lang-toggle-btn" type="button" title="Switch language / Badilisha lugha">🇬🇧 EN</button>
         <span id="header-role-badge" class="header-role-badge" hidden></span>
         <span id="header-operator-pill" class="header-operator-pill" hidden></span>
         <span id="status-badge" class="badge badge-idle" hidden>Idle</span>
@@ -145,31 +146,31 @@
         <div class="sidebar-nav" id="app-nav">
           <button class="nav-tab" data-view="reports">
             <span class="nav-icon">📊</span>
-            <span class="nav-label">Dashboard</span>
+            <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
           </button>
           <button class="nav-tab" data-view="scan">
             <span class="nav-icon">📡</span>
-            <span class="nav-label">Scan</span>
+            <span class="nav-label" data-i18n="nav.scan">Scan</span>
           </button>
           <button class="nav-tab" data-view="cylinders">
             <span class="nav-icon">🔥</span>
-            <span class="nav-label">Cylinders</span>
+            <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
           </button>
           <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
             <span class="nav-icon">🏪</span>
-            <span class="nav-label">Network</span>
+            <span class="nav-label" data-i18n="nav.network">Network</span>
           </button>
           <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
             <span class="nav-icon">🔔</span>
-            <span class="nav-label">Alerts</span>
+            <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
           </button>
           <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
             <span class="nav-icon">📈</span>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
           <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
             <span class="nav-icon">📋</span>
-            <span class="nav-label">Licenses</span>
+            <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
           </button>
         </div>
       </nav>
@@ -346,7 +347,7 @@
           </div>
           <div class="view-toolbar" style="margin-bottom:16px">
             <div class="filter-row">
-              <select id="mgmt-filter-year" class="filter-select"><option value="">All years</option></select>
+              <select id="mgmt-filter-year" class="filter-select"><option value="" data-i18n="filter.allYears">All years</option></select>
               <select id="mgmt-filter-month" class="filter-select">
                 <option value="">All months</option>
                 <option value="0">January</option>
@@ -362,6 +363,10 @@
                 <option value="10">November</option>
                 <option value="11">December</option>
               </select>
+            </div>
+            <div class="filter-row" style="margin-top:8px">
+              <button id="mgmt-export-csv-btn" class="btn btn-sm btn-outline" type="button" data-i18n="btn.exportCsv">↓ Export CSV</button>
+              <button id="mgmt-export-pdf-btn" class="btn btn-sm btn-outline" type="button" data-i18n="btn.exportPdf">↓ Print / PDF</button>
             </div>
           </div>
           <div class="mgmt-grid" id="mgmt-reports-grid">

@@ -1557,3 +1557,34 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   color: var(--dim);
   margin-bottom: 4px;
 }
+
+/* ── Language toggle button ───────────────────────────────────────────────── */
+.lang-toggle-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.lang-toggle-btn:hover { background: var(--surface); }
+
+/* ── Print / PDF styles ───────────────────────────────────────────────────── */
+@media print {
+  #login-overlay, #app-sidebar, .view:not(#view-mgmt-reports),
+  #mgmt-export-csv-btn, #mgmt-export-pdf-btn,
+  #logout-btn, #lang-toggle, #header-role-badge, #header-operator-pill, #status-badge { display: none !important; }
+  #app-header { position: static; box-shadow: none; border-bottom: 1px solid #ccc; }
+  #portal-layout { display: block; }
+  #main-area { display: block; padding: 0; }
+  #content-area { padding: 0; overflow: visible; }
+  #view-mgmt-reports { display: block !important; padding: 16px; }
+  .mgmt-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  body { background: #fff; color: #000; }
+  .mgmt-card { border: 1px solid #ccc; background: #fff; color: #000; break-inside: avoid; }
+  .mgmt-bar-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .mgmt-bar-label { color: #333; }
+}

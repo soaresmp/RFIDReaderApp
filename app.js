@@ -1960,16 +1960,16 @@ async function renderReports() {
 
     let refillFull = 0, refillEmpty = 0;
     cyls.filter(c => c.status === 'in-refill').forEach(c => {
-      const t = lastEvType[c.id];
-      if (REFILL_FULL_EV.has(t))  refillFull++;
-      else                         refillEmpty++;
+      const evType = lastEvType[c.id];
+      if (REFILL_FULL_EV.has(evType))  refillFull++;
+      else                              refillEmpty++;
     });
 
     let circFull = 0, circEmpty = 0;
     cyls.filter(c => c.status === 'in-circulation').forEach(c => {
-      const t = lastEvType[c.id];
-      if (CIRC_FULL_EV.has(t))   circFull++;
-      else if (CIRC_EMPTY_EV.has(t)) circEmpty++;
+      const evType = lastEvType[c.id];
+      if (CIRC_FULL_EV.has(evType))        circFull++;
+      else if (CIRC_EMPTY_EV.has(evType))  circEmpty++;
     });
 
     const refillerCount = LPGMC_COMPANIES.length;
@@ -2015,10 +2015,10 @@ async function renderReports() {
     });
 
     reportsGrid.innerHTML = `
-      <div class="dashboard-section-title">Cylinder Lifecycle</div>
+      <div class="dashboard-section-title">${t('dash.lifecycle')}</div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
-        <div class="report-card-label">In Refill</div>
+        <div class="report-card-label">${t('kpi.inrefill')}</div>
         <div class="report-card-sub">
           <span style="color:var(--green);font-size:11px">✅ ${refillFull} filled</span>
           &nbsp;·&nbsp;
@@ -2027,7 +2027,7 @@ async function renderReports() {
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${circFull + circEmpty}</span>
-        <div class="report-card-label">In Circulation</div>
+        <div class="report-card-label">${t('kpi.incirc')}</div>
         <div class="report-card-sub">
           <span style="color:var(--green);font-size:11px">✅ ${circFull} full</span>
           &nbsp;·&nbsp;
@@ -2036,45 +2036,45 @@ async function renderReports() {
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--teal)">${inRevalidation}</span>
-        <div class="report-card-label">In Revalidation</div>
+        <div class="report-card-label">${t('kpi.inreval')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
-        <div class="report-card-label">In Use</div>
+        <div class="report-card-label">${t('kpi.inuse')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value">${total}</span>
-        <div class="report-card-label">Total Cylinders</div>
+        <div class="report-card-label">${t('kpi.total')}</div>
       </div>
-      <div class="dashboard-section-title">Alerts</div>
+      <div class="dashboard-section-title">${t('dash.alerts')}</div>
       <div class="report-card" style="border-color:${requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
-        <div class="report-card-label">Requalification Due (2yr)</div>
+        <div class="report-card-label">${t('alert.requalSoon')}</div>
       </div>
       <div class="report-card" style="border-color:${alertRequalOverdue > 0 ? 'var(--red)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${alertRequalOverdue > 0 ? 'var(--red)' : 'var(--green)'}">${alertRequalOverdue}</span>
-        <div class="report-card-label">Requalification Overdue</div>
+        <div class="report-card-label">${t('alert.requalOverdue')}</div>
       </div>
       <div class="report-card" style="border-color:${alertStuck > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${alertStuck > 0 ? 'var(--amber)' : 'var(--green)'}">${alertStuck}</span>
-        <div class="report-card-label">Stuck in Circulation</div>
+        <div class="report-card-label">${t('alert.stuck')}</div>
       </div>
       <div class="report-card" style="border-color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--green)'}">${alertMisplaced}</span>
-        <div class="report-card-label">Misplaced</div>
+        <div class="report-card-label">${t('alert.misplaced')}</div>
       </div>
-      <div class="dashboard-section-title">Supply Chain</div>
+      <div class="dashboard-section-title">${t('dash.supplychain')}</div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${refillerCount}</span>
         <div class="report-card-label">Refilling Sites</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--amber)">${distCount}</span>
-        <div class="report-card-label">Distributors</div>
+        <div class="report-card-label">${t('kpi.distributors')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${retailCount}</span>
-        <div class="report-card-label">Retailers</div>
+        <div class="report-card-label">${t('kpi.retailers')}</div>
       </div>`;
 
     reportChart.innerHTML = '';
@@ -2090,19 +2090,19 @@ async function renderReports() {
     reportsGrid.innerHTML = `
       <div class="report-card">
         <span class="report-card-value">${total}</span>
-        <div class="report-card-label">Total Cylinders</div>
+        <div class="report-card-label">${t('kpi.total')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
-        <div class="report-card-label">In Refill</div>
+        <div class="report-card-label">${t('kpi.inrefill')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${inCirc}</span>
-        <div class="report-card-label">In Circulation</div>
+        <div class="report-card-label">${t('kpi.incirc')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
-        <div class="report-card-label">In Use</div>
+        <div class="report-card-label">${t('kpi.inuse')}</div>
       </div>`;
 
     const now = Date.now();
@@ -2459,7 +2459,7 @@ async function renderMgmtReports() {
   // 3. Top 10 partners — by sales count when filtered, else by cylinder stock
   let top5, partnerCardTitle;
   if (filterYear !== null || filterMonth !== null) {
-    partnerCardTitle = 'Top 10 Partners by Sales';
+    partnerCardTitle = t('mgmt.topPartners');
     const salesByPartner = {};
     allEvents.forEach(ev => {
       if (ev.type !== 'ret-sold' || !ev.company) return;
@@ -2473,7 +2473,7 @@ async function renderMgmtReports() {
         return { name, cylinders: count, type: net?.type || 'Retailer' };
       });
   } else {
-    partnerCardTitle = 'Top 10 Partners by Cylinder Count';
+    partnerCardTitle = t('mgmt.topPartnersAll');
     top5 = [...DEMO_NETWORK].sort((a, b) => b.cylinders - a.cylinders).slice(0, 10);
   }
   const maxPartnerCyls = top5.length ? Math.max(...top5.map(p => p.cylinders), 1) : 1;
@@ -2516,11 +2516,11 @@ async function renderMgmtReports() {
 
   grid.innerHTML = `
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Cylinders by Status</div>
+      <div class="mgmt-card-title">${t('mgmt.status')}</div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Refills</div>
+      <div class="mgmt-card-title">${t('mgmt.refills')}</div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
@@ -2528,7 +2528,7 @@ async function renderMgmtReports() {
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Sales by Region</div>
+      <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
       ${regionBarsHtml}
     </div>`;
 }
@@ -2582,6 +2582,59 @@ licFilterStatus.addEventListener('change',  applyLicenseFilters);
 
 mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
 mgmtFilterMonth?.addEventListener('change', renderMgmtReports);
+
+const mgmtExportCsvBtn = $('mgmt-export-csv-btn');
+if (mgmtExportCsvBtn) {
+  mgmtExportCsvBtn.addEventListener('click', async () => {
+    const allCyls   = await txGetAll('cylinders');
+    const allEvents = await txGetAll('events');
+    const yearSel   = $('mgmt-filter-year');
+    const monthSel  = $('mgmt-filter-month');
+    const fy = yearSel?.value ? parseInt(yearSel.value) : null;
+    const fm = monthSel?.value !== '' ? parseInt(monthSel.value) : null;
+    function inP(ts) {
+      const d = new Date(ts);
+      if (fy !== null && d.getFullYear() !== fy) return false;
+      if (fm !== null && d.getMonth() !== fm) return false;
+      return true;
+    }
+    const date = new Date().toISOString().slice(0,10);
+    // Cylinders by status
+    const statusRows = ['Status,Count'];
+    ['in-refill','in-circulation','revalidation','in-use'].forEach(s => {
+      statusRows.push(`"${s}",${allCyls.filter(c => c.status === s).length}`);
+    });
+    // Refills by period
+    const refillEvs = allEvents.filter(ev => ev.type === 'refilled' && inP(ev.timestamp));
+    const refillRows = ['Timestamp,CylinderID,Company'];
+    refillEvs.forEach(ev => refillRows.push(`"${ev.timestamp}","${ev.cylinderId}","${ev.company || ''}"`));
+    // Sales by partner
+    const salesMap = {};
+    allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp))
+      .forEach(ev => { salesMap[ev.company] = (salesMap[ev.company] || 0) + 1; });
+    const partnerRows = ['Partner,Sales'];
+    Object.entries(salesMap).sort((a,b) => b[1]-a[1]).forEach(([n,c]) => partnerRows.push(`"${n}",${c}`));
+    const csv = [
+      'LPG Tracer - Management Report Export',
+      `Period,${fy ? fy : 'All Years'}${fm !== null ? ' ' + fm : ''}`,
+      '',
+      'CYLINDERS BY STATUS',
+      ...statusRows,
+      '',
+      'REFILLS',
+      ...refillRows,
+      '',
+      'SALES BY PARTNER',
+      ...partnerRows,
+    ].join('\n');
+    downloadCSV(`lpg-mgmt-report-${date}.csv`, csv);
+  });
+}
+
+const mgmtExportPdfBtn = $('mgmt-export-pdf-btn');
+if (mgmtExportPdfBtn) {
+  mgmtExportPdfBtn.addEventListener('click', () => { window.print(); });
+}
 
 issueLicenseBtn.addEventListener('click', () => {
   licCompanyName.value = '';
@@ -2649,6 +2702,15 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
 // ══════════════════════════════════════════════════════════════════════════════
 // LOGOUT
 // ══════════════════════════════════════════════════════════════════════════════
+
+const langToggleBtn = $('lang-toggle');
+if (langToggleBtn) {
+  langToggleBtn.addEventListener('click', () => {
+    _lang = _lang === 'en' ? 'sw' : 'en';
+    localStorage.setItem('lpg-lang', _lang);
+    applyLang();
+  });
+}
 
 logoutBtn.addEventListener('click', () => {
   // Reset UI
@@ -2718,6 +2780,8 @@ async function init() {
   } else {
     showLoginOverlay();
   }
+
+  applyLang();
 }
 
 init().catch(err => {
