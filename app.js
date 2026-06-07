@@ -2043,13 +2043,15 @@ async function renderNetwork() {
     li.innerHTML = `
       <div class="network-item-header">
         <span class="network-item-name">${escapeHtml(partner.name)}</span>
-        <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+        <div class="network-item-badges">
+          <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+          <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
+        </div>
       </div>
       <div class="network-item-meta">
         📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
         📞 ${escapeHtml(partner.contact)} ·
-        <span class="network-item-cyls">🔥 ${counts.total} total · <span class="cyl-full">✅ ${counts.full} full</span> · <span class="cyl-empty">📭 ${counts.empty} empty</span></span> ·
-        <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
+        <span class="network-item-cyls">🔥 ${counts.total} total · <span class="cyl-full">✅ ${counts.full} full</span> · <span class="cyl-empty">📭 ${counts.empty} empty</span></span>
       </div>`;
     networkList.appendChild(li);
   });
