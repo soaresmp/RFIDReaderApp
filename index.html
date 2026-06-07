@@ -2,15 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1e293b" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="LPG Tracer" />
   <meta name="description" content="LPG Cylinder Tracking System — RFID-based cylinder lifecycle management" />
   <title>LPG Tracer</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -42,20 +40,39 @@
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false" style="display:none">
-          <div class="role-card-icon">🔧</div>
-          <div class="role-card-body">
-            <div class="role-card-title">Revalidator</div>
-            <div class="role-card-desc">Cylinders Revalidator<br>Receive · Revalidate &amp; Update · Return to LPGMC</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-
         <div class="role-card" data-role="ewura" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏛️</div>
           <div class="role-card-body">
             <div class="role-card-title">EWURA</div>
             <div class="role-card-desc">Regulatory Authority<br>Grant &amp; Revoke Licences · Monitor Supply Chain</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🚛</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Distributor</div>
+            <div class="role-card-desc">Distribution Company<br>Receive · Supply to Retailers · Return Empty</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="retailer" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏪</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Retailer</div>
+            <div class="role-card-desc">Retail Outlet<br>Receive Cylinders · Sell · Return Empty</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <!-- Hidden roles (kept in code) -->
+        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false" style="display:none">
+          <div class="role-card-icon">🔧</div>
+          <div class="role-card-body">
+            <div class="role-card-title">Revalidator</div>
+            <div class="role-card-desc">Cylinders Revalidator<br>Receive · Revalidate &amp; Update · Return to LPGMC</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -74,24 +91,6 @@
           <div class="role-card-body">
             <div class="role-card-title">TRA</div>
             <div class="role-card-desc">Tanzania Revenue Authority<br>Cross-check Refills · Register Shipments</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-
-        <div class="role-card" data-role="distributor" tabindex="0" role="button" aria-pressed="false">
-          <div class="role-card-icon">🚛</div>
-          <div class="role-card-body">
-            <div class="role-card-title">Distributor</div>
-            <div class="role-card-desc">Distribution Company<br>Receive · Supply to Retailers · Return Empty</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-
-        <div class="role-card" data-role="retailer" tabindex="0" role="button" aria-pressed="false">
-          <div class="role-card-icon">🏪</div>
-          <div class="role-card-body">
-            <div class="role-card-title">Retailer</div>
-            <div class="role-card-desc">Retail Outlet<br>Receive Cylinders · Return Empty</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -122,11 +121,11 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- MAIN APP                                                                -->
+  <!-- MAIN APP — portal layout                                                -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <div id="app">
+  <div id="portal-layout">
 
-    <!-- Header -->
+    <!-- ── Top Header Bar ──────────────────────────────────────────────── -->
     <header id="app-header">
       <div class="header-left">
         <span class="header-logo">⛽</span>
@@ -143,171 +142,251 @@
       </div>
     </header>
 
-    <!-- Nav tabs -->
-    <nav id="app-nav" class="app-nav">
-      <button class="nav-tab" data-view="reports">Dashboard</button>
-      <button class="nav-tab" data-view="scan">Scan</button>
-      <button class="nav-tab" data-view="cylinders">Cylinders</button>
-      <button class="nav-tab" data-view="alerts" id="nav-alerts">Alerts</button>
-      <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
-    </nav>
+    <div id="main-area">
 
-    <!-- ── SCAN VIEW ─────────────────────────────────────────────────── -->
-    <div id="view-scan" class="view active">
-
-      <!-- Event type selector -->
-      <div class="scan-event-bar" id="scan-event-bar">
-        <!-- pills injected by JS per role -->
-      </div>
-
-      <!-- Batch mode toggle -->
-      <div class="scan-options-bar">
-        <label class="toggle-label">
-          <input type="checkbox" id="batch-mode-toggle" />
-          <span class="toggle-slider"></span>
-          <span class="toggle-text">Batch mode</span>
-        </label>
-      </div>
-
-      <!-- Focus / scanning button -->
-      <div id="focus-section" class="focus-section">
-        <button id="focus-btn" class="focus-btn" type="button">
-          <span id="focus-icon">📡</span>
-          <span id="focus-label">Tap to start scanning</span>
-        </button>
-        <p class="focus-hint">Keep this app in focus while scanning</p>
-      </div>
-
-      <!-- Last scan result card -->
-      <div id="last-scan-card" class="last-scan-card" hidden>
-        <div class="last-scan-header">
-          <span class="last-scan-label">Last Scan</span>
-          <span id="last-scan-time" class="last-scan-time"></span>
+      <!-- ── Left Sidebar Nav ──────────────────────────────────────────── -->
+      <nav id="app-sidebar">
+        <div class="sidebar-nav" id="app-nav">
+          <button class="nav-tab" data-view="reports">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Dashboard</span>
+          </button>
+          <button class="nav-tab" data-view="scan">
+            <span class="nav-icon">📡</span>
+            <span class="nav-label">Scan</span>
+          </button>
+          <button class="nav-tab" data-view="cylinders">
+            <span class="nav-icon">🗄️</span>
+            <span class="nav-label">Cylinders</span>
+          </button>
+          <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">Network</span>
+          </button>
+          <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-label">Alerts</span>
+          </button>
+          <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Reports</span>
+          </button>
+          <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Licenses</span>
+          </button>
         </div>
-        <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
-        <div id="last-scan-result" class="last-scan-result"></div>
-      </div>
+      </nav>
 
-      <!-- Batch queue -->
-      <div id="batch-queue-section" class="batch-queue-section" hidden>
-        <div class="section-header">
-          <span>Batch Queue (<span id="batch-count">0</span>)</span>
-          <div class="section-actions">
-            <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button">Commit All</button>
-            <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button">Clear</button>
+      <!-- ── Content Area ─────────────────────────────────────────────── -->
+      <main id="content-area">
+
+        <!-- ── SCAN VIEW ──────────────────────────────────────────────── -->
+        <div id="view-scan" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📡 Scan</h2>
           </div>
-        </div>
-        <ul id="batch-list" class="compact-list"></ul>
-      </div>
 
-      <!-- Recent scan events -->
-      <div class="section-header" style="margin:12px 16px 0">
-        <span>Recent Events</span>
-        <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
-      </div>
-      <ul id="events-list" class="scan-events-list"></ul>
-      <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
+          <!-- Event type selector -->
+          <div class="scan-event-bar" id="scan-event-bar">
+            <!-- pills injected by JS per role -->
+          </div>
 
-    </div><!-- /view-scan -->
+          <!-- Batch mode toggle -->
+          <div class="scan-options-bar">
+            <label class="toggle-label">
+              <input type="checkbox" id="batch-mode-toggle" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Batch mode</span>
+            </label>
+          </div>
 
-    <!-- ── CYLINDERS VIEW ────────────────────────────────────────────── -->
-    <div id="view-cylinders" class="view">
+          <!-- Focus / scanning button -->
+          <div id="focus-section">
+            <button id="focus-btn" class="focus-btn" type="button">
+              <span id="focus-icon">📡</span>
+              <span id="focus-label">Tap to start scanning</span>
+            </button>
+            <p class="focus-hint">Keep this app in focus while scanning</p>
+          </div>
 
-      <div class="view-toolbar">
-        <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
-        <div class="filter-row">
-          <select id="cyl-filter-status" class="filter-select">
-            <option value="">All statuses</option>
-            <option value="available">Available</option>
-            <option value="in-circulation">In Circulation</option>
-            <option value="refilling">In Refill</option>
-            <option value="revalidation">In Revalidation</option>
-            <option value="in-use">In Use (Consumer)</option>
-            <option value="condemned">Condemned</option>
-          </select>
-          <select id="cyl-filter-company" class="filter-select">
-            <option value="">All companies</option>
-            <option value="Vivo LPG">Vivo LPG</option>
-            <option value="Total Energies">Total Energies</option>
-            <option value="Shell Gas">Shell Gas</option>
-            <option value="Lake Gas">Lake Gas</option>
-          </select>
-        </div>
-      </div>
+          <!-- Last scan result card -->
+          <div id="last-scan-card" class="last-scan-card" hidden>
+            <div class="last-scan-header">
+              <span class="last-scan-label">Last Scan</span>
+              <span id="last-scan-time" class="last-scan-time"></span>
+            </div>
+            <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
+            <div id="last-scan-result" class="last-scan-result"></div>
+          </div>
 
-      <div id="cyl-stats" class="cyl-stats-row"></div>
+          <!-- Batch queue -->
+          <div id="batch-queue-section" class="batch-queue-section" hidden>
+            <div class="section-header" style="padding:10px 16px">
+              <span>Batch Queue (<span id="batch-count">0</span>)</span>
+              <div class="section-actions">
+                <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button">Commit All</button>
+                <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button">Clear</button>
+              </div>
+            </div>
+            <ul id="batch-list" class="compact-list"></ul>
+          </div>
 
-      <ul id="cylinders-list" class="cylinders-list"></ul>
-      <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+          <!-- Recent scan events -->
+          <div class="section-header">
+            <span>Recent Events</span>
+            <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+          </div>
+          <ul id="events-list" class="scan-events-list"></ul>
+          <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
 
-    </div><!-- /view-cylinders -->
+        </div><!-- /view-scan -->
 
-    <!-- ── ALERTS VIEW ────────────────────────────────────────────────── -->
-    <div id="view-alerts" class="view">
-      <div class="view-toolbar">
-        <select id="alert-filter-severity" class="filter-select">
-          <option value="">All severities</option>
-          <option value="critical">Critical</option>
-          <option value="warning">Warning</option>
-          <option value="info">Info</option>
-        </select>
-        <select id="alert-filter-type" class="filter-select">
-          <option value="">All types</option>
-          <option value="overdue-hydrotest">Overdue Hydrotest</option>
-          <option value="near-capacity">Near Capacity</option>
-          <option value="exceeded-capacity">Exceeded Capacity</option>
-          <option value="condemned">Condemned</option>
-        </select>
-      </div>
-      <div id="alert-summary" class="alert-summary-row"></div>
-      <ul id="alerts-list" class="alerts-list"></ul>
-      <p id="alerts-empty" class="list-empty">No alerts.</p>
-    </div><!-- /view-alerts -->
+        <!-- ── CYLINDERS VIEW ─────────────────────────────────────────── -->
+        <div id="view-cylinders" class="view">
+          <div class="page-header">
+            <h2 class="page-title">🗄️ Cylinders</h2>
+            <div class="page-actions">
+              <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">+ Register</button>
+              <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+            </div>
+          </div>
 
-    <!-- ── REPORTS VIEW ───────────────────────────────────────────────── -->
-    <div id="view-reports" class="view">
-      <div class="reports-grid" id="reports-grid"></div>
-      <div id="report-activity-section" class="section-header" style="margin: 16px 16px 8px">
-        <span>Activity — Last 30 Days</span>
-        <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
-      </div>
-      <div id="report-chart" class="report-chart"></div>
-      <div class="section-header" style="margin: 16px 16px 8px">
-        <span>Sync Status</span>
-        <button id="sync-btn" class="btn btn-sm btn-blue" type="button">↑ Sync Now</button>
-      </div>
-      <div id="sync-status-card" class="sync-status-card">
-        <span id="sync-status-text">Not synced yet.</span>
-        <span id="sync-indicator" class="sync-indicator"></span>
-      </div>
-    </div><!-- /view-reports -->
+          <div class="view-toolbar">
+            <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
+            <div class="filter-row">
+              <select id="cyl-filter-status" class="filter-select">
+                <option value="">All statuses</option>
+                <option value="in-refill">In Refill (Ready)</option>
+                <option value="in-circulation">In Circulation</option>
+                <option value="refilling">Refilling</option>
+                <option value="returning">Returning</option>
+                <option value="revalidation">In Revalidation</option>
+                <option value="in-use">In Use (Consumer)</option>
+              </select>
+              <select id="cyl-filter-company" class="filter-select">
+                <option value="">All companies</option>
+                <option value="Vivo LPG">Vivo LPG</option>
+                <option value="Total Energies">Total Energies</option>
+                <option value="Shell Gas">Shell Gas</option>
+                <option value="Lake Gas">Lake Gas</option>
+              </select>
+            </div>
+          </div>
 
-    <!-- ── LICENSES VIEW (Government only) ───────────────────────────── -->
-    <div id="view-licenses" class="view" style="display:none">
-      <div class="view-toolbar">
-        <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
-        <div class="filter-row">
-          <select id="lic-filter-type" class="filter-select">
-            <option value="">All types</option>
-            <option value="LPGMC">LPGMC</option>
-            <option value="Revalidator">Revalidator</option>
-            <option value="Distributor">Distributor</option>
-            <option value="Retailer">Retailer</option>
-          </select>
-          <select id="lic-filter-status" class="filter-select">
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
-        <button id="issue-license-btn" class="btn btn-primary btn-sm" type="button">+ Issue License</button>
-      </div>
-      <ul id="licenses-list" class="licenses-list"></ul>
-      <p id="licenses-empty" class="list-empty">No licenses found.</p>
-    </div><!-- /view-licenses -->
+          <div id="cyl-stats" class="cyl-stats-row"></div>
 
-  </div><!-- /app -->
+          <ul id="cylinders-list" class="cylinders-list"></ul>
+          <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+
+        </div><!-- /view-cylinders -->
+
+        <!-- ── ALERTS VIEW ────────────────────────────────────────────── -->
+        <div id="view-alerts" class="view">
+          <div class="page-header">
+            <h2 class="page-title">🔔 Alerts</h2>
+          </div>
+          <div class="view-toolbar">
+            <select id="alert-filter-severity" class="filter-select">
+              <option value="">All severities</option>
+              <option value="critical">Critical</option>
+              <option value="warning">Warning</option>
+              <option value="info">Info</option>
+            </select>
+            <select id="alert-filter-type" class="filter-select">
+              <option value="">All types</option>
+              <option value="requalification-overdue">Requalification Overdue</option>
+              <option value="requalification-due">Requalification Due Soon</option>
+              <option value="stuck-refilling">Stuck in Refill</option>
+              <option value="not-received">Not Received at Plant</option>
+            </select>
+          </div>
+          <div id="alert-summary" class="alert-summary-row"></div>
+          <ul id="alerts-list" class="alerts-list"></ul>
+          <p id="alerts-empty" class="list-empty">No alerts.</p>
+        </div><!-- /view-alerts -->
+
+        <!-- ── REPORTS / DASHBOARD VIEW ───────────────────────────────── -->
+        <div id="view-reports" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📊 Dashboard</h2>
+            <div class="page-actions">
+              <button id="export-dashboard-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+            </div>
+          </div>
+          <div class="reports-grid" id="reports-grid"></div>
+          <div id="report-activity-section" class="section-header">
+            <span>Activity — Last 30 Days</span>
+          </div>
+          <div id="report-chart" class="report-chart"></div>
+        </div><!-- /view-reports -->
+
+        <!-- ── NETWORK VIEW (LPGMC only) ──────────────────────────────── -->
+        <div id="view-network" class="view">
+          <div class="page-header">
+            <h2 class="page-title">🗺️ Network</h2>
+          </div>
+          <div class="network-layout">
+            <!-- Partner list -->
+            <div>
+              <div class="network-filters">
+                <button class="btn btn-sm btn-primary" id="net-filter-all" data-filter="">All</button>
+                <button class="btn btn-sm btn-outline" id="net-filter-dist" data-filter="Distributor">Distributors</button>
+                <button class="btn btn-sm btn-outline" id="net-filter-ret" data-filter="Retailer">Retailers</button>
+              </div>
+              <ul id="network-list" class="network-list"></ul>
+              <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
+            </div>
+            <!-- Map -->
+            <div id="network-map"></div>
+          </div>
+        </div><!-- /view-network -->
+
+        <!-- ── MGMT REPORTS VIEW (LPGMC only) ─────────────────────────── -->
+        <div id="view-mgmt-reports" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📈 Management Reports</h2>
+          </div>
+          <div class="mgmt-grid" id="mgmt-reports-grid">
+            <!-- Injected by JS -->
+          </div>
+        </div><!-- /view-mgmt-reports -->
+
+        <!-- ── LICENSES VIEW (EWURA only) ─────────────────────────────── -->
+        <div id="view-licenses" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📋 Licenses</h2>
+            <div class="page-actions">
+              <button id="issue-license-btn" class="btn btn-primary" type="button">+ Issue License</button>
+            </div>
+          </div>
+          <div class="view-toolbar">
+            <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
+            <div class="filter-row">
+              <select id="lic-filter-type" class="filter-select">
+                <option value="">All types</option>
+                <option value="LPGMC">LPGMC</option>
+                <option value="Revalidator">Revalidator</option>
+                <option value="Distributor">Distributor</option>
+                <option value="Retailer">Retailer</option>
+              </select>
+              <select id="lic-filter-status" class="filter-select">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+          </div>
+          <ul id="licenses-list" class="licenses-list"></ul>
+          <p id="licenses-empty" class="list-empty">No licenses found.</p>
+        </div><!-- /view-licenses -->
+
+      </main><!-- /content-area -->
+
+    </div><!-- /main-area -->
+
+  </div><!-- /portal-layout -->
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <!-- MODALS                                                                  -->
@@ -493,6 +572,7 @@
   <!-- Snackbar -->
   <div id="snackbar" role="status" aria-live="polite"></div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>

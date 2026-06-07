@@ -6,20 +6,20 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v3';
+const SEED_KEY   = 'seeded-v4';
 
 const DEMO_CYLINDERS = [
-  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'in-refill',       notes:'' },
   { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', company:'Vivo LPG',       manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-circulation',  notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'available',       notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'condemned',       notes:'Exceeded max fills. Condemned 2026-03-01.' },
-  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'in-refill',       notes:'' },
+  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'in-refill',       notes:'' },
+  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'in-refill',       notes:'' },
   { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', company:'Total Energies', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-circulation',  notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'in-refill',       notes:'' },
   { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', company:'Total Energies', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'refilling',       notes:'' },
-  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'in-refill',       notes:'' },
   { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', company:'Shell Gas',      manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',          notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'returning',       notes:'' },
   { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', company:'Shell Gas',      manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'revalidation',    notes:'' },
 ];
 
@@ -29,8 +29,23 @@ const DEMO_LICENSES = [
   { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',         licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active' },
   { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',   licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired' },
   { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired' },
-  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidation',  licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
+  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
   { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active' },
+];
+
+const DEMO_NETWORK = [
+  { id:'NET-001', name:'ABC Gas Distributors',   type:'Distributor', city:'Dar es Salaam', address:'Kariakoo Market Area',      lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145 },
+  { id:'NET-002', name:'Sunrise Gas Ltd',         type:'Distributor', city:'Arusha',        address:'Sokoni Road, Arusha',        lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98  },
+  { id:'NET-003', name:'Lake Gas Distributors',   type:'Distributor', city:'Mwanza',        address:'Pamba Road, Mwanza',          lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112 },
+  { id:'NET-004', name:'Capital Gas Supplies',    type:'Distributor', city:'Dodoma',        address:'Makole Area, Dodoma',         lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67  },
+  { id:'NET-005', name:'Kilimanjaro Gas',         type:'Distributor', city:'Moshi',         address:'Rindi Lane, Moshi',           lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89  },
+  { id:'NET-006', name:'Island Gas Zanzibar',     type:'Distributor', city:'Zanzibar',      address:'Darajani, Zanzibar City',     lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43  },
+  { id:'NET-007', name:'QuickGas Retail DSM',     type:'Retailer',    city:'Dar es Salaam', address:'Msimbazi Street',             lat:-6.7900, lng:39.2100, contact:'+255 22 211 0007', status:'active',   cylinders:32  },
+  { id:'NET-008', name:'CityGas Direct',          type:'Retailer',    city:'Dar es Salaam', address:'Temeke District',             lat:-6.8600, lng:39.2500, contact:'+255 22 215 0008', status:'active',   cylinders:28  },
+  { id:'NET-009', name:'Northern Gas Retail',     type:'Retailer',    city:'Arusha',        address:'Ngarenaro, Arusha',           lat:-3.3700, lng:36.6950, contact:'+255 27 254 0009', status:'active',   cylinders:19  },
+  { id:'NET-010', name:'Tanga Gas Shop',          type:'Retailer',    city:'Tanga',         address:'Market Street, Tanga',        lat:-5.0710, lng:39.0951, contact:'+255 27 264 0010', status:'active',   cylinders:24  },
+  { id:'NET-011', name:'Morogoro Gas Centre',     type:'Retailer',    city:'Morogoro',      address:'Boma Road, Morogoro',         lat:-6.8160, lng:37.6762, contact:'+255 23 261 0011', status:'active',   cylinders:16  },
+  { id:'NET-012', name:'Iringa Gas Retail',       type:'Retailer',    city:'Iringa',        address:'Uhuru Avenue, Iringa',        lat:-7.7700, lng:35.6900, contact:'+255 26 270 0012', status:'active',   cylinders:21  },
 ];
 
 // ── Role configuration ────────────────────────────────────────────────────────
@@ -71,9 +86,9 @@ const ROLE_EVENTS = {
 };
 
 const ROLE_TABS = {
-  lpgmc:           ['reports', 'scan', 'cylinders', 'alerts'],
+  lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'scan', 'cylinders', 'alerts', 'licenses'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'licenses'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'scan', 'cylinders', 'alerts'],
@@ -138,14 +153,12 @@ const Auth = {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const State = {
-  activeView:        'scan',
+  activeView:        'reports',
   activeEventType:   null,
   batchMode:         false,
   batchQueue:        [],
   focused:           false,
   scanEvents:        [],
-  syncStatus:        'idle',   // idle | syncing | synced | error
-  lastSyncTime:      null,
   // Serial capture
   serialCaptureActive: false,
   // Passport
@@ -333,6 +346,7 @@ const cylFilterCompany = $('cyl-filter-company');
 const cylStats         = $('cyl-stats');
 const cylindersList    = $('cylinders-list');
 const cylindersEmpty   = $('cylinders-empty');
+const registerCylBtn   = $('register-cyl-btn');
 
 // Alerts view
 const alertFilterSeverity = $('alert-filter-severity');
@@ -344,10 +358,7 @@ const alertsEmpty         = $('alerts-empty');
 // Reports view
 const reportsGrid      = $('reports-grid');
 const reportChart      = $('report-chart');
-const exportReportBtn  = $('export-report-btn');
-const syncBtn          = $('sync-btn');
-const syncStatusText   = $('sync-status-text');
-const syncIndicator    = $('sync-indicator');
+const exportDashboardBtn = $('export-dashboard-btn');
 
 // Licenses view
 const licSearch        = $('lic-search');
@@ -448,15 +459,6 @@ function openModal(id) {
 function closeModal(id) {
   const el = $(id);
   if (el) el.hidden = true;
-}
-
-function hydroTestDaysOverdue(lastHydroTest) {
-  if (!lastHydroTest) return Infinity;
-  const tested = new Date(lastHydroTest + 'T00:00:00');
-  const fiveYears = 5 * 365 * 24 * 60 * 60 * 1000;
-  const due = new Date(tested.getTime() + fiveYears);
-  const now = new Date();
-  return Math.floor((now - due) / (24 * 60 * 60 * 1000));
 }
 
 async function copyToClipboard(text) {
@@ -586,15 +588,16 @@ function applySession() {
     tab.style.display = allowed.includes(tab.dataset.view) ? '' : 'none';
   });
 
-  // Licenses view visibility
-  const licView = $('view-licenses');
-  licView.style.display = s.role === 'ewura' ? '' : 'none';
-
   // Build event pills
   buildEventPills();
 
   // Company filter: hide for LPGMC (they see only own)
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
+
+  // Register button: LPGMC only
+  if (registerCylBtn) {
+    registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+  }
 
   // Navigate to dashboard (reset)
   showView('reports');
@@ -637,7 +640,7 @@ function showView(name) {
 
   const allowed = ROLE_TABS[s.role] || [];
   if (!allowed.includes(name)) {
-    name = allowed[0] || 'scan';
+    name = allowed[0] || 'reports';
   }
 
   State.activeView = name;
@@ -652,18 +655,22 @@ function showView(name) {
   if (tabEl) tabEl.classList.add('active');
 
   headerSubtitle.textContent = {
-    scan:      'Scanning',
-    cylinders: 'Cylinders',
-    alerts:    'Alerts',
-    reports:   'Dashboard',
-    licenses:  'Licenses',
+    scan:          'Scanning',
+    cylinders:     'Cylinders',
+    alerts:        'Alerts',
+    reports:       'Dashboard',
+    licenses:      'Licenses',
+    network:       'Network',
+    'mgmt-reports':'Management Reports',
   }[name] || name;
 
   // Lazy render
-  if (name === 'cylinders') renderCylinders();
-  if (name === 'alerts')    renderAlerts();
-  if (name === 'reports')   renderReports();
-  if (name === 'licenses')  renderLicenses();
+  if (name === 'cylinders')     renderCylinders();
+  if (name === 'alerts')        renderAlerts();
+  if (name === 'reports')       renderReports();
+  if (name === 'licenses')      renderLicenses();
+  if (name === 'network')       renderNetwork();
+  if (name === 'mgmt-reports')  renderMgmtReports();
 }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -734,8 +741,7 @@ focusBtn.addEventListener('click', () => setFocused(!State.focused));
 
 document.addEventListener('click', (e) => {
   if (!State.focused) return;
-  const tag = e.target.tagName;
-  const inModal = e.target.closest('.modal-backdrop, .login-overlay, #app-nav, .btn, button, input, select, textarea');
+  const inModal = e.target.closest('.modal-backdrop, .login-overlay, #app-nav, #app-sidebar, .btn, button, input, select, textarea');
   if (!inModal) scannerInput.focus();
 });
 
@@ -789,9 +795,6 @@ async function handleScan(tagId) {
       lastScanResult.className = 'last-scan-result warning';
       lastScanResult.textContent = 'Unknown tag — opening registration…';
       openRegisterModal(tagId);
-    } else if (Auth.session.role === 'government') {
-      lastScanResult.className = 'last-scan-result error';
-      lastScanResult.textContent = 'Tag not registered. Contact LPGMC to register.';
     } else {
       lastScanResult.className = 'last-scan-result error';
       lastScanResult.textContent = 'Tag not registered.';
@@ -829,6 +832,7 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
   if (!eventType) { showSnackbar('Select an event type first.', 'error'); return; }
 
   const session = Auth.session;
+  const today   = new Date().toISOString().slice(0, 10);
   const event = {
     cylinderId: cyl.id,
     type:       eventType,
@@ -842,25 +846,29 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
 
   // Update cylinder status
   const updatedCyl = Object.assign({}, cyl);
+
   if (eventType === 'refilled') {
     updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
-    updatedCyl.status = updatedCyl.fillCount >= updatedCyl.maxFills ? 'condemned' : 'available';
-  } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
-    updatedCyl.status = 'revalidation';
-  } else if (eventType === 'revalidated') {
-    updatedCyl.status = 'available';
-    updatedCyl.fillCount = 0;
-    updatedCyl.lastRequalDate = new Date().toISOString().slice(0, 10);
-    updatedCyl.requalPlant = session.company;
-  } else if (eventType === 'reval-returned') {
-    updatedCyl.status = 'available';
-  } else if (eventType === 'shipped' || eventType === 'dist-sent-retail' || eventType === 'dist-received' || eventType === 'ret-received') {
+    updatedCyl.status = 'in-refill'; // ready to ship after refill
+  } else if (eventType === 'shipped' || eventType === 'dist-received' || eventType === 'ret-received' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-circulation';
   } else if (eventType === 'ret-sold') {
     updatedCyl.status = 'in-use';
-  } else if (eventType === 'received-empty' || eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
+  } else if (eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
+    updatedCyl.status = 'returning';
+  } else if (eventType === 'received-empty') {
     updatedCyl.status = 'refilling';
+  } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
+    updatedCyl.status = 'revalidation';
+  } else if (eventType === 'revalidated' || eventType === 'reval-returned') {
+    updatedCyl.status = 'in-refill';
+    if (eventType === 'revalidated') {
+      updatedCyl.fillCount = 0;
+      updatedCyl.lastRequalDate = today;
+      updatedCyl.requalPlant = session.company;
+    }
   }
+
   await txPut('cylinders', updatedCyl);
 
   // UI feedback
@@ -965,7 +973,7 @@ exportEventsBtn.addEventListener('click', () => {
 function openRegisterModal(tagId) {
   const company = Auth.session ? Auth.session.company : '';
   const today   = new Date().toISOString().slice(0, 10);
-  regTag.value            = tagId;
+  regTag.value            = tagId || '';
   regSerial.value         = '';
   regBrandColour.value    = '';
   regBrandName.value      = company;
@@ -986,6 +994,13 @@ function openRegisterModal(tagId) {
   regEmergency.value      = '';
   regNotes.value          = '';
   openModal('modal-register');
+}
+
+// "+ Register" button in cylinders view header (LPGMC only)
+if (registerCylBtn) {
+  registerCylBtn.addEventListener('click', () => {
+    openRegisterModal('');
+  });
 }
 
 regSubmitBtn.addEventListener('click', async () => {
@@ -1022,7 +1037,7 @@ regSubmitBtn.addEventListener('click', async () => {
     companyBrandName:     regCompanyBrand.value.trim(),
     customerServiceNumber: regCustomerSvc.value.trim(),
     emergencyContacts:    regEmergency.value.trim(),
-    status:               'available',
+    status:               'in-refill',
     notes:                regNotes.value.trim(),
   };
 
@@ -1038,12 +1053,14 @@ regSubmitBtn.addEventListener('click', async () => {
   };
   await txPut('events', event);
 
-  State.scanEvents.unshift({ ...event, serial: cyl.serial });
-  renderScanEvent(State.scanEvents[0], true);
-  eventsEmpty.style.display = 'none';
+  if (State.activeView === 'scan') {
+    State.scanEvents.unshift({ ...event, serial: cyl.serial });
+    renderScanEvent(State.scanEvents[0], true);
+    eventsEmpty.style.display = 'none';
 
-  lastScanResult.className  = 'last-scan-result success';
-  lastScanResult.textContent = `${serial} registered successfully.`;
+    lastScanResult.className  = 'last-scan-result success';
+    lastScanResult.textContent = `${serial} registered successfully.`;
+  }
 
   closeModal('modal-register');
   showSnackbar(`${serial} registered.`, 'success');
@@ -1084,12 +1101,20 @@ function applyCylFilters() {
   if (compF)   data = data.filter(c => c.company === compF);
 
   // Stats
-  const statuses = { available: 0, 'in-circulation': 0, refilling: 0, revalidation: 0, 'in-use': 0, condemned: 0 };
+  const statuses = { 'in-refill': 0, 'in-circulation': 0, refilling: 0, returning: 0, revalidation: 0, 'in-use': 0 };
   _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
+  const statLabels = {
+    'in-refill':      'In Refill',
+    'in-circulation': 'In Circulation',
+    'refilling':      'Refilling',
+    'returning':      'Returning',
+    'revalidation':   'Revalidation',
+    'in-use':         'In Use',
+  };
   cylStats.innerHTML = Object.entries(statuses).map(([k, v]) =>
     `<div class="stat-chip">
        <span class="stat-chip-value">${v}</span>
-       <span class="stat-chip-label">${k}</span>
+       <span class="stat-chip-label">${statLabels[k] || k}</span>
      </div>`
   ).join('');
 
@@ -1100,20 +1125,24 @@ function applyCylFilters() {
   }
   cylindersEmpty.style.display = 'none';
 
+  const statLabelMap = {
+    'in-refill':      'In Refill',
+    'in-circulation': 'In Circulation',
+    'refilling':      'Refilling',
+    'returning':      'Returning',
+    'revalidation':   'In Revalidation',
+    'in-use':         'In Use',
+  };
+
   data.forEach(cyl => {
     const li = document.createElement('li');
     li.className = 'cylinder-item';
 
     const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
     const fillClass = fillPct >= 95 ? 'crit' : fillPct >= 80 ? 'warn' : '';
-    const dotClass  = 'dot-' + (cyl.status || 'available');
-    const statClass = 'status-' + (cyl.status || 'available');
-    const statLabel = { available:'Available', 'in-circulation':'In Circulation', refilling:'In Refill', revalidation:'In Revalidation', 'in-use':'In Use', condemned:'Condemned' }[cyl.status] || cyl.status;
-
-    const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
-    const hydroBadge = hydroDays > 0
-      ? `<span class="cylinder-meta-item" style="color:var(--red)">Hydro overdue ${hydroDays}d</span>`
-      : '';
+    const dotClass  = 'dot-' + (cyl.status || 'in-refill');
+    const statClass = 'status-' + (cyl.status || 'in-refill');
+    const statLabel = statLabelMap[cyl.status] || cyl.status;
 
     li.innerHTML = `
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
@@ -1123,7 +1152,7 @@ function applyCylFilters() {
         <div class="cylinder-meta">
           <span class="cylinder-meta-item">${escapeHtml(cyl.company)}</span>
           <span class="cylinder-meta-item">Fills: ${cyl.fillCount}/${cyl.maxFills}</span>
-          ${hydroBadge}
+          ${cyl.manufactureDate ? `<span class="cylinder-meta-item">Mfg: ${escapeHtml(cyl.manufactureDate)}</span>` : ''}
         </div>
       </div>
       <div class="cylinder-badges">
@@ -1142,6 +1171,21 @@ cylSearch.addEventListener('input',         applyCylFilters);
 cylFilterStatus.addEventListener('change',  applyCylFilters);
 cylFilterCompany.addEventListener('change', applyCylFilters);
 
+// Export cylinders CSV
+if (exportDashboardBtn) {
+  exportDashboardBtn.addEventListener('click', async () => {
+    let cyls = await txGetAll('cylinders');
+    if (Auth.session && Auth.session.role === 'lpgmc') {
+      cyls = cyls.filter(c => c.company === Auth.session.company);
+    }
+    const header = 'id,serial,company,status,fillCount,maxFills,manufactureDate,lastHydroTest\n';
+    const rows = cyls.map(c =>
+      `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate || ''}","${c.lastHydroTest || ''}"`
+    ).join('\n');
+    downloadCSV('lpg-cylinders-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
+  });
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // CYLINDER PASSPORT MODAL
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1155,7 +1199,6 @@ async function openPassportModal(cylId) {
   events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
   const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
-  const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
 
   passportBody.innerHTML = `
     <div class="passport-section">
@@ -1198,12 +1241,12 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Tare Weight</span>
         <span class="passport-value">${cyl.tareWeight} kg</span>
       </div>
-      ${cyl.waterCapacity ? `<div class="passport-row"><span class="passport-key">Water Capacity</span><span class="passport-value">${cyl.waterCapacity || '—'} L</span></div>` : ''}
+      ${cyl.waterCapacity ? `<div class="passport-row"><span class="passport-key">Water Capacity</span><span class="passport-value">${cyl.waterCapacity} L</span></div>` : ''}
       <div class="passport-row">
         <span class="passport-key">Net Weight</span>
         <span class="passport-value">${cyl.netWeight || cyl.capacity} kg</span>
       </div>
-      ${cyl.grossWeight ? `<div class="passport-row"><span class="passport-key">Gross Weight</span><span class="passport-value">${cyl.grossWeight || '—'} kg</span></div>` : ''}
+      ${cyl.grossWeight ? `<div class="passport-row"><span class="passport-key">Gross Weight</span><span class="passport-value">${cyl.grossWeight} kg</span></div>` : ''}
       <div class="passport-row">
         <span class="passport-key">Max Fills</span>
         <span class="passport-value">${cyl.maxFills}</span>
@@ -1217,7 +1260,7 @@ async function openPassportModal(cylId) {
       </div>
       <div class="passport-row">
         <span class="passport-key">Last Hydro Test</span>
-        <span class="passport-value" style="${hydroDays > 0 ? 'color:var(--red)' : ''}">${formatDate(cyl.lastHydroTest)}${hydroDays > 0 ? ' ⚠️ Overdue' : ''}</span>
+        <span class="passport-value">${formatDate(cyl.lastHydroTest)}</span>
       </div>
       ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
@@ -1244,7 +1287,7 @@ passportExportBtn.addEventListener('click', async () => {
 
   let text = `LPG Cylinder Passport\n${'='.repeat(40)}\n`;
   text += `Serial:   ${cyl.serial}\nTag:      ${cyl.id}\nCompany:  ${cyl.company}\nStatus:   ${cyl.status}\n`;
-  text += `Fills:    ${cyl.fillCount}/${cyl.maxFills}\nHydro:    ${cyl.lastHydroTest}\n\nEvents:\n`;
+  text += `Fills:    ${cyl.fillCount}/${cyl.maxFills}\nHydro:    ${cyl.lastHydroTest || 'N/A'}\n\nEvents:\n`;
   events.forEach(ev => { text += `  ${ev.timestamp}  ${ev.type}  ${ev.operatorId || ''}\n`; });
 
   const blob = new Blob([text], { type: 'text/plain' });
@@ -1263,43 +1306,63 @@ let _alertsData = [];
 
 async function renderAlerts() {
   let cyls = await txGetAll('cylinders');
-
-  // LPGMC: only own
-  if (Auth.session && Auth.session.role === 'lpgmc') {
+  if (Auth.session?.role === 'lpgmc') {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
 
+  const now = new Date();
+  const allEvents = await txGetAll('events');
   _alertsData = [];
 
-  cyls.forEach(cyl => {
-    const fillPct = Math.round((cyl.fillCount / cyl.maxFills) * 100);
-    const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
+  for (const cyl of cyls) {
+    // 1. Requalification due: 10 years since manufacture or lastRequalDate
+    const baseDate = cyl.lastRequalDate || cyl.manufactureDate;
+    if (baseDate) {
+      const base = new Date(baseDate + 'T00:00:00');
+      const dueDate = new Date(base);
+      dueDate.setFullYear(dueDate.getFullYear() + 10);
+      const daysUntilDue = Math.floor((dueDate - now) / (24*60*60*1000));
+      if (daysUntilDue <= 0) {
+        _alertsData.push({ severity:'critical', type:'requalification-overdue', cylinder:cyl,
+          title: `${cyl.serial} — Requalification Overdue`,
+          desc: `Due ${Math.abs(daysUntilDue)} days ago. Last: ${baseDate}.` });
+      } else if (daysUntilDue <= 365) {
+        _alertsData.push({ severity:'warning', type:'requalification-due', cylinder:cyl,
+          title: `${cyl.serial} — Requalification Due Soon`,
+          desc: `Due in ${daysUntilDue} days (${dueDate.toISOString().slice(0,10)}).` });
+      }
+    }
 
-    if (cyl.status === 'condemned') {
-      _alertsData.push({ severity:'critical', type:'condemned', cylinder: cyl,
-        title: `${cyl.serial} — Condemned`,
-        desc:  cyl.notes || 'Cylinder has been condemned.' });
+    // 2. Stuck in refilling > 7 days
+    if (cyl.status === 'refilling') {
+      const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
+        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const lastEv = cylEvents[0];
+      if (lastEv) {
+        const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
+        if (days > 7) {
+          _alertsData.push({ severity:'critical', type:'stuck-refilling', cylinder:cyl,
+            title: `${cyl.serial} — Stuck in Refill (${days}d)`,
+            desc: `Cylinder has been at refill station for ${days} days with no update.` });
+        }
+      }
     }
-    if (cyl.fillCount > cyl.maxFills) {
-      _alertsData.push({ severity:'critical', type:'exceeded-capacity', cylinder: cyl,
-        title: `${cyl.serial} — Exceeded Max Fills`,
-        desc:  `Fill count ${cyl.fillCount} exceeds max ${cyl.maxFills}.` });
+
+    // 3. Returning but not received > 3 days
+    if (cyl.status === 'returning') {
+      const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
+        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const lastEv = cylEvents[0];
+      if (lastEv) {
+        const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
+        if (days > 3) {
+          _alertsData.push({ severity:'warning', type:'not-received', cylinder:cyl,
+            title: `${cyl.serial} — Not Received at Plant (${days}d)`,
+            desc: `Reported empty ${days} days ago but not yet received at refilling site.` });
+        }
+      }
     }
-    if (hydroDays > 0) {
-      _alertsData.push({ severity:'critical', type:'overdue-hydrotest', cylinder: cyl,
-        title: `${cyl.serial} — Overdue Hydro Test`,
-        desc:  `Last test: ${cyl.lastHydroTest}. Overdue by ${hydroDays} days.` });
-    } else if (hydroDays > -180) {
-      _alertsData.push({ severity:'warning', type:'overdue-hydrotest', cylinder: cyl,
-        title: `${cyl.serial} — Hydro Test Due Soon`,
-        desc:  `Last test: ${cyl.lastHydroTest}. Due in ${-hydroDays} days.` });
-    }
-    if (fillPct >= 95 && cyl.status !== 'condemned') {
-      _alertsData.push({ severity:'warning', type:'near-capacity', cylinder: cyl,
-        title: `${cyl.serial} — Near Fill Capacity`,
-        desc:  `${cyl.fillCount}/${cyl.maxFills} fills (${fillPct}%).` });
-    }
-  });
+  }
 
   applyAlertFilters();
 }
@@ -1344,7 +1407,7 @@ alertFilterSeverity.addEventListener('change', applyAlertFilters);
 alertFilterType.addEventListener('change',     applyAlertFilters);
 
 // ══════════════════════════════════════════════════════════════════════════════
-// REPORTS VIEW
+// REPORTS / DASHBOARD VIEW
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function renderReports() {
@@ -1358,11 +1421,13 @@ async function renderReports() {
     const ownIds = new Set(cyls.map(c => c.id));
     events = events.filter(e => ownIds.has(e.cylinderId));
 
+    const inRefill       = cyls.filter(c => c.status === 'in-refill').length;
+    const refilling      = cyls.filter(c => c.status === 'refilling').length;
+    const returning      = cyls.filter(c => c.status === 'returning').length;
     const inCirculation  = cyls.filter(c => c.status === 'in-circulation').length;
-    const inRefill       = cyls.filter(c => c.status === 'refilling').length;
     const inRevalidation = cyls.filter(c => c.status === 'revalidation').length;
     const inUse          = cyls.filter(c => c.status === 'in-use').length;
-    const total          = inCirculation + inRefill + inRevalidation + inUse;
+    const total          = inRefill + refilling + returning + inCirculation + inRevalidation + inUse;
 
     const allLicenses   = await txGetAll('licenses');
     const refillerCount = allLicenses.filter(l => l.companyType === 'LPGMC').length;
@@ -1372,19 +1437,27 @@ async function renderReports() {
     reportsGrid.innerHTML = `
       <div class="dashboard-section-title">Cylinder Lifecycle</div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
-        <div class="report-card-label">In Circulation</div>
+        <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
+        <div class="report-card-label">In Refill</div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--amber)">${inRefill}</span>
-        <div class="report-card-label">In Refill</div>
+        <span class="report-card-value" style="color:var(--amber)">${refilling}</span>
+        <div class="report-card-label">Refilling</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--pink)">${returning}</span>
+        <div class="report-card-label">Returning</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
+        <div class="report-card-label">In Circulation</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--teal)">${inRevalidation}</span>
         <div class="report-card-label">In Revalidation</div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--green)">${inUse}</span>
+        <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
         <div class="report-card-label">In Use</div>
       </div>
       <div class="report-card report-card-full">
@@ -1395,7 +1468,7 @@ async function renderReports() {
     if (actSec) actSec.style.display = 'none';
 
     reportChart.innerHTML = `
-      <div class="section-header" style="margin:16px 16px 8px">
+      <div class="section-header" style="margin-top:8px">
         <span>Supply Chain</span>
       </div>
       <div class="supply-chain-row">
@@ -1416,9 +1489,9 @@ async function renderReports() {
     if (actSec) actSec.style.display = '';
 
     const total     = cyls.length;
-    const available = cyls.filter(c => c.status === 'available').length;
+    const inRefill  = cyls.filter(c => c.status === 'in-refill').length;
     const inCirc    = cyls.filter(c => c.status === 'in-circulation').length;
-    const condemned = cyls.filter(c => c.status === 'condemned').length;
+    const returning = cyls.filter(c => c.status === 'returning').length;
 
     reportsGrid.innerHTML = `
       <div class="report-card">
@@ -1426,16 +1499,16 @@ async function renderReports() {
         <div class="report-card-label">Total Cylinders</div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--green)">${available}</span>
-        <div class="report-card-label">Available</div>
+        <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
+        <div class="report-card-label">In Refill</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${inCirc}</span>
         <div class="report-card-label">In Circulation</div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--red)">${condemned}</span>
-        <div class="report-card-label">Condemned</div>
+        <span class="report-card-value" style="color:var(--pink)">${returning}</span>
+        <div class="report-card-label">Returning</div>
       </div>`;
 
     const now = Date.now();
@@ -1455,53 +1528,229 @@ async function renderReports() {
             <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
           </div>
         </div>`;
-      }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+      }).join('') || '<p style="padding:16px 0;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NETWORK VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _networkMap = null;
+let _networkMarkers = [];
+
+async function renderNetwork() {
+  const networkList = $('network-list');
+  const networkEmpty = $('network-empty');
+
+  // Initialize Leaflet map lazily
+  if (!_networkMap) {
+    _networkMap = L.map('network-map', { zoomControl: true }).setView([-6.3, 35.7], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(_networkMap);
   }
 
-  renderSyncStatus();
+  // Clear old markers
+  _networkMarkers.forEach(m => m.remove());
+  _networkMarkers = [];
+
+  // Current filter
+  const activeFilterBtn = document.querySelector('.network-filters .btn-primary');
+  const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : '';
+
+  const filtered = activeFilter
+    ? DEMO_NETWORK.filter(n => n.type === activeFilter)
+    : DEMO_NETWORK;
+
+  // Render list
+  networkList.innerHTML = '';
+  if (!filtered.length) {
+    networkEmpty.style.display = '';
+  } else {
+    networkEmpty.style.display = 'none';
+    filtered.forEach(partner => {
+      const li = document.createElement('li');
+      li.className = 'network-item';
+      const typeClass = 'type-' + partner.type.toLowerCase();
+      li.innerHTML = `
+        <div class="network-item-header">
+          <span class="network-item-name">${escapeHtml(partner.name)}</span>
+          <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+        </div>
+        <div class="network-item-meta">
+          📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
+          📞 ${escapeHtml(partner.contact)} ·
+          <span class="network-item-cyls">🛢 ${partner.cylinders} cylinders</span> ·
+          <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
+        </div>`;
+      networkList.appendChild(li);
+
+      // Add marker
+      const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5)"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+      });
+      const marker = L.marker([partner.lat, partner.lng], { icon })
+        .addTo(_networkMap)
+        .bindPopup(`<strong>${partner.name}</strong><br>${partner.type}<br>${partner.city}<br>${partner.cylinders} cylinders`);
+      _networkMarkers.push(marker);
+    });
+  }
+
+  // Invalidate map size after DOM paint
+  setTimeout(() => { if (_networkMap) _networkMap.invalidateSize(); }, 100);
 }
 
-function renderSyncStatus() {
-  const labels = {
-    idle:    'Not synced yet.',
-    syncing: 'Syncing…',
-    synced:  State.lastSyncTime ? `Last synced: ${formatDateTime(State.lastSyncTime)}` : 'Synced.',
-    error:   'Sync failed. Check connection.',
-  };
-  syncStatusText.textContent = labels[State.syncStatus] || '';
-  syncIndicator.className = 'sync-indicator ' + (State.syncStatus === 'idle' ? '' : State.syncStatus);
-}
-
-syncBtn.addEventListener('click', async () => {
-  State.syncStatus = 'syncing';
-  renderSyncStatus();
-  // Simulate async sync
-  await new Promise(r => setTimeout(r, 1500));
-  State.syncStatus  = 'synced';
-  State.lastSyncTime = nowISO();
-  renderSyncStatus();
-  showSnackbar('Sync complete.', 'success');
+// Network filter buttons
+document.querySelectorAll('.network-filters .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.network-filters .btn').forEach(b => {
+      b.className = 'btn btn-sm btn-outline';
+    });
+    btn.className = 'btn btn-sm btn-primary';
+    renderNetwork();
+  });
 });
 
-exportReportBtn.addEventListener('click', async () => {
-  let cyls = await txGetAll('cylinders');
-  if (Auth.session && Auth.session.role === 'lpgmc') {
+// ══════════════════════════════════════════════════════════════════════════════
+// MGMT REPORTS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function renderMgmtReports() {
+  const grid = $('mgmt-reports-grid');
+  if (!grid) return;
+
+  const allCyls   = await txGetAll('cylinders');
+  const allEvents = await txGetAll('events');
+  const role = Auth.session ? Auth.session.role : null;
+
+  let cyls = allCyls;
+  if (role === 'lpgmc' && Auth.session) {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
-  const header = 'id,serial,company,status,fillCount,maxFills,manufactureDate,lastHydroTest\n';
-  const rows = cyls.map(c =>
-    `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate}","${c.lastHydroTest}"`
-  ).join('\n');
-  downloadCSV('lpg-report-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
-});
 
-function downloadCSV(filename, content) {
-  const blob = new Blob([content], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  // 1. Cylinders by status
+  const statusCounts = {
+    'in-refill':      cyls.filter(c => c.status === 'in-refill').length,
+    'in-circulation': cyls.filter(c => c.status === 'in-circulation').length,
+    'refilling':      cyls.filter(c => c.status === 'refilling').length,
+    'returning':      cyls.filter(c => c.status === 'returning').length,
+    'revalidation':   cyls.filter(c => c.status === 'revalidation').length,
+    'in-use':         cyls.filter(c => c.status === 'in-use').length,
+  };
+  const statusColors = {
+    'in-refill':      'var(--green)',
+    'in-circulation': 'var(--blue)',
+    'refilling':      'var(--amber)',
+    'returning':      'var(--pink)',
+    'revalidation':   'var(--teal)',
+    'in-use':         'var(--purple)',
+  };
+  const statusLabels = {
+    'in-refill':      'In Refill',
+    'in-circulation': 'In Circulation',
+    'refilling':      'Refilling',
+    'returning':      'Returning',
+    'revalidation':   'Revalidation',
+    'in-use':         'In Use',
+  };
+  const maxStatusCount = Math.max(...Object.values(statusCounts), 1);
+  const statusBarsHtml = Object.entries(statusCounts).map(([k, v]) => {
+    const pct = Math.round((v / maxStatusCount) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label">${statusLabels[k]}</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:${statusColors[k]}">
+          <span>${v}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 2. Monthly fills last 6 months
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      label: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
+      year:  d.getFullYear(),
+      month: d.getMonth(),
+      count: 0,
+    });
+  }
+  allEvents.forEach(ev => {
+    if (ev.type !== 'refilled') return;
+    const d = new Date(ev.timestamp);
+    const m = months.find(mo => mo.year === d.getFullYear() && mo.month === d.getMonth());
+    if (m) m.count++;
+  });
+  const maxFills = Math.max(...months.map(m => m.count), 1);
+  const fillBarsHtml = months.map(m => {
+    const pct = Math.round((m.count / maxFills) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label">${m.label}</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
+          <span>${m.count}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 3. Top 5 partners by cylinder count from DEMO_NETWORK
+  const top5 = [...DEMO_NETWORK]
+    .sort((a, b) => b.cylinders - a.cylinders)
+    .slice(0, 5);
+  const maxPartnerCyls = Math.max(...top5.map(p => p.cylinders), 1);
+  const partnerBarsHtml = top5.map(p => {
+    const pct = Math.round((p.cylinders / maxPartnerCyls) * 100);
+    const color = p.type === 'Distributor' ? 'var(--blue)' : 'var(--green)';
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label" title="${p.name}">${p.name.length > 16 ? p.name.slice(0,14) + '…' : p.name}</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:${color}">
+          <span>${p.cylinders}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 4. Cylinders needing requalification within 2 years
+  const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
+  const requalSoon = cyls.filter(c => {
+    const baseDate = c.lastRequalDate || c.manufactureDate;
+    if (!baseDate) return false;
+    const base = new Date(baseDate + 'T00:00:00');
+    const dueDate = new Date(base);
+    dueDate.setFullYear(dueDate.getFullYear() + 10);
+    const msUntilDue = dueDate - now;
+    return msUntilDue <= twoYears; // due within 2 years (or overdue)
+  }).length;
+
+  grid.innerHTML = `
+    <div class="mgmt-card">
+      <div class="mgmt-card-title">Cylinders by Status</div>
+      ${statusBarsHtml}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-title">Monthly Fills (Last 6 Months)</div>
+      ${fillBarsHtml}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-title">Top 5 Partners by Cylinder Count</div>
+      ${partnerBarsHtml}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-title">Requalification Due (Next 2 Years)</div>
+      <div class="mgmt-stat-big" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</div>
+      <div class="mgmt-stat-desc">cylinders need requalification within 24 months</div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1589,7 +1838,6 @@ licSubmitBtn.addEventListener('click', async () => {
   renderLicenses();
 });
 
-
 // ══════════════════════════════════════════════════════════════════════════════
 // MODAL CLOSE HANDLERS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1635,12 +1883,31 @@ logoutBtn.addEventListener('click', () => {
   eventsEmpty.style.display = '';
   lastScanCard.hidden    = true;
 
+  // Destroy network map so it re-initializes on next visit
+  if (_networkMap) {
+    _networkMap.remove();
+    _networkMap = null;
+  }
+
   // Hide all views
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
   Auth.logout();
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CSV DOWNLOAD HELPER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function downloadCSV(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER
