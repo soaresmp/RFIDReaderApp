@@ -6,43 +6,58 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v5';
+const SEED_KEY   = 'seeded-v6';
 
 const DEMO_CYLINDERS = [
-  // Vivo LPG
-  { id:'E280116060000204C3F04E81', serial:'VLG-2015-001', company:'Vivo LPG', manufactureDate:'2015-03-10', tareWeight:14.5, capacity:12, fillCount:342, lastHydroTest:'2020-12-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'VLG-2016-002', company:'Vivo LPG', manufactureDate:'2016-06-10', tareWeight:14.5, capacity:12, fillCount:461, lastHydroTest:'2021-06-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'VLG-2018-003', company:'Vivo LPG', manufactureDate:'2018-01-22', tareWeight:14.5, capacity:12, fillCount:156, lastHydroTest:'2023-03-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'VLG-2019-004', company:'Vivo LPG', manufactureDate:'2019-09-05', tareWeight:14.5, capacity:12, fillCount:210, lastHydroTest:'2024-08-12', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E85', serial:'VLG-2020-005', company:'Vivo LPG', manufactureDate:'2020-04-18', tareWeight:14.5, capacity:12, fillCount:98,  lastHydroTest:'2025-01-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E86', serial:'VLG-2021-006', company:'Vivo LPG', manufactureDate:'2021-11-30', tareWeight:14.5, capacity:12, fillCount:74,  lastHydroTest:'2026-11-05', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'VLG-2022-007', company:'Vivo LPG', manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, fillCount:45,  lastHydroTest:'2027-09-14', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E88', serial:'VLG-2023-008', company:'Vivo LPG', manufactureDate:'2023-03-08', tareWeight:14.5, capacity:12, fillCount:22,  lastHydroTest:'2028-05-22', status:'in-refill',      notes:'' },
-  // Total Energies
-  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:14.5, capacity:12, fillCount:512, lastHydroTest:'2019-03-01', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'TEN-2016-002', company:'Total Energies', manufactureDate:'2016-08-19', tareWeight:14.5, capacity:12, fillCount:320, lastHydroTest:'2021-09-18', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'TEN-2018-003', company:'Total Energies', manufactureDate:'2018-05-03', tareWeight:14.5, capacity:12, fillCount:189, lastHydroTest:'2023-11-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8C', serial:'TEN-2019-004', company:'Total Energies', manufactureDate:'2019-01-15', tareWeight:14.5, capacity:12, fillCount:145, lastHydroTest:'2024-11-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E8D', serial:'TEN-2020-005', company:'Total Energies', manufactureDate:'2020-07-22', tareWeight:14.5, capacity:12, fillCount:87,  lastHydroTest:'2025-07-22', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E8E', serial:'TEN-2021-006', company:'Total Energies', manufactureDate:'2021-09-10', tareWeight:14.5, capacity:12, fillCount:63,  lastHydroTest:'2026-09-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8F', serial:'TEN-2022-007', company:'Total Energies', manufactureDate:'2022-12-01', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-12-01', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E90', serial:'TEN-2023-008', company:'Total Energies', manufactureDate:'2023-04-15', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-04-15', status:'revalidation',   notes:'' },
-  // Shell Gas
+  // Vivo LPG (12)
+  { id:'E280116060000204C3F04E81', serial:'VLG-2013-001', company:'Vivo LPG', manufactureDate:'2013-03-10', tareWeight:14.5, capacity:12, fillCount:520, lastHydroTest:'2018-03-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E82', serial:'VLG-2015-002', company:'Vivo LPG', manufactureDate:'2015-06-10', tareWeight:14.5, capacity:12, fillCount:461, lastHydroTest:'2020-06-10', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'VLG-2016-003', company:'Vivo LPG', manufactureDate:'2016-01-22', tareWeight:14.5, capacity:12, fillCount:390, lastHydroTest:'2021-01-22', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E84', serial:'VLG-2017-004', company:'Vivo LPG', manufactureDate:'2017-09-05', tareWeight:14.5, capacity:12, fillCount:310, lastHydroTest:'2022-09-05', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E85', serial:'VLG-2018-005', company:'Vivo LPG', manufactureDate:'2018-04-18', tareWeight:14.5, capacity:12, fillCount:230, lastHydroTest:'2023-04-18', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E86', serial:'VLG-2019-006', company:'Vivo LPG', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, fillCount:174, lastHydroTest:'2024-11-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E87', serial:'VLG-2020-007', company:'Vivo LPG', manufactureDate:'2020-07-14', tareWeight:14.5, capacity:12, fillCount:118, lastHydroTest:'2025-07-14', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E88', serial:'VLG-2021-008', company:'Vivo LPG', manufactureDate:'2021-03-08', tareWeight:14.5, capacity:12, fillCount:82,  lastHydroTest:'2026-03-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EA1', serial:'VLG-2021-009', company:'Vivo LPG', manufactureDate:'2021-08-20', tareWeight:14.5, capacity:12, fillCount:74,  lastHydroTest:'2026-08-20', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EA2', serial:'VLG-2022-010', company:'Vivo LPG', manufactureDate:'2022-02-15', tareWeight:14.5, capacity:12, fillCount:55,  lastHydroTest:'2027-02-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EA3', serial:'VLG-2023-011', company:'Vivo LPG', manufactureDate:'2023-05-01', tareWeight:14.5, capacity:12, fillCount:28,  lastHydroTest:'2028-05-01', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04EA4', serial:'VLG-2024-012', company:'Vivo LPG', manufactureDate:'2024-01-10', tareWeight:14.5, capacity:12, fillCount:9,   lastHydroTest:'2029-01-10', status:'in-refill',      notes:'' },
+  // Total Energies (12)
+  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:14.5, capacity:12, fillCount:512, lastHydroTest:'2019-02-27', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8A', serial:'TEN-2015-002', company:'Total Energies', manufactureDate:'2015-08-19', tareWeight:14.5, capacity:12, fillCount:420, lastHydroTest:'2020-08-19', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'TEN-2016-003', company:'Total Energies', manufactureDate:'2016-05-03', tareWeight:14.5, capacity:12, fillCount:360, lastHydroTest:'2021-05-03', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8C', serial:'TEN-2017-004', company:'Total Energies', manufactureDate:'2017-01-15', tareWeight:14.5, capacity:12, fillCount:295, lastHydroTest:'2022-01-15', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E8D', serial:'TEN-2018-005', company:'Total Energies', manufactureDate:'2018-07-22', tareWeight:14.5, capacity:12, fillCount:220, lastHydroTest:'2023-07-22', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E8E', serial:'TEN-2019-006', company:'Total Energies', manufactureDate:'2019-09-10', tareWeight:14.5, capacity:12, fillCount:163, lastHydroTest:'2024-09-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8F', serial:'TEN-2020-007', company:'Total Energies', manufactureDate:'2020-12-01', tareWeight:14.5, capacity:12, fillCount:101, lastHydroTest:'2025-12-01', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E90', serial:'TEN-2021-008', company:'Total Energies', manufactureDate:'2021-04-15', tareWeight:14.5, capacity:12, fillCount:68,  lastHydroTest:'2026-04-15', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04EB1', serial:'TEN-2021-009', company:'Total Energies', manufactureDate:'2021-10-30', tareWeight:14.5, capacity:12, fillCount:57,  lastHydroTest:'2026-10-30', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EB2', serial:'TEN-2022-010', company:'Total Energies', manufactureDate:'2022-06-18', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-06-18', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EB3', serial:'TEN-2023-011', company:'Total Energies', manufactureDate:'2023-02-05', tareWeight:14.5, capacity:12, fillCount:23,  lastHydroTest:'2028-02-05', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EB4', serial:'TEN-2024-012', company:'Total Energies', manufactureDate:'2024-03-20', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-20', status:'in-refill',      notes:'' },
+  // Shell Gas (12)
   { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:14.5, capacity:12, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E92', serial:'SHG-2015-002', company:'Shell Gas', manufactureDate:'2015-11-08', tareWeight:14.5, capacity:12, fillCount:402, lastHydroTest:'2020-11-08', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E93', serial:'SHG-2017-003', company:'Shell Gas', manufactureDate:'2017-03-25', tareWeight:14.5, capacity:12, fillCount:278, lastHydroTest:'2022-03-25', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E94', serial:'SHG-2018-004', company:'Shell Gas', manufactureDate:'2018-08-14', tareWeight:14.5, capacity:12, fillCount:198, lastHydroTest:'2023-08-14', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E95', serial:'SHG-2020-005', company:'Shell Gas', manufactureDate:'2020-02-28', tareWeight:14.5, capacity:12, fillCount:112, lastHydroTest:'2025-02-28', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E96', serial:'SHG-2021-006', company:'Shell Gas', manufactureDate:'2021-07-17', tareWeight:14.5, capacity:12, fillCount:79,  lastHydroTest:'2026-07-17', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E97', serial:'SHG-2022-007', company:'Shell Gas', manufactureDate:'2022-10-05', tareWeight:14.5, capacity:12, fillCount:38,  lastHydroTest:'2027-10-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E98', serial:'SHG-2024-008', company:'Shell Gas', manufactureDate:'2024-01-20', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-01-20', status:'in-refill',      notes:'' },
-  // Lake Gas
-  { id:'E280116060000204C3F04E99', serial:'LKG-2016-001', company:'Lake Gas', manufactureDate:'2016-04-12', tareWeight:14.5, capacity:12, fillCount:367, lastHydroTest:'2021-04-12', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E9A', serial:'LKG-2018-002', company:'Lake Gas', manufactureDate:'2018-10-30', tareWeight:14.5, capacity:12, fillCount:224, lastHydroTest:'2023-10-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E9B', serial:'LKG-2019-003', company:'Lake Gas', manufactureDate:'2019-06-18', tareWeight:14.5, capacity:12, fillCount:178, lastHydroTest:'2024-06-18', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E9C', serial:'LKG-2021-004', company:'Lake Gas', manufactureDate:'2021-01-09', tareWeight:14.5, capacity:12, fillCount:95,  lastHydroTest:'2026-01-09', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E9D', serial:'LKG-2022-005', company:'Lake Gas', manufactureDate:'2022-05-24', tareWeight:14.5, capacity:12, fillCount:52,  lastHydroTest:'2027-05-24', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E9E', serial:'LKG-2023-006', company:'Lake Gas', manufactureDate:'2023-09-11', tareWeight:14.5, capacity:12, fillCount:14,  lastHydroTest:'2028-09-11', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04E92', serial:'SHG-2014-002', company:'Shell Gas', manufactureDate:'2014-11-08', tareWeight:14.5, capacity:12, fillCount:480, lastHydroTest:'2019-11-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E93', serial:'SHG-2016-003', company:'Shell Gas', manufactureDate:'2016-03-25', tareWeight:14.5, capacity:12, fillCount:355, lastHydroTest:'2021-03-25', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E94', serial:'SHG-2017-004', company:'Shell Gas', manufactureDate:'2017-08-14', tareWeight:14.5, capacity:12, fillCount:280, lastHydroTest:'2022-08-14', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E95', serial:'SHG-2018-005', company:'Shell Gas', manufactureDate:'2018-02-28', tareWeight:14.5, capacity:12, fillCount:212, lastHydroTest:'2023-02-28', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E96', serial:'SHG-2019-006', company:'Shell Gas', manufactureDate:'2019-07-17', tareWeight:14.5, capacity:12, fillCount:159, lastHydroTest:'2024-07-17', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E97', serial:'SHG-2020-007', company:'Shell Gas', manufactureDate:'2020-10-05', tareWeight:14.5, capacity:12, fillCount:108, lastHydroTest:'2025-10-05', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E98', serial:'SHG-2021-008', company:'Shell Gas', manufactureDate:'2021-01-20', tareWeight:14.5, capacity:12, fillCount:77,  lastHydroTest:'2026-01-20', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EC1', serial:'SHG-2022-009', company:'Shell Gas', manufactureDate:'2022-04-12', tareWeight:14.5, capacity:12, fillCount:48,  lastHydroTest:'2027-04-12', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EC2', serial:'SHG-2022-010', company:'Shell Gas', manufactureDate:'2022-09-28', tareWeight:14.5, capacity:12, fillCount:35,  lastHydroTest:'2027-09-28', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EC3', serial:'SHG-2023-011', company:'Shell Gas', manufactureDate:'2023-07-04', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-07-04', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EC4', serial:'SHG-2024-012', company:'Shell Gas', manufactureDate:'2024-02-14', tareWeight:14.5, capacity:12, fillCount:5,   lastHydroTest:'2029-02-14', status:'in-refill',      notes:'' },
+  // Lake Gas (9)
+  { id:'E280116060000204C3F04E99', serial:'LKG-2015-001', company:'Lake Gas', manufactureDate:'2015-04-12', tareWeight:14.5, capacity:12, fillCount:430, lastHydroTest:'2020-04-12', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E9A', serial:'LKG-2016-002', company:'Lake Gas', manufactureDate:'2016-10-30', tareWeight:14.5, capacity:12, fillCount:340, lastHydroTest:'2021-10-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E9B', serial:'LKG-2018-003', company:'Lake Gas', manufactureDate:'2018-06-18', tareWeight:14.5, capacity:12, fillCount:238, lastHydroTest:'2023-06-18', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E9C', serial:'LKG-2019-004', company:'Lake Gas', manufactureDate:'2019-01-09', tareWeight:14.5, capacity:12, fillCount:185, lastHydroTest:'2024-01-09', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E9D', serial:'LKG-2020-005', company:'Lake Gas', manufactureDate:'2020-05-24', tareWeight:14.5, capacity:12, fillCount:122, lastHydroTest:'2025-05-24', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E9E', serial:'LKG-2021-006', company:'Lake Gas', manufactureDate:'2021-09-11', tareWeight:14.5, capacity:12, fillCount:78,  lastHydroTest:'2026-09-11', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04ED1', serial:'LKG-2022-007', company:'Lake Gas', manufactureDate:'2022-03-15', tareWeight:14.5, capacity:12, fillCount:49,  lastHydroTest:'2027-03-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04ED2', serial:'LKG-2023-008', company:'Lake Gas', manufactureDate:'2023-07-22', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-07-22', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04ED3', serial:'LKG-2024-009', company:'Lake Gas', manufactureDate:'2024-04-05', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-04-05', status:'in-refill',      notes:'' },
 ];
 
 const DEMO_LICENSES = [
@@ -56,31 +71,60 @@ const DEMO_LICENSES = [
 ];
 
 const DEMO_NETWORK = [
-  // Distributors
-  { id:'NET-001', name:'ABC Gas Distributors',        type:'Distributor', city:'Dar es Salaam', address:'Kariakoo Market Area',          lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145 },
-  { id:'NET-002', name:'Sunrise Gas Ltd',              type:'Distributor', city:'Arusha',        address:'Sokoni Road, Arusha',            lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98  },
-  { id:'NET-003', name:'Lake Victoria Gas Supply',    type:'Distributor', city:'Mwanza',        address:'Pamba Road, Mwanza',              lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112 },
-  { id:'NET-004', name:'Capital Gas Supplies',        type:'Distributor', city:'Dodoma',        address:'Makole Area, Dodoma',             lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67  },
-  { id:'NET-005', name:'Kilimanjaro Gas Distributors',type:'Distributor', city:'Moshi',         address:'Rindi Lane, Moshi',               lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89  },
-  { id:'NET-006', name:'Island Gas Zanzibar',         type:'Distributor', city:'Zanzibar',      address:'Darajani, Zanzibar City',         lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43  },
-  { id:'NET-007', name:'Southern Highlands Gas',      type:'Distributor', city:'Mbeya',         address:'Sisimba Road, Mbeya',             lat:-8.9094, lng:33.4607, contact:'+255 25 250 0007', status:'active',   cylinders:76  },
-  { id:'NET-008', name:'Coastal Gas Ltd',             type:'Distributor', city:'Tanga',         address:'Usagara Area, Tanga',             lat:-5.0710, lng:39.0951, contact:'+255 27 264 0008', status:'active',   cylinders:54  },
-  { id:'NET-009', name:'Tabora Gas Distributors',     type:'Distributor', city:'Tabora',        address:'Market Street, Tabora',           lat:-5.0167, lng:32.8000, contact:'+255 26 260 0009', status:'active',   cylinders:41  },
-  { id:'NET-010', name:'Lindi Gas Supply Co.',        type:'Distributor', city:'Lindi',         address:'Mvua Road, Lindi',                lat:-9.9965, lng:39.7142, contact:'+255 23 220 0010', status:'inactive', cylinders:28  },
-  // Retailers
-  { id:'NET-011', name:'QuickGas Retail DSM North',   type:'Retailer',    city:'Dar es Salaam', address:'Msimbazi Street, Kinondoni',      lat:-6.7900, lng:39.2100, contact:'+255 22 211 0011', status:'active',   cylinders:32  },
-  { id:'NET-012', name:'CityGas Direct Temeke',       type:'Retailer',    city:'Dar es Salaam', address:'Temeke District',                 lat:-6.8600, lng:39.2500, contact:'+255 22 215 0012', status:'active',   cylinders:28  },
-  { id:'NET-013', name:'Kariakoo Gas Shop',           type:'Retailer',    city:'Dar es Salaam', address:'Kariakoo, Ilala',                 lat:-6.8235, lng:39.2695, contact:'+255 22 218 0013', status:'active',   cylinders:45  },
-  { id:'NET-014', name:'Mbagala Gas Point',           type:'Retailer',    city:'Dar es Salaam', address:'Mbagala Road, Temeke',            lat:-6.9010, lng:39.2850, contact:'+255 22 216 0014', status:'active',   cylinders:22  },
-  { id:'NET-015', name:'Northern Gas Retail Arusha',  type:'Retailer',    city:'Arusha',        address:'Ngarenaro, Arusha',               lat:-3.3700, lng:36.6950, contact:'+255 27 254 0015', status:'active',   cylinders:19  },
-  { id:'NET-016', name:'Moshi Gas Outlet',            type:'Retailer',    city:'Moshi',         address:'Kibo Road, Moshi',                lat:-3.3450, lng:37.3410, contact:'+255 27 275 0016', status:'active',   cylinders:17  },
-  { id:'NET-017', name:'Morogoro Gas Centre',         type:'Retailer',    city:'Morogoro',      address:'Boma Road, Morogoro',             lat:-6.8160, lng:37.6762, contact:'+255 23 261 0017', status:'active',   cylinders:16  },
-  { id:'NET-018', name:'Iringa Gas Retail',           type:'Retailer',    city:'Iringa',        address:'Uhuru Avenue, Iringa',            lat:-7.7700, lng:35.6900, contact:'+255 26 270 0018', status:'active',   cylinders:21  },
-  { id:'NET-019', name:'Zanzibar Stone Town Gas',     type:'Retailer',    city:'Zanzibar',      address:'Stone Town, Unguja',              lat:-6.1659, lng:39.1989, contact:'+255 24 223 0019', status:'active',   cylinders:14  },
-  { id:'NET-020', name:'Mwanza Lakeside Gas',         type:'Retailer',    city:'Mwanza',        address:'Capri Point, Mwanza',             lat:-2.5000, lng:32.9000, contact:'+255 28 252 0020', status:'active',   cylinders:26  },
-  { id:'NET-021', name:'Dodoma Central Gas Shop',     type:'Retailer',    city:'Dodoma',        address:'Jamatini Area, Dodoma',           lat:-6.1800, lng:35.7400, contact:'+255 26 232 0021', status:'active',   cylinders:18  },
-  { id:'NET-022', name:'Mbeya Highland Gas Retail',   type:'Retailer',    city:'Mbeya',         address:'Forest Hill Area, Mbeya',         lat:-8.9150, lng:33.4550, contact:'+255 25 250 0022', status:'active',   cylinders:23  },
+  // Distributors (12)
+  { id:'NET-001', name:'ABC Gas Distributors',          type:'Distributor', region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo Market Area',        lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145, full:87,  empty:58  },
+  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98,  full:61,  empty:37  },
+  { id:'NET-003', name:'Lake Victoria Gas Supply',      type:'Distributor', region:'Mwanza',        city:'Mwanza',        address:'Pamba Road, Mwanza',           lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112, full:70,  empty:42  },
+  { id:'NET-004', name:'Capital Gas Supplies',          type:'Distributor', region:'Dodoma',        city:'Dodoma',        address:'Makole Area, Dodoma',          lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67,  full:39,  empty:28  },
+  { id:'NET-005', name:'Kilimanjaro Gas Distributors',  type:'Distributor', region:'Kilimanjaro',   city:'Moshi',         address:'Rindi Lane, Moshi',            lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89,  full:52,  empty:37  },
+  { id:'NET-006', name:'Island Gas Zanzibar',           type:'Distributor', region:'Zanzibar',      city:'Zanzibar',      address:'Darajani, Zanzibar City',      lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43,  full:20,  empty:23  },
+  { id:'NET-007', name:'Southern Highlands Gas',        type:'Distributor', region:'Mbeya',         city:'Mbeya',         address:'Sisimba Road, Mbeya',          lat:-8.9094, lng:33.4607, contact:'+255 25 250 0007', status:'active',   cylinders:76,  full:45,  empty:31  },
+  { id:'NET-008', name:'Coastal Gas Ltd',               type:'Distributor', region:'Tanga',         city:'Tanga',         address:'Usagara Area, Tanga',          lat:-5.0710, lng:39.0951, contact:'+255 27 264 0008', status:'active',   cylinders:54,  full:33,  empty:21  },
+  { id:'NET-009', name:'Tabora Gas Distributors',       type:'Distributor', region:'Tabora',        city:'Tabora',        address:'Market Street, Tabora',        lat:-5.0167, lng:32.8000, contact:'+255 26 260 0009', status:'active',   cylinders:41,  full:24,  empty:17  },
+  { id:'NET-010', name:'Lindi Gas Supply Co.',          type:'Distributor', region:'Lindi',         city:'Lindi',         address:'Mvua Road, Lindi',             lat:-9.9965, lng:39.7142, contact:'+255 23 220 0010', status:'inactive', cylinders:28,  full:12,  empty:16  },
+  { id:'NET-023', name:'Morogoro Gas Depot',            type:'Distributor', region:'Morogoro',      city:'Morogoro',      address:'Kingo Road, Morogoro',         lat:-6.8240, lng:37.6580, contact:'+255 23 261 0023', status:'active',   cylinders:62,  full:38,  empty:24  },
+  { id:'NET-024', name:'Shinyanga Gas Centre',          type:'Distributor', region:'Shinyanga',     city:'Shinyanga',     address:'Kambarage Road, Shinyanga',    lat:-3.6604, lng:33.4231, contact:'+255 28 276 0024', status:'active',   cylinders:48,  full:29,  empty:19  },
+  // Retailers (18)
+  { id:'NET-011', name:'QuickGas Retail DSM North',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Msimbazi Street, Kinondoni',   lat:-6.7900, lng:39.2100, contact:'+255 22 211 0011', status:'active',   cylinders:32,  full:20,  empty:12  },
+  { id:'NET-012', name:'CityGas Direct Temeke',         type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Temeke District',              lat:-6.8600, lng:39.2500, contact:'+255 22 215 0012', status:'active',   cylinders:28,  full:16,  empty:12  },
+  { id:'NET-013', name:'Kariakoo Gas Shop',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo, Ilala',              lat:-6.8235, lng:39.2695, contact:'+255 22 218 0013', status:'active',   cylinders:45,  full:27,  empty:18  },
+  { id:'NET-014', name:'Mbagala Gas Point',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Mbagala Road, Temeke',         lat:-6.9010, lng:39.2850, contact:'+255 22 216 0014', status:'active',   cylinders:22,  full:13,  empty:9   },
+  { id:'NET-015', name:'Northern Gas Retail Arusha',    type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Ngarenaro, Arusha',            lat:-3.3700, lng:36.6950, contact:'+255 27 254 0015', status:'active',   cylinders:19,  full:11,  empty:8   },
+  { id:'NET-016', name:'Moshi Gas Outlet',              type:'Retailer',    region:'Kilimanjaro',   city:'Moshi',         address:'Kibo Road, Moshi',             lat:-3.3450, lng:37.3410, contact:'+255 27 275 0016', status:'active',   cylinders:17,  full:10,  empty:7   },
+  { id:'NET-017', name:'Morogoro Gas Centre',           type:'Retailer',    region:'Morogoro',      city:'Morogoro',      address:'Boma Road, Morogoro',          lat:-6.8160, lng:37.6762, contact:'+255 23 261 0017', status:'active',   cylinders:16,  full:9,   empty:7   },
+  { id:'NET-018', name:'Iringa Gas Retail',             type:'Retailer',    region:'Iringa',        city:'Iringa',        address:'Uhuru Avenue, Iringa',         lat:-7.7700, lng:35.6900, contact:'+255 26 270 0018', status:'active',   cylinders:21,  full:13,  empty:8   },
+  { id:'NET-019', name:'Zanzibar Stone Town Gas',       type:'Retailer',    region:'Zanzibar',      city:'Zanzibar',      address:'Stone Town, Unguja',           lat:-6.1659, lng:39.1989, contact:'+255 24 223 0019', status:'active',   cylinders:14,  full:8,   empty:6   },
+  { id:'NET-020', name:'Mwanza Lakeside Gas',           type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Capri Point, Mwanza',          lat:-2.5000, lng:32.9000, contact:'+255 28 252 0020', status:'active',   cylinders:26,  full:16,  empty:10  },
+  { id:'NET-021', name:'Dodoma Central Gas Shop',       type:'Retailer',    region:'Dodoma',        city:'Dodoma',        address:'Jamatini Area, Dodoma',        lat:-6.1800, lng:35.7400, contact:'+255 26 232 0021', status:'active',   cylinders:18,  full:11,  empty:7   },
+  { id:'NET-022', name:'Mbeya Highland Gas Retail',     type:'Retailer',    region:'Mbeya',         city:'Mbeya',         address:'Forest Hill Area, Mbeya',      lat:-8.9150, lng:33.4550, contact:'+255 25 250 0022', status:'active',   cylinders:23,  full:14,  empty:9   },
+  { id:'NET-025', name:'Tabora Market Gas Shop',        type:'Retailer',    region:'Tabora',        city:'Tabora',        address:'Ipuli Road, Tabora',           lat:-5.0200, lng:32.8100, contact:'+255 26 260 0025', status:'active',   cylinders:12,  full:7,   empty:5   },
+  { id:'NET-026', name:'Tanga Shoreline Gas',           type:'Retailer',    region:'Tanga',         city:'Tanga',         address:'Ocean Road, Tanga',            lat:-5.0640, lng:39.1010, contact:'+255 27 264 0026', status:'active',   cylinders:15,  full:9,   empty:6   },
+  { id:'NET-027', name:'Dar North Gas Kijitonyama',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kijitonyama, Kinondoni',       lat:-6.7680, lng:39.2430, contact:'+255 22 277 0027', status:'active',   cylinders:20,  full:12,  empty:8   },
+  { id:'NET-028', name:'Mwanza Rock City Gas',          type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Nyamagana, Mwanza',            lat:-2.5150, lng:32.9080, contact:'+255 28 250 0028', status:'active',   cylinders:11,  full:6,   empty:5   },
+  { id:'NET-029', name:'Arusha Clock Tower Gas',        type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Clock Tower Area, Arusha',     lat:-3.3660, lng:36.6870, contact:'+255 27 250 0029', status:'active',   cylinders:16,  full:10,  empty:6   },
+  { id:'NET-030', name:'Shinyanga Gas Retail',          type:'Retailer',    region:'Shinyanga',     city:'Shinyanga',     address:'Kahama Road, Shinyanga',       lat:-3.6650, lng:33.4280, contact:'+255 28 276 0030', status:'active',   cylinders:9,   full:5,   empty:4   },
 ];
+
+const EVENT_LABELS = {
+  'registered':          'Cylinder Created & Registered',
+  'refilled':            'Refilled at Plant',
+  'shipped':             'Shipped (Full) to Distributor/Retailer',
+  'received-empty':      'Empty Cylinder Received at Refill Site',
+  'sent-revalidation':   'Sent for Revalidation',
+  'reval-received':      'Received at Revalidation Centre',
+  'revalidated':         'Revalidated & Approved',
+  'reval-returned':      'Returned to Refill Site after Revalidation',
+  'dist-received':       'Received (Full) by Distributor',
+  'dist-sent-retail':    'Sent from Distributor to Retailer',
+  'dist-returned-empty': 'Empty Cylinder Returned by Distributor',
+  'ret-received':        'Received (Full) by Retailer',
+  'ret-sold':            'Sold to Consumer',
+  'ret-returned-empty':  'Empty Cylinder Returned by Consumer',
+  'inspected':           'Inspected by Field Auditor',
+  'ewura-monitored':     'Supply Monitored by EWURA',
+  'tra-verified':        'Refills Verified by TRA',
+  'tra-registered':      'Shipment Registered by TRA',
+};
 
 // ── Role configuration ────────────────────────────────────────────────────────
 
@@ -294,31 +338,127 @@ async function seedDemoData() {
     await txPut('cylinders', cyl);
   }
 
-  // Generate some historical events
-  const now = Date.now();
+  const now  = Date.now();
+  const DAY  = 24 * 60 * 60 * 1000;
+  const MONTH = 30 * DAY;
+
+  const RETAILERS = [
+    { name:'QuickGas Retail DSM North',  region:'Dar es Salaam' },
+    { name:'CityGas Direct Temeke',      region:'Dar es Salaam' },
+    { name:'Kariakoo Gas Shop',          region:'Dar es Salaam' },
+    { name:'Dar North Gas Kijitonyama',  region:'Dar es Salaam' },
+    { name:'Northern Gas Retail Arusha', region:'Arusha' },
+    { name:'Arusha Clock Tower Gas',     region:'Arusha' },
+    { name:'Moshi Gas Outlet',           region:'Kilimanjaro' },
+    { name:'Mwanza Lakeside Gas',        region:'Mwanza' },
+    { name:'Mwanza Rock City Gas',       region:'Mwanza' },
+    { name:'Iringa Gas Retail',          region:'Iringa' },
+    { name:'Zanzibar Stone Town Gas',    region:'Zanzibar' },
+    { name:'Morogoro Gas Centre',        region:'Morogoro' },
+    { name:'Dodoma Central Gas Shop',    region:'Dodoma' },
+    { name:'Mbeya Highland Gas Retail',  region:'Mbeya' },
+    { name:'Tanga Shoreline Gas',        region:'Tanga' },
+    { name:'Tabora Market Gas Shop',     region:'Tabora' },
+    { name:'Shinyanga Gas Retail',       region:'Shinyanga' },
+  ];
+  const DISTRIBUTORS = [
+    { name:'ABC Gas Distributors',         region:'Dar es Salaam' },
+    { name:'Sunrise Gas Ltd',              region:'Arusha' },
+    { name:'Lake Victoria Gas Supply',     region:'Mwanza' },
+    { name:'Capital Gas Supplies',         region:'Dodoma' },
+    { name:'Kilimanjaro Gas Distributors', region:'Kilimanjaro' },
+    { name:'Southern Highlands Gas',       region:'Mbeya' },
+    { name:'Coastal Gas Ltd',              region:'Tanga' },
+    { name:'Tabora Gas Distributors',      region:'Tabora' },
+    { name:'Morogoro Gas Depot',           region:'Morogoro' },
+    { name:'Shinyanga Gas Centre',         region:'Shinyanga' },
+  ];
+
+  function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
   for (const cyl of DEMO_CYLINDERS) {
-    const regDate = new Date(cyl.manufactureDate);
+    const mfgYear = parseInt(cyl.manufactureDate.slice(0, 4));
+
+    // Registration
     await txPut('events', {
-      cylinderId: cyl.id,
-      type:       'registered',
-      timestamp:  regDate.toISOString(),
-      operatorId: 'SYSTEM',
-      company:    cyl.company,
-      notes:      'Initial registration',
+      cylinderId:cyl.id, type:'registered',
+      timestamp:new Date(cyl.manufactureDate).toISOString(),
+      operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration',
     });
-    // Add a few fills
-    const fills = Math.min(cyl.fillCount, 3);
-    for (let i = 0; i < fills; i++) {
-      const d = new Date(now - (fills - i) * 30 * 24 * 60 * 60 * 1000);
-      await txPut('events', {
-        cylinderId: cyl.id,
-        type:       'refilled',
-        timestamp:  d.toISOString(),
-        operatorId: 'SYSTEM',
-        company:    cyl.company,
-        notes:      '',
-      });
+
+    if (mfgYear <= 2020) {
+      // Old cylinder: complete cycle ~30 months ago (will trigger stuck-in-circulation for in-circulation ones)
+      const r1 = rnd(RETAILERS), d1 = rnd(DISTRIBUTORS);
+      const t1r = new Date(now - 30*MONTH);
+      const t1s = new Date(now - 29*MONTH + 5*DAY);
+      const t1d = new Date(now - 29*MONTH + 8*DAY);
+      const t1x = new Date(now - 28*MONTH);
+      const t1b = new Date(now - 27*MONTH);
+      const t1e = new Date(now - 27*MONTH + 3*DAY);
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t1r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t1s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d1.name, destinedRegion:d1.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t1d.toISOString(), operatorId:'SYSTEM', company:d1.name, location:d1.name, region:d1.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:t1x.toISOString(), operatorId:'SYSTEM', company:r1.name, location:r1.name, region:r1.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:t1b.toISOString(), operatorId:'SYSTEM', company:r1.name, location:r1.name, region:r1.region });
+      await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:t1e.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+
+      if (cyl.status === 'in-circulation') {
+        // Second cycle — shipped 26 months ago, never returned → stuck alert triggers
+        const d2 = rnd(DISTRIBUTORS);
+        const t2r = new Date(now - 27*MONTH);
+        const t2s = new Date(now - 26*MONTH);
+        const t2d = new Date(now - 26*MONTH + 2*DAY);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t2s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d2.name, destinedRegion:d2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t2d.toISOString(), operatorId:'SYSTEM', company:d2.name, location:d2.name, region:d2.region });
+      } else if (cyl.status === 'in-refill') {
+        const t2r = new Date(now - 3*MONTH);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled', timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      } else if (cyl.status === 'in-use') {
+        const r2 = rnd(RETAILERS), d2 = rnd(DISTRIBUTORS);
+        const t2r = new Date(now - 6*MONTH);
+        const t2s = new Date(now - 5*MONTH);
+        const t2d = new Date(now - 5*MONTH + DAY);
+        const t2x = new Date(now - 4*MONTH);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t2s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d2.name, destinedRegion:d2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t2d.toISOString(), operatorId:'SYSTEM', company:d2.name, location:d2.name, region:d2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:t2x.toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+      }
+    } else {
+      // Newer cylinder — 1-2 recent cycles
+      const fills = Math.min(cyl.fillCount, 2);
+      for (let i = 0; i < fills; i++) {
+        const r = rnd(RETAILERS), d = rnd(DISTRIBUTORS);
+        const off = (fills - i) * 4 * MONTH;
+        const tr = new Date(now - off);
+        const ts = new Date(now - off + 7*DAY);
+        const td = new Date(now - off + 9*DAY);
+        const tx = new Date(now - off + 20*DAY);
+        const tb = new Date(now - off + 50*DAY);
+        const te = new Date(now - off + 53*DAY);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:tr.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        if (cyl.status !== 'in-refill' || i < fills - 1) {
+          await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:ts.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+          await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:td.toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+          await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:tx.toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+          await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:tb.toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+          await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:te.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        }
+      }
     }
+  }
+
+  // Misplaced cylinder demo: shipped to ABC Gas, but received by Sunrise Gas (different region)
+  const misplacedPairs = [
+    { cylId:'E280116060000204C3F04E85', intendedDist:'ABC Gas Distributors',   intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',      actualRegion:'Arusha' },
+    { cylId:'E280116060000204C3F04E95', intendedDist:'Capital Gas Supplies',   intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',actualRegion:'Mbeya'  },
+  ];
+  for (const mp of misplacedPairs) {
+    const tShip = new Date(now - 10*DAY);
+    const tRecv = new Date(now - 8*DAY);
+    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:'Vivo LPG',      location:'Vivo LPG',      destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
+    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist,   location:mp.actualDist,   region:mp.actualRegion });
   }
 
   for (const lic of DEMO_LICENSES) {
@@ -1178,7 +1318,7 @@ function applyCylFilters() {
         <div class="cylinder-tag">${escapeHtml(cyl.id)}</div>
         <div class="cylinder-meta">
           <span class="cylinder-meta-item">${escapeHtml(cyl.company)}</span>
-          <span class="cylinder-meta-item">Fills: ${cyl.fillCount}</span>
+          ${cyl.lastHydroTest ? `<span class="cylinder-meta-item">Hydro: ${escapeHtml(cyl.lastHydroTest)}</span>` : ''}
           ${cyl.manufactureDate ? `<span class="cylinder-meta-item">Mfg: ${escapeHtml(cyl.manufactureDate)}</span>` : ''}
         </div>
       </div>
@@ -1288,7 +1428,7 @@ async function openPassportModal(cylId) {
         ${events.length ? events.map(ev => `
           <li>
             <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
-            <span class="ph-desc">${escapeHtml(ev.type)}${ev.operatorId ? ' · ' + escapeHtml(ev.operatorId) : ''}${ev.newTagId ? ' → new tag: ' + escapeHtml(ev.newTagId) : ''}${ev.previousTagId ? ' ← prev tag: ' + escapeHtml(ev.previousTagId) : ''}</span>
+            <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
           </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
       </ul>
     </div>`;
@@ -1351,7 +1491,30 @@ async function renderAlerts() {
       }
     }
 
-    // 2. Stuck in circulation > 45 days
+    // 2. Misplaced cylinder: shipped to X but received at Y
+    {
+      const cylEvents = allEvents
+        .filter(e => e.cylinderId === cyl.id)
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      for (let i = cylEvents.length - 1; i >= 0; i--) {
+        const ev = cylEvents[i];
+        if (ev.type === 'shipped' && ev.destinedFor) {
+          const recvEv = cylEvents.slice(i + 1).find(e =>
+            e.type === 'dist-received' || e.type === 'ret-received'
+          );
+          if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) {
+            _alertsData.push({
+              severity: 'critical', type: 'misplaced', cylinder: cyl,
+              title: `${cyl.serial} — Misplaced Cylinder`,
+              desc: `Shipped to "${ev.destinedFor}" but received by "${recvEv.company}".`,
+            });
+          }
+          break;
+        }
+      }
+    }
+
+    // 3. Stuck in circulation > 45 days
     if (cyl.status === 'in-circulation') {
       const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
         .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -1575,7 +1738,7 @@ async function renderNetwork() {
         <div class="network-item-meta">
           📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
           📞 ${escapeHtml(partner.contact)} ·
-          <span class="network-item-cyls">🛢 ${partner.cylinders} cylinders</span> ·
+          <span class="network-item-cyls">🛢 ${partner.cylinders} total · <span class="cyl-full">✅ ${partner.full} full</span> · <span class="cyl-empty">📭 ${partner.empty} empty</span></span> ·
           <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
         </div>`;
       networkList.appendChild(li);
@@ -1590,7 +1753,7 @@ async function renderNetwork() {
       });
       const marker = L.marker([partner.lat, partner.lng], { icon })
         .addTo(_networkMap)
-        .bindPopup(`<strong>${partner.name}</strong><br>${partner.type}<br>${partner.city}<br>${partner.cylinders} cylinders`);
+        .bindPopup(`<strong>${partner.name}</strong><br>${partner.type}<br>${partner.city}<br>${partner.cylinders} total · ${partner.full} full · ${partner.empty} empty`);
       _networkMarkers.push(marker);
     });
   }
@@ -1708,6 +1871,29 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
+  // 5. Sales by region
+  const regionSales = {};
+  allEvents.forEach(ev => {
+    if (ev.type !== 'ret-sold') return;
+    const r = ev.region || ev.company || 'Unknown';
+    regionSales[r] = (regionSales[r] || 0) + 1;
+  });
+  const regionEntries = Object.entries(regionSales).sort((a, b) => b[1] - a[1]);
+  const maxRegion = Math.max(...regionEntries.map(([,v]) => v), 1);
+  const regionBarsHtml = regionEntries.length
+    ? regionEntries.map(([region, count]) => {
+        const pct = Math.round((count / maxRegion) * 100);
+        return `<div class="mgmt-bar-row">
+          <span class="mgmt-bar-label">${escapeHtml(region)}</span>
+          <div class="mgmt-bar-track">
+            <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--purple)">
+              <span>${count}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
+
   // 4. Cylinders needing requalification within 2 years
   const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
   const requalSoon = cyls.filter(c => {
@@ -1737,6 +1923,10 @@ async function renderMgmtReports() {
       <div class="mgmt-card-title">Requalification Due (Next 2 Years)</div>
       <div class="mgmt-stat-big" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</div>
       <div class="mgmt-stat-desc">cylinders need requalification within 24 months</div>
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-title">Sales by Region (All Time)</div>
+      ${regionBarsHtml}
     </div>`;
 }
 
