@@ -297,6 +297,7 @@
               <option value="requalification-due">Requalification Due Soon</option>
               <option value="stuck-in-circulation">Stuck in Circulation</option>
               <option value="misplaced">Misplaced Cylinder</option>
+              <option value="hydro-overdue">Hydro Test Overdue</option>
             </select>
           </div>
           <div id="alert-summary" class="alert-summary-row"></div>
@@ -337,6 +338,26 @@
         <div id="view-mgmt-reports" class="view">
           <div class="page-header">
             <h2 class="page-title">📈 Management Reports</h2>
+          </div>
+          <div class="view-toolbar" style="margin-bottom:16px">
+            <div class="filter-row">
+              <select id="mgmt-filter-year" class="filter-select"><option value="">All years</option></select>
+              <select id="mgmt-filter-month" class="filter-select">
+                <option value="">All months</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+              </select>
+            </div>
           </div>
           <div class="mgmt-grid" id="mgmt-reports-grid">
             <!-- Injected by JS -->
@@ -555,34 +576,41 @@
         <button class="modal-close" data-close="modal-partner" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body" style="padding-bottom:0">
+        <!-- Location info + map -->
         <div class="partner-detail-grid">
           <div class="partner-detail-info">
-            <div class="passport-row">
-              <span class="passport-key">Region</span>
-              <span class="passport-value" id="partner-modal-region"></span>
-            </div>
-            <div class="passport-row">
-              <span class="passport-key">City</span>
-              <span class="passport-value" id="partner-modal-city"></span>
-            </div>
-            <div class="passport-row">
-              <span class="passport-key">Address</span>
-              <span class="passport-value" id="partner-modal-address"></span>
-            </div>
-            <div class="passport-row">
-              <span class="passport-key">Contact</span>
-              <span class="passport-value" id="partner-modal-contact"></span>
-            </div>
-            <div class="passport-row">
-              <span class="passport-key">Status</span>
-              <span class="passport-value" id="partner-modal-status"></span>
-            </div>
-            <div class="passport-row">
-              <span class="passport-key">Coordinates</span>
-              <span class="passport-value" id="partner-modal-coords" style="font-family:var(--font-mono);font-size:12px"></span>
-            </div>
+            <div class="passport-section-title" style="margin-bottom:8px">Location</div>
+            <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value" id="partner-modal-region"></span></div>
+            <div class="passport-row"><span class="passport-key">City</span><span class="passport-value" id="partner-modal-city"></span></div>
+            <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value" id="partner-modal-address"></span></div>
+            <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value" id="partner-modal-contact"></span></div>
+            <div class="passport-row"><span class="passport-key">Status</span><span class="passport-value" id="partner-modal-status"></span></div>
+            <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" id="partner-modal-coords" style="font-family:var(--font-mono);font-size:12px"></span></div>
           </div>
-          <div id="partner-detail-map" style="height:320px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
+          <div id="partner-detail-map" style="height:280px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;min-height:200px"></div>
+        </div>
+        <!-- Stock + Sales -->
+        <div class="partner-stats-row" style="margin:16px 0 20px">
+          <div class="partner-stat-card">
+            <span class="partner-stat-value" id="partner-stat-total" style="color:var(--amber)">—</span>
+            <div class="partner-stat-label">Total Cylinders</div>
+          </div>
+          <div class="partner-stat-card">
+            <span class="partner-stat-value" id="partner-stat-full" style="color:var(--green)">—</span>
+            <div class="partner-stat-label">Full (in stock)</div>
+          </div>
+          <div class="partner-stat-card">
+            <span class="partner-stat-value" id="partner-stat-empty" style="color:var(--muted)">—</span>
+            <div class="partner-stat-label">Empty (in stock)</div>
+          </div>
+          <div class="partner-stat-card">
+            <span class="partner-stat-value" id="partner-stat-last-month" style="color:var(--blue)">—</span>
+            <div class="partner-stat-label">Sales Last Month</div>
+          </div>
+          <div class="partner-stat-card">
+            <span class="partner-stat-value" id="partner-stat-this-year" style="color:var(--purple)">—</span>
+            <div class="partner-stat-label">Sales This Year</div>
+          </div>
         </div>
       </div>
     </div>

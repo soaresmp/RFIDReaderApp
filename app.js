@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v6';
+const SEED_KEY   = 'seeded-v8';
 
 const DEMO_CYLINDERS = [
   // Vivo LPG (12)
@@ -22,7 +22,10 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EA2', serial:'VLG-2022-010', company:'Vivo LPG', manufactureDate:'2022-02-15', tareWeight:14.5, capacity:12, fillCount:55,  lastHydroTest:'2027-02-15', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EA3', serial:'VLG-2023-011', company:'Vivo LPG', manufactureDate:'2023-05-01', tareWeight:14.5, capacity:12, fillCount:28,  lastHydroTest:'2028-05-01', status:'revalidation',   notes:'' },
   { id:'E280116060000204C3F04EA4', serial:'VLG-2024-012', company:'Vivo LPG', manufactureDate:'2024-01-10', tareWeight:14.5, capacity:12, fillCount:9,   lastHydroTest:'2029-01-10', status:'in-refill',      notes:'' },
-  // Total Energies (12)
+  { id:'E280116060000204C3F04EF1', serial:'VLG-2012-013', company:'Vivo LPG', manufactureDate:'2012-05-15', tareWeight:14.5, capacity:12, fillCount:640, lastHydroTest:'2017-05-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF2', serial:'VLG-2014-014', company:'Vivo LPG', manufactureDate:'2014-08-22', tareWeight:14.5, capacity:12, fillCount:490, lastHydroTest:'2019-08-22', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EF3', serial:'VLG-2025-015', company:'Vivo LPG', manufactureDate:'2025-02-01', tareWeight:14.5, capacity:12, fillCount:3,   lastHydroTest:'2030-02-01', status:'in-refill',      notes:'' },
+  // Total Energies (15)
   { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:14.5, capacity:12, fillCount:512, lastHydroTest:'2019-02-27', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E8A', serial:'TEN-2015-002', company:'Total Energies', manufactureDate:'2015-08-19', tareWeight:14.5, capacity:12, fillCount:420, lastHydroTest:'2020-08-19', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04E8B', serial:'TEN-2016-003', company:'Total Energies', manufactureDate:'2016-05-03', tareWeight:14.5, capacity:12, fillCount:360, lastHydroTest:'2021-05-03', status:'in-circulation', notes:'' },
@@ -35,7 +38,10 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EB2', serial:'TEN-2022-010', company:'Total Energies', manufactureDate:'2022-06-18', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-06-18', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EB3', serial:'TEN-2023-011', company:'Total Energies', manufactureDate:'2023-02-05', tareWeight:14.5, capacity:12, fillCount:23,  lastHydroTest:'2028-02-05', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04EB4', serial:'TEN-2024-012', company:'Total Energies', manufactureDate:'2024-03-20', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-20', status:'in-refill',      notes:'' },
-  // Shell Gas (12)
+  { id:'E280116060000204C3F04EF4', serial:'TEN-2013-013', company:'Total Energies', manufactureDate:'2013-07-10', tareWeight:14.5, capacity:12, fillCount:570, lastHydroTest:'2018-07-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF5', serial:'TEN-2012-014', company:'Total Energies', manufactureDate:'2012-11-30', tareWeight:14.5, capacity:12, fillCount:610, lastHydroTest:'2017-11-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EF6', serial:'TEN-2025-015', company:'Total Energies', manufactureDate:'2025-01-15', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-01-15', status:'in-refill',      notes:'' },
+  // Shell Gas (15)
   { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:14.5, capacity:12, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E92', serial:'SHG-2014-002', company:'Shell Gas', manufactureDate:'2014-11-08', tareWeight:14.5, capacity:12, fillCount:480, lastHydroTest:'2019-11-08', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04E93', serial:'SHG-2016-003', company:'Shell Gas', manufactureDate:'2016-03-25', tareWeight:14.5, capacity:12, fillCount:355, lastHydroTest:'2021-03-25', status:'in-circulation', notes:'' },
@@ -48,6 +54,9 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EC2', serial:'SHG-2022-010', company:'Shell Gas', manufactureDate:'2022-09-28', tareWeight:14.5, capacity:12, fillCount:35,  lastHydroTest:'2027-09-28', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EC3', serial:'SHG-2023-011', company:'Shell Gas', manufactureDate:'2023-07-04', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-07-04', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04EC4', serial:'SHG-2024-012', company:'Shell Gas', manufactureDate:'2024-02-14', tareWeight:14.5, capacity:12, fillCount:5,   lastHydroTest:'2029-02-14', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EF7', serial:'SHG-2012-013', company:'Shell Gas', manufactureDate:'2012-09-10', tareWeight:14.5, capacity:12, fillCount:618, lastHydroTest:'2017-09-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF8', serial:'SHG-2015-014', company:'Shell Gas', manufactureDate:'2015-02-20', tareWeight:14.5, capacity:12, fillCount:445, lastHydroTest:'2020-02-20', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EF9', serial:'SHG-2025-015', company:'Shell Gas', manufactureDate:'2025-03-12', tareWeight:14.5, capacity:12, fillCount:4,   lastHydroTest:'2030-03-12', status:'in-refill',      notes:'' },
   // Lake Gas (9)
   { id:'E280116060000204C3F04E99', serial:'LKG-2015-001', company:'Lake Gas', manufactureDate:'2015-04-12', tareWeight:14.5, capacity:12, fillCount:430, lastHydroTest:'2020-04-12', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E9A', serial:'LKG-2016-002', company:'Lake Gas', manufactureDate:'2016-10-30', tareWeight:14.5, capacity:12, fillCount:340, lastHydroTest:'2021-10-30', status:'in-refill',      notes:'' },
@@ -58,6 +67,9 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04ED1', serial:'LKG-2022-007', company:'Lake Gas', manufactureDate:'2022-03-15', tareWeight:14.5, capacity:12, fillCount:49,  lastHydroTest:'2027-03-15', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04ED2', serial:'LKG-2023-008', company:'Lake Gas', manufactureDate:'2023-07-22', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-07-22', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04ED3', serial:'LKG-2024-009', company:'Lake Gas', manufactureDate:'2024-04-05', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-04-05', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EFA', serial:'LKG-2013-010', company:'Lake Gas', manufactureDate:'2013-04-08', tareWeight:14.5, capacity:12, fillCount:548, lastHydroTest:'2018-04-08', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EFB', serial:'LKG-2014-011', company:'Lake Gas', manufactureDate:'2014-12-15', tareWeight:14.5, capacity:12, fillCount:415, lastHydroTest:'2019-12-15', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EFC', serial:'LKG-2025-012', company:'Lake Gas', manufactureDate:'2025-04-20', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-04-20', status:'in-refill',      notes:'' },
 ];
 
 const DEMO_LICENSES = [
@@ -532,6 +544,10 @@ const alertsEmpty         = $('alerts-empty');
 const reportsGrid      = $('reports-grid');
 const reportChart      = $('report-chart');
 const exportDashboardBtn = $('export-dashboard-btn');
+
+// Mgmt reports filters
+const mgmtFilterYear   = $('mgmt-filter-year');
+const mgmtFilterMonth  = $('mgmt-filter-month');
 
 // Licenses view
 const licSearch        = $('lic-search');
@@ -1354,6 +1370,18 @@ if (exportDashboardBtn) {
 // CYLINDER PASSPORT MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
+function getNextActions(cyl, role) {
+  const s = cyl.status;
+  const validByStatus = {
+    'in-refill':      ['refilled', 'shipped', 'sent-revalidation', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered'],
+    'in-circulation': ['dist-received', 'dist-sent-retail', 'ret-received', 'received-empty', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered'],
+    'in-use':         ['ret-sold', 'ret-returned-empty', 'dist-returned-empty', 'inspected', 'ewura-monitored'],
+    'revalidation':   ['reval-received', 'revalidated', 'reval-returned'],
+  };
+  const validTypes = new Set(validByStatus[s] || []);
+  return (ROLE_EVENTS[role] || []).filter(e => validTypes.has(e.type));
+}
+
 async function openPassportModal(cylId) {
   State.passportCylinderId = cylId;
   const cyl = await txGet('cylinders', cylId);
@@ -1413,10 +1441,6 @@ async function openPassportModal(cylId) {
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
       <div class="passport-row">
-        <span class="passport-key">Fill Count</span>
-        <span class="passport-value">${cyl.fillCount}</span>
-      </div>
-      <div class="passport-row">
         <span class="passport-key">Last Hydro Test</span>
         <span class="passport-value">${formatDate(cyl.lastHydroTest)}</span>
       </div>
@@ -1431,10 +1455,32 @@ async function openPassportModal(cylId) {
             <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
           </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
       </ul>
-    </div>`;
+    </div>
+    ${(() => {
+      const acts = getNextActions(cyl, Auth.session?.role || '');
+      if (!acts.length) return '';
+      return `<div class="passport-section">
+        <div class="passport-section-title">Record Action</div>
+        <div class="passport-actions">
+          ${acts.map(a => `<button class="btn btn-outline passport-action-btn" data-action-type="${escapeHtml(a.type)}" data-cyl-id="${escapeHtml(cyl.id)}" type="button">${a.icon} ${escapeHtml(a.label)}</button>`).join('')}
+        </div>
+      </div>`;
+    })()}`;
 
   openModal('modal-passport');
 }
+
+passportBody.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action-type]');
+  if (!btn || !Auth.session) return;
+  const cylId = btn.dataset.cylId;
+  const type  = btn.dataset.actionType;
+  if (!cylId || !type) return;
+  const cyl = await txGet('cylinders', cylId);
+  if (!cyl) return;
+  await commitScanEvent(cyl, null, type);
+  await openPassportModal(cylId);
+});
 
 passportExportBtn.addEventListener('click', async () => {
   if (!State.passportCylinderId) return;
@@ -1526,6 +1572,19 @@ async function renderAlerts() {
             title: `${cyl.serial} — Stuck in Circulation (${days}d)`,
             desc: `Cylinder has been in circulation for ${days} days without returning to refill.` });
         }
+      }
+    }
+
+    // 4. Hydro test overdue: >5 years since lastHydroTest
+    if (cyl.lastHydroTest) {
+      const hydroBase = new Date(cyl.lastHydroTest + 'T00:00:00');
+      const hydroDue  = new Date(hydroBase);
+      hydroDue.setFullYear(hydroDue.getFullYear() + 5);
+      const daysOverdue = Math.floor((now - hydroDue) / (24*60*60*1000));
+      if (daysOverdue > 0) {
+        _alertsData.push({ severity:'critical', type:'hydro-overdue', cylinder:cyl,
+          title: `${cyl.serial} — Hydro Test Overdue`,
+          desc: `Hydro test ${daysOverdue} days overdue. Last test: ${cyl.lastHydroTest}.` });
       }
     }
   }
@@ -1754,7 +1813,7 @@ $('network-list').addEventListener('click', e => {
 let _partnerDetailMap = null;
 let _partnerDetailMarker = null;
 
-function openPartnerModal(partnerId) {
+async function openPartnerModal(partnerId) {
   const partner = DEMO_NETWORK.find(n => n.id === partnerId);
   if (!partner) return;
 
@@ -1773,22 +1832,40 @@ function openPartnerModal(partnerId) {
   statusEl.textContent  = partner.status;
   statusEl.style.color  = partner.status === 'active' ? 'var(--green)' : 'var(--red)';
 
+  // Populate stock stats
+  $('partner-stat-total').textContent = partner.cylinders ?? '—';
+  $('partner-stat-full').textContent  = partner.full  != null ? partner.full  : '—';
+  $('partner-stat-empty').textContent = partner.empty != null ? partner.empty : '—';
+
+  // Calculate sales from event history
+  const allEvents = await txGetAll('events');
+  const now = new Date();
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 1);
+  const yearStart      = new Date(now.getFullYear(), 0, 1);
+  const partnerSales   = allEvents.filter(ev => ev.type === 'ret-sold' && ev.company === partner.name);
+  const lastMonthSales = partnerSales.filter(ev => { const d = new Date(ev.timestamp); return d >= lastMonthStart && d < lastMonthEnd; }).length;
+  const thisYearSales  = partnerSales.filter(ev => new Date(ev.timestamp) >= yearStart).length;
+  $('partner-stat-last-month').textContent = lastMonthSales;
+  $('partner-stat-this-year').textContent  = thisYearSales;
+
+  // Destroy existing map so size is always fresh on each open
+  if (_partnerDetailMap) {
+    _partnerDetailMap.remove();
+    _partnerDetailMap    = null;
+    _partnerDetailMarker = null;
+  }
+
   openModal('modal-partner');
 
-  // Render the detail map after the modal is visible
   setTimeout(() => {
     try {
-      if (!_partnerDetailMap) {
-        _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
-          .setView([partner.lat, partner.lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 18,
-        }).addTo(_partnerDetailMap);
-      } else {
-        _partnerDetailMap.setView([partner.lat, partner.lng], 14);
-        if (_partnerDetailMarker) _partnerDetailMarker.remove();
-      }
+      _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
+        .setView([partner.lat, partner.lng], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+      }).addTo(_partnerDetailMap);
 
       const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
       const icon = L.divIcon({
@@ -1806,7 +1883,7 @@ function openPartnerModal(partnerId) {
     } catch (e) {
       console.warn('Partner map error:', e);
     }
-  }, 100);
+  }, 150);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1824,6 +1901,30 @@ async function renderMgmtReports() {
   let cyls = allCyls;
   if (role === 'lpgmc' && Auth.session) {
     cyls = cyls.filter(c => c.company === Auth.session.company);
+  }
+
+  // Populate year filter from event data
+  const yearSel = $('mgmt-filter-year');
+  if (yearSel && yearSel.children.length <= 1) {
+    const years = new Set();
+    allEvents.forEach(ev => { years.add(new Date(ev.timestamp).getFullYear()); });
+    [...years].sort((a, b) => b - a).forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
+    });
+  }
+
+  const filterYear  = yearSel?.value ? parseInt(yearSel.value) : null;
+  const monthSel    = $('mgmt-filter-month');
+  const filterMonth = monthSel?.value !== '' ? parseInt(monthSel.value) : null;
+
+  function inPeriod(ts) {
+    if (filterYear === null && filterMonth === null) return true;
+    const d = new Date(ts);
+    if (filterYear  !== null && d.getFullYear() !== filterYear)  return false;
+    if (filterMonth !== null && d.getMonth()    !== filterMonth) return false;
+    return true;
   }
 
   // 1. Cylinders by status
@@ -1858,17 +1959,18 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
-  // 2. Monthly fills last 6 months
+  // 2. Monthly fills — show full year if filter active, else last 6 months
   const now = new Date();
   const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({
-      label: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
-      year:  d.getFullYear(),
-      month: d.getMonth(),
-      count: 0,
-    });
+  if (filterYear !== null) {
+    for (let mo = 0; mo < 12; mo++) {
+      months.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
+    }
+  } else {
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ label: d.toLocaleString('default', { month: 'short', year: '2-digit' }), year: d.getFullYear(), month: d.getMonth(), count: 0 });
+    }
   }
   allEvents.forEach(ev => {
     if (ev.type !== 'refilled') return;
@@ -1889,12 +1991,28 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
-  // 3. Top 5 partners by cylinder count from DEMO_NETWORK
-  const top5 = [...DEMO_NETWORK]
-    .sort((a, b) => b.cylinders - a.cylinders)
-    .slice(0, 5);
-  const maxPartnerCyls = Math.max(...top5.map(p => p.cylinders), 1);
-  const partnerBarsHtml = top5.map(p => {
+  // 3. Top 5 partners — by sales count when filtered, else by cylinder stock
+  let top5, partnerCardTitle;
+  if (filterYear !== null || filterMonth !== null) {
+    partnerCardTitle = 'Top 5 Partners by Sales' + (filterYear ? ` (${filterYear}${filterMonth !== null ? '/' + (filterMonth+1) : ''})` : '');
+    const salesByPartner = {};
+    allEvents.forEach(ev => {
+      if (ev.type !== 'ret-sold' || !ev.company) return;
+      if (!inPeriod(ev.timestamp)) return;
+      salesByPartner[ev.company] = (salesByPartner[ev.company] || 0) + 1;
+    });
+    top5 = Object.entries(salesByPartner)
+      .sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .map(([name, count]) => {
+        const net = DEMO_NETWORK.find(n => n.name === name);
+        return { name, cylinders: count, type: net?.type || 'Retailer' };
+      });
+  } else {
+    partnerCardTitle = 'Top 5 Partners by Cylinder Count';
+    top5 = [...DEMO_NETWORK].sort((a, b) => b.cylinders - a.cylinders).slice(0, 5);
+  }
+  const maxPartnerCyls = top5.length ? Math.max(...top5.map(p => p.cylinders), 1) : 1;
+  const partnerBarsHtml = top5.length ? top5.map(p => {
     const pct = Math.round((p.cylinders / maxPartnerCyls) * 100);
     const color = p.type === 'Distributor' ? 'var(--blue)' : 'var(--green)';
     return `<div class="mgmt-bar-row">
@@ -1905,12 +2023,13 @@ async function renderMgmtReports() {
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data for this period.</p>';
 
-  // 5. Sales by region
+  // 5. Sales by region (filtered by period)
   const regionSales = {};
   allEvents.forEach(ev => {
     if (ev.type !== 'ret-sold') return;
+    if (!inPeriod(ev.timestamp)) return;
     const r = ev.region || ev.company || 'Unknown';
     regionSales[r] = (regionSales[r] || 0) + 1;
   });
@@ -1952,7 +2071,7 @@ async function renderMgmtReports() {
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Top 5 Partners by Cylinder Count</div>
+      <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
@@ -1961,7 +2080,7 @@ async function renderMgmtReports() {
       <div class="mgmt-stat-desc">cylinders need requalification within 24 months</div>
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">Sales by Region (All Time)</div>
+      <div class="mgmt-card-title">Sales by Region${filterYear ? ` (${filterYear}${filterMonth !== null ? '/' + (filterMonth+1) : ''})` : ' (All Time)'}</div>
       ${regionBarsHtml}
     </div>`;
 }
@@ -2012,6 +2131,9 @@ function applyLicenseFilters() {
 licSearch.addEventListener('input',         applyLicenseFilters);
 licFilterType.addEventListener('change',    applyLicenseFilters);
 licFilterStatus.addEventListener('change',  applyLicenseFilters);
+
+mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
+mgmtFilterMonth?.addEventListener('change', renderMgmtReports);
 
 issueLicenseBtn.addEventListener('click', () => {
   licCompanyName.value = '';
