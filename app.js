@@ -6,21 +6,21 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v2';
+const SEED_KEY   = 'seeded-v3';
 
 const DEMO_CYLINDERS = [
-  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', company:'Vivo LPG',       manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-use',     notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'condemned',  notes:'Exceeded max fills. Condemned 2026-03-01.' },
-  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', company:'Total Energies', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-use',     notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', company:'Total Energies', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', company:'Shell Gas',      manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',     notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'available',  notes:'' },
-  { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', company:'Shell Gas',      manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'available',  notes:'' },
+  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', company:'Vivo LPG',       manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-circulation',  notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'condemned',       notes:'Exceeded max fills. Condemned 2026-03-01.' },
+  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', company:'Total Energies', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-circulation',  notes:'' },
+  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', company:'Total Energies', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'refilling',       notes:'' },
+  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', company:'Shell Gas',      manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',          notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'available',       notes:'' },
+  { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', company:'Shell Gas',      manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'revalidation',    notes:'' },
 ];
 
 const DEMO_LICENSES = [
@@ -65,18 +65,19 @@ const ROLE_EVENTS = {
   ],
   retailer: [
     { type: 'ret-received',        label: 'Received',          icon: '📦' },
+    { type: 'ret-sold',            label: 'Sold to Consumer',  icon: '🛒' },
     { type: 'ret-returned-empty',  label: 'Returned Empty',    icon: '↩️' },
   ],
 };
 
 const ROLE_TABS = {
-  lpgmc:           ['scan', 'cylinders', 'alerts', 'reports'],
-  revalidator:     ['scan', 'cylinders', 'reports'],
-  ewura:           ['scan', 'cylinders', 'alerts', 'reports', 'licenses'],
-  'field-auditor': ['scan', 'cylinders', 'reports'],
-  tra:             ['scan', 'cylinders', 'reports'],
-  distributor:     ['scan', 'cylinders', 'alerts', 'reports'],
-  retailer:        ['scan', 'cylinders', 'reports'],
+  lpgmc:           ['reports', 'scan', 'cylinders', 'alerts'],
+  revalidator:     ['reports', 'scan', 'cylinders'],
+  ewura:           ['reports', 'scan', 'cylinders', 'alerts', 'licenses'],
+  'field-auditor': ['reports', 'scan', 'cylinders'],
+  tra:             ['reports', 'scan', 'cylinders'],
+  distributor:     ['reports', 'scan', 'cylinders', 'alerts'],
+  retailer:        ['reports', 'scan', 'cylinders'],
 };
 
 const ROLE_LABELS = {
@@ -595,8 +596,8 @@ function applySession() {
   // Company filter: hide for LPGMC (they see only own)
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
 
-  // Navigate to scan (reset)
-  showView('scan');
+  // Navigate to dashboard (reset)
+  showView('reports');
 
   // Refresh data-bound views
   renderCylinders();
@@ -654,7 +655,7 @@ function showView(name) {
     scan:      'Scanning',
     cylinders: 'Cylinders',
     alerts:    'Alerts',
-    reports:   'Reports',
+    reports:   'Dashboard',
     licenses:  'Licenses',
   }[name] || name;
 
@@ -843,9 +844,7 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
   const updatedCyl = Object.assign({}, cyl);
   if (eventType === 'refilled') {
     updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
-    if (updatedCyl.fillCount >= updatedCyl.maxFills) {
-      updatedCyl.status = 'condemned';
-    }
+    updatedCyl.status = updatedCyl.fillCount >= updatedCyl.maxFills ? 'condemned' : 'available';
   } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
     updatedCyl.status = 'revalidation';
   } else if (eventType === 'revalidated') {
@@ -855,12 +854,12 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     updatedCyl.requalPlant = session.company;
   } else if (eventType === 'reval-returned') {
     updatedCyl.status = 'available';
-  } else if (eventType === 'shipped' || eventType === 'dist-sent-retail') {
+  } else if (eventType === 'shipped' || eventType === 'dist-sent-retail' || eventType === 'dist-received' || eventType === 'ret-received') {
+    updatedCyl.status = 'in-circulation';
+  } else if (eventType === 'ret-sold') {
     updatedCyl.status = 'in-use';
   } else if (eventType === 'received-empty' || eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
-    updatedCyl.status = 'available';
-  } else if (eventType === 'dist-received' || eventType === 'ret-received') {
-    updatedCyl.status = 'in-use';
+    updatedCyl.status = 'refilling';
   }
   await txPut('cylinders', updatedCyl);
 
@@ -1085,7 +1084,7 @@ function applyCylFilters() {
   if (compF)   data = data.filter(c => c.company === compF);
 
   // Stats
-  const statuses = { available: 0, 'in-use': 0, condemned: 0, revalidation: 0 };
+  const statuses = { available: 0, 'in-circulation': 0, refilling: 0, revalidation: 0, 'in-use': 0, condemned: 0 };
   _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
   cylStats.innerHTML = Object.entries(statuses).map(([k, v]) =>
     `<div class="stat-chip">
@@ -1109,7 +1108,7 @@ function applyCylFilters() {
     const fillClass = fillPct >= 95 ? 'crit' : fillPct >= 80 ? 'warn' : '';
     const dotClass  = 'dot-' + (cyl.status || 'available');
     const statClass = 'status-' + (cyl.status || 'available');
-    const statLabel = { available:'Available', 'in-use':'In Use', condemned:'Condemned', revalidation:'Revalidation' }[cyl.status] || cyl.status;
+    const statLabel = { available:'Available', 'in-circulation':'In Circulation', refilling:'In Refill', revalidation:'In Revalidation', 'in-use':'In Use', condemned:'Condemned' }[cyl.status] || cyl.status;
 
     const hydroDays = hydroTestDaysOverdue(cyl.lastHydroTest);
     const hydroBadge = hydroDays > 0
@@ -1351,60 +1350,114 @@ alertFilterType.addEventListener('change',     applyAlertFilters);
 async function renderReports() {
   let cyls   = await txGetAll('cylinders');
   let events = await txGetAll('events');
+  const role = Auth.session ? Auth.session.role : null;
+  const actSec = $('report-activity-section');
 
-  // LPGMC: filter own
-  if (Auth.session && Auth.session.role === 'lpgmc') {
-    cyls   = cyls.filter(c => c.company === Auth.session.company);
+  if (role === 'lpgmc') {
+    cyls = cyls.filter(c => c.company === Auth.session.company);
     const ownIds = new Set(cyls.map(c => c.id));
     events = events.filter(e => ownIds.has(e.cylinderId));
-  }
 
-  const total     = cyls.length;
-  const available = cyls.filter(c => c.status === 'available').length;
-  const inUse     = cyls.filter(c => c.status === 'in-use').length;
-  const condemned = cyls.filter(c => c.status === 'condemned').length;
+    const inCirculation  = cyls.filter(c => c.status === 'in-circulation').length;
+    const inRefill       = cyls.filter(c => c.status === 'refilling').length;
+    const inRevalidation = cyls.filter(c => c.status === 'revalidation').length;
+    const inUse          = cyls.filter(c => c.status === 'in-use').length;
+    const total          = inCirculation + inRefill + inRevalidation + inUse;
 
-  reportsGrid.innerHTML = `
-    <div class="report-card">
-      <span class="report-card-value">${total}</span>
-      <div class="report-card-label">Total Cylinders</div>
-    </div>
-    <div class="report-card">
-      <span class="report-card-value" style="color:var(--green)">${available}</span>
-      <div class="report-card-label">Available</div>
-    </div>
-    <div class="report-card">
-      <span class="report-card-value" style="color:var(--blue)">${inUse}</span>
-      <div class="report-card-label">In Use</div>
-    </div>
-    <div class="report-card">
-      <span class="report-card-value" style="color:var(--red)">${condemned}</span>
-      <div class="report-card-label">Condemned</div>
-    </div>`;
+    const allLicenses   = await txGetAll('licenses');
+    const refillerCount = allLicenses.filter(l => l.companyType === 'LPGMC').length;
+    const distCount     = allLicenses.filter(l => l.companyType === 'Distributor').length;
+    const retailCount   = allLicenses.filter(l => l.companyType === 'Retailer').length;
 
-  // Activity chart — last 30 days by event type
-  const now = Date.now();
-  const cutoff = now - 30 * 24 * 60 * 60 * 1000;
-  const recentEvents = events.filter(e => new Date(e.timestamp).getTime() >= cutoff);
+    reportsGrid.innerHTML = `
+      <div class="dashboard-section-title">Cylinder Lifecycle</div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
+        <div class="report-card-label">In Circulation</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--amber)">${inRefill}</span>
+        <div class="report-card-label">In Refill</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--teal)">${inRevalidation}</span>
+        <div class="report-card-label">In Revalidation</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--green)">${inUse}</span>
+        <div class="report-card-label">In Use</div>
+      </div>
+      <div class="report-card report-card-full">
+        <span class="report-card-value">${total}</span>
+        <div class="report-card-label">Total Cylinders</div>
+      </div>`;
 
-  const typeCounts = {};
-  recentEvents.forEach(e => { typeCounts[e.type] = (typeCounts[e.type] || 0) + 1; });
+    if (actSec) actSec.style.display = 'none';
 
-  const maxCount = Math.max(...Object.values(typeCounts), 1);
-
-  reportChart.innerHTML = Object.entries(typeCounts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([type, count]) => {
-      const pct = Math.round((count / maxCount) * 100);
-      return `<div class="chart-row">
-        <span class="chart-label">${escapeHtml(type)}</span>
-        <div class="chart-bar-track">
-          <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
+    reportChart.innerHTML = `
+      <div class="section-header" style="margin:16px 16px 8px">
+        <span>Supply Chain</span>
+      </div>
+      <div class="supply-chain-row">
+        <div class="supply-chain-card">
+          <span class="supply-chain-value">${refillerCount}</span>
+          <div class="supply-chain-label">Refilling Sites</div>
+        </div>
+        <div class="supply-chain-card">
+          <span class="supply-chain-value" style="color:var(--amber)">${distCount}</span>
+          <div class="supply-chain-label">Distributors</div>
+        </div>
+        <div class="supply-chain-card">
+          <span class="supply-chain-value" style="color:var(--purple)">${retailCount}</span>
+          <div class="supply-chain-label">Retailers</div>
         </div>
       </div>`;
-    }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+  } else {
+    if (actSec) actSec.style.display = '';
 
-  // Sync status
+    const total     = cyls.length;
+    const available = cyls.filter(c => c.status === 'available').length;
+    const inCirc    = cyls.filter(c => c.status === 'in-circulation').length;
+    const condemned = cyls.filter(c => c.status === 'condemned').length;
+
+    reportsGrid.innerHTML = `
+      <div class="report-card">
+        <span class="report-card-value">${total}</span>
+        <div class="report-card-label">Total Cylinders</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--green)">${available}</span>
+        <div class="report-card-label">Available</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${inCirc}</span>
+        <div class="report-card-label">In Circulation</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--red)">${condemned}</span>
+        <div class="report-card-label">Condemned</div>
+      </div>`;
+
+    const now = Date.now();
+    const cutoff = now - 30 * 24 * 60 * 60 * 1000;
+    const recentEvents = events.filter(e => new Date(e.timestamp).getTime() >= cutoff);
+    const typeCounts = {};
+    recentEvents.forEach(e => { typeCounts[e.type] = (typeCounts[e.type] || 0) + 1; });
+    const maxCount = Math.max(...Object.values(typeCounts), 1);
+
+    reportChart.innerHTML = Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `<div class="chart-row">
+          <span class="chart-label">${escapeHtml(type)}</span>
+          <div class="chart-bar-track">
+            <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
+          </div>
+        </div>`;
+      }).join('') || '<p style="padding:16px;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+  }
+
   renderSyncStatus();
 }
 

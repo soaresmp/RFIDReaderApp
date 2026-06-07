@@ -42,7 +42,7 @@
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false">
+        <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false" style="display:none">
           <div class="role-card-icon">🔧</div>
           <div class="role-card-body">
             <div class="role-card-title">Revalidator</div>
@@ -60,7 +60,7 @@
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="field-auditor" tabindex="0" role="button" aria-pressed="false">
+        <div class="role-card" data-role="field-auditor" tabindex="0" role="button" aria-pressed="false" style="display:none">
           <div class="role-card-icon">🔍</div>
           <div class="role-card-body">
             <div class="role-card-title">Field Auditor</div>
@@ -69,7 +69,7 @@
           <div class="role-card-chevron">›</div>
         </div>
 
-        <div class="role-card" data-role="tra" tabindex="0" role="button" aria-pressed="false">
+        <div class="role-card" data-role="tra" tabindex="0" role="button" aria-pressed="false" style="display:none">
           <div class="role-card-icon">💼</div>
           <div class="role-card-body">
             <div class="role-card-title">TRA</div>
@@ -145,10 +145,10 @@
 
     <!-- Nav tabs -->
     <nav id="app-nav" class="app-nav">
-      <button class="nav-tab active" data-view="scan">Scan</button>
+      <button class="nav-tab" data-view="reports">Dashboard</button>
+      <button class="nav-tab" data-view="scan">Scan</button>
       <button class="nav-tab" data-view="cylinders">Cylinders</button>
       <button class="nav-tab" data-view="alerts" id="nav-alerts">Alerts</button>
-      <button class="nav-tab" data-view="reports">Reports</button>
       <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">Licenses</button>
     </nav>
 
@@ -219,9 +219,11 @@
           <select id="cyl-filter-status" class="filter-select">
             <option value="">All statuses</option>
             <option value="available">Available</option>
-            <option value="in-use">In Use</option>
+            <option value="in-circulation">In Circulation</option>
+            <option value="refilling">In Refill</option>
+            <option value="revalidation">In Revalidation</option>
+            <option value="in-use">In Use (Consumer)</option>
             <option value="condemned">Condemned</option>
-            <option value="revalidation">Revalidation</option>
           </select>
           <select id="cyl-filter-company" class="filter-select">
             <option value="">All companies</option>
@@ -265,7 +267,7 @@
     <!-- ── REPORTS VIEW ───────────────────────────────────────────────── -->
     <div id="view-reports" class="view">
       <div class="reports-grid" id="reports-grid"></div>
-      <div class="section-header" style="margin: 16px 16px 8px">
+      <div id="report-activity-section" class="section-header" style="margin: 16px 16px 8px">
         <span>Activity — Last 30 Days</span>
         <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
       </div>

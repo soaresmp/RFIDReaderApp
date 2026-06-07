@@ -496,6 +496,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .evt-dist-sent-retail  { background: #1e3a5f; color: #60a5fa; }
 .evt-dist-returned-empty { background: #312e81; color: #a5b4fc; }
 .evt-ret-received      { background: #083344; color: #67e8f9; }
+.evt-ret-sold          { background: #14532d; color: #86efac; }
 .evt-ret-returned-empty{ background: #312e81; color: #a5b4fc; }
 
 .event-body { flex: 1; min-width: 0; }
@@ -562,10 +563,12 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   flex-shrink: 0;
   margin-top: 5px;
 }
-.dot-available  { background: var(--green); }
-.dot-in-use     { background: var(--blue); }
-.dot-condemned  { background: var(--red); }
-.dot-revalidation { background: var(--amber); }
+.dot-available      { background: var(--green); }
+.dot-in-circulation { background: var(--blue); }
+.dot-refilling      { background: var(--amber); }
+.dot-revalidation   { background: var(--teal); }
+.dot-in-use         { background: var(--green); }
+.dot-condemned      { background: var(--red); }
 
 .cylinder-body { flex: 1; min-width: 0; }
 .cylinder-serial {
@@ -602,10 +605,12 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   font-weight: 600;
   white-space: nowrap;
 }
-.status-available   { background: rgba(16,185,129,0.15); color: var(--green); }
-.status-in-use      { background: rgba(59,130,246,0.15); color: var(--blue); }
-.status-condemned   { background: rgba(239,68,68,0.15);  color: var(--red); }
-.status-revalidation{ background: rgba(245,158,11,0.15); color: var(--amber); }
+.status-available      { background: rgba(16,185,129,0.15); color: var(--green); }
+.status-in-circulation { background: rgba(59,130,246,0.15); color: var(--blue); }
+.status-refilling      { background: rgba(245,158,11,0.15); color: var(--amber); }
+.status-revalidation   { background: rgba(20,184,166,0.15); color: var(--teal); }
+.status-in-use         { background: rgba(16,185,129,0.15); color: var(--green); }
+.status-condemned      { background: rgba(239,68,68,0.15);  color: var(--red); }
 
 .fill-bar {
   width: 56px;
@@ -1269,4 +1274,46 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   margin: 20px 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
+}
+
+/* ── Dashboard section title & full-width card ────────────────────────────── */
+.dashboard-section-title {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--blue);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  margin-top: 4px;
+}
+.report-card-full { grid-column: 1 / -1; }
+
+/* ── Supply chain row ─────────────────────────────────────────────────────── */
+.supply-chain-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+.supply-chain-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.supply-chain-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+}
+.supply-chain-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
