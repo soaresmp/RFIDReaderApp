@@ -1696,21 +1696,8 @@ let _networkMap = null;
 let _networkMarkers = [];
 
 async function renderNetwork() {
-  const networkList = $('network-list');
+  const networkList  = $('network-list');
   const networkEmpty = $('network-empty');
-
-  // Initialize Leaflet map lazily
-  if (!_networkMap) {
-    _networkMap = L.map('network-map', { zoomControl: true }).setView([-6.3, 35.7], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 18,
-    }).addTo(_networkMap);
-  }
-
-  // Clear old markers
-  _networkMarkers.forEach(m => m.remove());
-  _networkMarkers = [];
 
   // Current filter
   const activeFilterBtn = document.querySelector('.network-filters .btn-primary');
@@ -1720,7 +1707,7 @@ async function renderNetwork() {
     ? DEMO_NETWORK.filter(n => n.type === activeFilter)
     : DEMO_NETWORK;
 
-  // Render list
+  // ── Render list (no Leaflet dependency) ──────────────────────────────────
   networkList.innerHTML = '';
   if (!filtered.length) {
     networkEmpty.style.display = '';
@@ -1742,8 +1729,24 @@ async function renderNetwork() {
           <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
         </div>`;
       networkList.appendChild(li);
+    });
+  }
 
-      // Add marker
+  // ── Initialize / update Leaflet map ──────────────────────────────────────
+  try {
+    if (!_networkMap) {
+      _networkMap = L.map('network-map', { zoomControl: true }).setView([-6.3, 35.7], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+      }).addTo(_networkMap);
+    }
+
+    // Clear old markers
+    _networkMarkers.forEach(m => m.remove());
+    _networkMarkers = [];
+
+    filtered.forEach(partner => {
       const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
       const icon = L.divIcon({
         className: '',
@@ -1756,10 +1759,11 @@ async function renderNetwork() {
         .bindPopup(`<strong>${partner.name}</strong><br>${partner.type}<br>${partner.city}<br>${partner.cylinders} total · ${partner.full} full · ${partner.empty} empty`);
       _networkMarkers.push(marker);
     });
-  }
 
-  // Invalidate map size after DOM paint
-  setTimeout(() => { if (_networkMap) _networkMap.invalidateSize(); }, 100);
+    setTimeout(() => { if (_networkMap) _networkMap.invalidateSize(); }, 150);
+  } catch (e) {
+    console.warn('Map render error:', e);
+  }
 }
 
 // Network filter buttons
