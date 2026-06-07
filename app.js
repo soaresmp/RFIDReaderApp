@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v8';
+const SEED_KEY   = 'seeded-v9';
 
 const DEMO_CYLINDERS = [
   // Vivo LPG (12)
@@ -84,37 +84,37 @@ const DEMO_LICENSES = [
 
 const DEMO_NETWORK = [
   // Distributors (12)
-  { id:'NET-001', name:'ABC Gas Distributors',          type:'Distributor', region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo Market Area',        lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145, full:87,  empty:58  },
-  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98,  full:61,  empty:37  },
-  { id:'NET-003', name:'Lake Victoria Gas Supply',      type:'Distributor', region:'Mwanza',        city:'Mwanza',        address:'Pamba Road, Mwanza',           lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112, full:70,  empty:42  },
-  { id:'NET-004', name:'Capital Gas Supplies',          type:'Distributor', region:'Dodoma',        city:'Dodoma',        address:'Makole Area, Dodoma',          lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67,  full:39,  empty:28  },
-  { id:'NET-005', name:'Kilimanjaro Gas Distributors',  type:'Distributor', region:'Kilimanjaro',   city:'Moshi',         address:'Rindi Lane, Moshi',            lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89,  full:52,  empty:37  },
-  { id:'NET-006', name:'Island Gas Zanzibar',           type:'Distributor', region:'Zanzibar',      city:'Zanzibar',      address:'Darajani, Zanzibar City',      lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43,  full:20,  empty:23  },
-  { id:'NET-007', name:'Southern Highlands Gas',        type:'Distributor', region:'Mbeya',         city:'Mbeya',         address:'Sisimba Road, Mbeya',          lat:-8.9094, lng:33.4607, contact:'+255 25 250 0007', status:'active',   cylinders:76,  full:45,  empty:31  },
-  { id:'NET-008', name:'Coastal Gas Ltd',               type:'Distributor', region:'Tanga',         city:'Tanga',         address:'Usagara Area, Tanga',          lat:-5.0710, lng:39.0951, contact:'+255 27 264 0008', status:'active',   cylinders:54,  full:33,  empty:21  },
-  { id:'NET-009', name:'Tabora Gas Distributors',       type:'Distributor', region:'Tabora',        city:'Tabora',        address:'Market Street, Tabora',        lat:-5.0167, lng:32.8000, contact:'+255 26 260 0009', status:'active',   cylinders:41,  full:24,  empty:17  },
-  { id:'NET-010', name:'Lindi Gas Supply Co.',          type:'Distributor', region:'Lindi',         city:'Lindi',         address:'Mvua Road, Lindi',             lat:-9.9965, lng:39.7142, contact:'+255 23 220 0010', status:'inactive', cylinders:28,  full:12,  empty:16  },
-  { id:'NET-023', name:'Morogoro Gas Depot',            type:'Distributor', region:'Morogoro',      city:'Morogoro',      address:'Kingo Road, Morogoro',         lat:-6.8240, lng:37.6580, contact:'+255 23 261 0023', status:'active',   cylinders:62,  full:38,  empty:24  },
-  { id:'NET-024', name:'Shinyanga Gas Centre',          type:'Distributor', region:'Shinyanga',     city:'Shinyanga',     address:'Kambarage Road, Shinyanga',    lat:-3.6604, lng:33.4231, contact:'+255 28 276 0024', status:'active',   cylinders:48,  full:29,  empty:19  },
+  { id:'NET-001', name:'ABC Gas Distributors',          type:'Distributor', region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo Market Area',        lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', contactPerson:'James Mwangi',      status:'active',   cylinders:145, full:87,  empty:58  },
+  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', contactPerson:'Amina Njoroge',      status:'active',   cylinders:98,  full:61,  empty:37  },
+  { id:'NET-003', name:'Lake Victoria Gas Supply',      type:'Distributor', region:'Mwanza',        city:'Mwanza',        address:'Pamba Road, Mwanza',           lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', contactPerson:'Peter Odhiambo',     status:'active',   cylinders:112, full:70,  empty:42  },
+  { id:'NET-004', name:'Capital Gas Supplies',          type:'Distributor', region:'Dodoma',        city:'Dodoma',        address:'Makole Area, Dodoma',          lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', contactPerson:'Grace Makundi',      status:'active',   cylinders:67,  full:39,  empty:28  },
+  { id:'NET-005', name:'Kilimanjaro Gas Distributors',  type:'Distributor', region:'Kilimanjaro',   city:'Moshi',         address:'Rindi Lane, Moshi',            lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', contactPerson:'David Kimaro',       status:'active',   cylinders:89,  full:52,  empty:37  },
+  { id:'NET-006', name:'Island Gas Zanzibar',           type:'Distributor', region:'Zanzibar',      city:'Zanzibar',      address:'Darajani, Zanzibar City',      lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', contactPerson:'Fatuma Said',        status:'inactive', cylinders:43,  full:20,  empty:23  },
+  { id:'NET-007', name:'Southern Highlands Gas',        type:'Distributor', region:'Mbeya',         city:'Mbeya',         address:'Sisimba Road, Mbeya',          lat:-8.9094, lng:33.4607, contact:'+255 25 250 0007', contactPerson:'Robert Mlowoka',     status:'active',   cylinders:76,  full:45,  empty:31  },
+  { id:'NET-008', name:'Coastal Gas Ltd',               type:'Distributor', region:'Tanga',         city:'Tanga',         address:'Usagara Area, Tanga',          lat:-5.0710, lng:39.0951, contact:'+255 27 264 0008', contactPerson:'Salma Hamisi',       status:'active',   cylinders:54,  full:33,  empty:21  },
+  { id:'NET-009', name:'Tabora Gas Distributors',       type:'Distributor', region:'Tabora',        city:'Tabora',        address:'Market Street, Tabora',        lat:-5.0167, lng:32.8000, contact:'+255 26 260 0009', contactPerson:'Charles Nyundo',     status:'active',   cylinders:41,  full:24,  empty:17  },
+  { id:'NET-010', name:'Lindi Gas Supply Co.',          type:'Distributor', region:'Lindi',         city:'Lindi',         address:'Mvua Road, Lindi',             lat:-9.9965, lng:39.7142, contact:'+255 23 220 0010', contactPerson:'Mary Chilumba',      status:'inactive', cylinders:28,  full:12,  empty:16  },
+  { id:'NET-023', name:'Morogoro Gas Depot',            type:'Distributor', region:'Morogoro',      city:'Morogoro',      address:'Kingo Road, Morogoro',         lat:-6.8240, lng:37.6580, contact:'+255 23 261 0023', contactPerson:'Hassan Mgeni',       status:'active',   cylinders:62,  full:38,  empty:24  },
+  { id:'NET-024', name:'Shinyanga Gas Centre',          type:'Distributor', region:'Shinyanga',     city:'Shinyanga',     address:'Kambarage Road, Shinyanga',    lat:-3.6604, lng:33.4231, contact:'+255 28 276 0024', contactPerson:'Veronica Shija',     status:'active',   cylinders:48,  full:29,  empty:19  },
   // Retailers (18)
-  { id:'NET-011', name:'QuickGas Retail DSM North',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Msimbazi Street, Kinondoni',   lat:-6.7900, lng:39.2100, contact:'+255 22 211 0011', status:'active',   cylinders:32,  full:20,  empty:12  },
-  { id:'NET-012', name:'CityGas Direct Temeke',         type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Temeke District',              lat:-6.8600, lng:39.2500, contact:'+255 22 215 0012', status:'active',   cylinders:28,  full:16,  empty:12  },
-  { id:'NET-013', name:'Kariakoo Gas Shop',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo, Ilala',              lat:-6.8235, lng:39.2695, contact:'+255 22 218 0013', status:'active',   cylinders:45,  full:27,  empty:18  },
-  { id:'NET-014', name:'Mbagala Gas Point',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Mbagala Road, Temeke',         lat:-6.9010, lng:39.2850, contact:'+255 22 216 0014', status:'active',   cylinders:22,  full:13,  empty:9   },
-  { id:'NET-015', name:'Northern Gas Retail Arusha',    type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Ngarenaro, Arusha',            lat:-3.3700, lng:36.6950, contact:'+255 27 254 0015', status:'active',   cylinders:19,  full:11,  empty:8   },
-  { id:'NET-016', name:'Moshi Gas Outlet',              type:'Retailer',    region:'Kilimanjaro',   city:'Moshi',         address:'Kibo Road, Moshi',             lat:-3.3450, lng:37.3410, contact:'+255 27 275 0016', status:'active',   cylinders:17,  full:10,  empty:7   },
-  { id:'NET-017', name:'Morogoro Gas Centre',           type:'Retailer',    region:'Morogoro',      city:'Morogoro',      address:'Boma Road, Morogoro',          lat:-6.8160, lng:37.6762, contact:'+255 23 261 0017', status:'active',   cylinders:16,  full:9,   empty:7   },
-  { id:'NET-018', name:'Iringa Gas Retail',             type:'Retailer',    region:'Iringa',        city:'Iringa',        address:'Uhuru Avenue, Iringa',         lat:-7.7700, lng:35.6900, contact:'+255 26 270 0018', status:'active',   cylinders:21,  full:13,  empty:8   },
-  { id:'NET-019', name:'Zanzibar Stone Town Gas',       type:'Retailer',    region:'Zanzibar',      city:'Zanzibar',      address:'Stone Town, Unguja',           lat:-6.1659, lng:39.1989, contact:'+255 24 223 0019', status:'active',   cylinders:14,  full:8,   empty:6   },
-  { id:'NET-020', name:'Mwanza Lakeside Gas',           type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Capri Point, Mwanza',          lat:-2.5000, lng:32.9000, contact:'+255 28 252 0020', status:'active',   cylinders:26,  full:16,  empty:10  },
-  { id:'NET-021', name:'Dodoma Central Gas Shop',       type:'Retailer',    region:'Dodoma',        city:'Dodoma',        address:'Jamatini Area, Dodoma',        lat:-6.1800, lng:35.7400, contact:'+255 26 232 0021', status:'active',   cylinders:18,  full:11,  empty:7   },
-  { id:'NET-022', name:'Mbeya Highland Gas Retail',     type:'Retailer',    region:'Mbeya',         city:'Mbeya',         address:'Forest Hill Area, Mbeya',      lat:-8.9150, lng:33.4550, contact:'+255 25 250 0022', status:'active',   cylinders:23,  full:14,  empty:9   },
-  { id:'NET-025', name:'Tabora Market Gas Shop',        type:'Retailer',    region:'Tabora',        city:'Tabora',        address:'Ipuli Road, Tabora',           lat:-5.0200, lng:32.8100, contact:'+255 26 260 0025', status:'active',   cylinders:12,  full:7,   empty:5   },
-  { id:'NET-026', name:'Tanga Shoreline Gas',           type:'Retailer',    region:'Tanga',         city:'Tanga',         address:'Ocean Road, Tanga',            lat:-5.0640, lng:39.1010, contact:'+255 27 264 0026', status:'active',   cylinders:15,  full:9,   empty:6   },
-  { id:'NET-027', name:'Dar North Gas Kijitonyama',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kijitonyama, Kinondoni',       lat:-6.7680, lng:39.2430, contact:'+255 22 277 0027', status:'active',   cylinders:20,  full:12,  empty:8   },
-  { id:'NET-028', name:'Mwanza Rock City Gas',          type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Nyamagana, Mwanza',            lat:-2.5150, lng:32.9080, contact:'+255 28 250 0028', status:'active',   cylinders:11,  full:6,   empty:5   },
-  { id:'NET-029', name:'Arusha Clock Tower Gas',        type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Clock Tower Area, Arusha',     lat:-3.3660, lng:36.6870, contact:'+255 27 250 0029', status:'active',   cylinders:16,  full:10,  empty:6   },
-  { id:'NET-030', name:'Shinyanga Gas Retail',          type:'Retailer',    region:'Shinyanga',     city:'Shinyanga',     address:'Kahama Road, Shinyanga',       lat:-3.6650, lng:33.4280, contact:'+255 28 276 0030', status:'active',   cylinders:9,   full:5,   empty:4   },
+  { id:'NET-011', name:'QuickGas Retail DSM North',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Msimbazi Street, Kinondoni',   lat:-6.7900, lng:39.2100, contact:'+255 22 211 0011', contactPerson:'Ali Juma',           status:'active',   cylinders:32,  full:20,  empty:12  },
+  { id:'NET-012', name:'CityGas Direct Temeke',         type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Temeke District',              lat:-6.8600, lng:39.2500, contact:'+255 22 215 0012', contactPerson:'Neema Kileo',        status:'active',   cylinders:28,  full:16,  empty:12  },
+  { id:'NET-013', name:'Kariakoo Gas Shop',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo, Ilala',              lat:-6.8235, lng:39.2695, contact:'+255 22 218 0013', contactPerson:'Ibrahim Rashid',     status:'active',   cylinders:45,  full:27,  empty:18  },
+  { id:'NET-014', name:'Mbagala Gas Point',             type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Mbagala Road, Temeke',         lat:-6.9010, lng:39.2850, contact:'+255 22 216 0014', contactPerson:'Lucy Msigwa',        status:'active',   cylinders:22,  full:13,  empty:9   },
+  { id:'NET-015', name:'Northern Gas Retail Arusha',    type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Ngarenaro, Arusha',            lat:-3.3700, lng:36.6950, contact:'+255 27 254 0015', contactPerson:'John Lema',          status:'active',   cylinders:19,  full:11,  empty:8   },
+  { id:'NET-016', name:'Moshi Gas Outlet',              type:'Retailer',    region:'Kilimanjaro',   city:'Moshi',         address:'Kibo Road, Moshi',             lat:-3.3450, lng:37.3410, contact:'+255 27 275 0016', contactPerson:'Agnes Moshi',        status:'active',   cylinders:17,  full:10,  empty:7   },
+  { id:'NET-017', name:'Morogoro Gas Centre',           type:'Retailer',    region:'Morogoro',      city:'Morogoro',      address:'Boma Road, Morogoro',          lat:-6.8160, lng:37.6762, contact:'+255 23 261 0017', contactPerson:'Omari Saleh',        status:'active',   cylinders:16,  full:9,   empty:7   },
+  { id:'NET-018', name:'Iringa Gas Retail',             type:'Retailer',    region:'Iringa',        city:'Iringa',        address:'Uhuru Avenue, Iringa',         lat:-7.7700, lng:35.6900, contact:'+255 26 270 0018', contactPerson:'Joyce Mtitu',        status:'active',   cylinders:21,  full:13,  empty:8   },
+  { id:'NET-019', name:'Zanzibar Stone Town Gas',       type:'Retailer',    region:'Zanzibar',      city:'Zanzibar',      address:'Stone Town, Unguja',           lat:-6.1659, lng:39.1989, contact:'+255 24 223 0019', contactPerson:'Khadija Vuai',       status:'active',   cylinders:14,  full:8,   empty:6   },
+  { id:'NET-020', name:'Mwanza Lakeside Gas',           type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Capri Point, Mwanza',          lat:-2.5000, lng:32.9000, contact:'+255 28 252 0020', contactPerson:'Samuel Mwita',       status:'active',   cylinders:26,  full:16,  empty:10  },
+  { id:'NET-021', name:'Dodoma Central Gas Shop',       type:'Retailer',    region:'Dodoma',        city:'Dodoma',        address:'Jamatini Area, Dodoma',        lat:-6.1800, lng:35.7400, contact:'+255 26 232 0021', contactPerson:'Florence Mwenda',    status:'active',   cylinders:18,  full:11,  empty:7   },
+  { id:'NET-022', name:'Mbeya Highland Gas Retail',     type:'Retailer',    region:'Mbeya',         city:'Mbeya',         address:'Forest Hill Area, Mbeya',      lat:-8.9150, lng:33.4550, contact:'+255 25 250 0022', contactPerson:'Patrick Mwale',      status:'active',   cylinders:23,  full:14,  empty:9   },
+  { id:'NET-025', name:'Tabora Market Gas Shop',        type:'Retailer',    region:'Tabora',        city:'Tabora',        address:'Ipuli Road, Tabora',           lat:-5.0200, lng:32.8100, contact:'+255 26 260 0025', contactPerson:'Sophia Nkulu',       status:'active',   cylinders:12,  full:7,   empty:5   },
+  { id:'NET-026', name:'Tanga Shoreline Gas',           type:'Retailer',    region:'Tanga',         city:'Tanga',         address:'Ocean Road, Tanga',            lat:-5.0640, lng:39.1010, contact:'+255 27 264 0026', contactPerson:'Emmanuel Msuya',     status:'active',   cylinders:15,  full:9,   empty:6   },
+  { id:'NET-027', name:'Dar North Gas Kijitonyama',     type:'Retailer',    region:'Dar es Salaam', city:'Dar es Salaam', address:'Kijitonyama, Kinondoni',       lat:-6.7680, lng:39.2430, contact:'+255 22 277 0027', contactPerson:'Rehema Kondo',       status:'active',   cylinders:20,  full:12,  empty:8   },
+  { id:'NET-028', name:'Mwanza Rock City Gas',          type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Nyamagana, Mwanza',            lat:-2.5150, lng:32.9080, contact:'+255 28 250 0028', contactPerson:'Bernard Nyerere',    status:'active',   cylinders:11,  full:6,   empty:5   },
+  { id:'NET-029', name:'Arusha Clock Tower Gas',        type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Clock Tower Area, Arusha',     lat:-3.3660, lng:36.6870, contact:'+255 27 250 0029', contactPerson:'Winnie Kimani',      status:'active',   cylinders:16,  full:10,  empty:6   },
+  { id:'NET-030', name:'Shinyanga Gas Retail',          type:'Retailer',    region:'Shinyanga',     city:'Shinyanga',     address:'Kahama Road, Shinyanga',       lat:-3.6650, lng:33.4280, contact:'+255 28 276 0030', contactPerson:'Terence Bundala',    status:'active',   cylinders:9,   full:5,   empty:4   },
 ];
 
 const EVENT_LABELS = {
@@ -350,8 +350,8 @@ async function seedDemoData() {
     await txPut('cylinders', cyl);
   }
 
-  const now  = Date.now();
-  const DAY  = 24 * 60 * 60 * 1000;
+  const now   = Date.now();
+  const DAY   = 24 * 60 * 60 * 1000;
   const MONTH = 30 * DAY;
 
   const RETAILERS = [
@@ -388,89 +388,99 @@ async function seedDemoData() {
 
   function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-  for (const cyl of DEMO_CYLINDERS) {
-    const mfgYear = parseInt(cyl.manufactureDate.slice(0, 4));
+  // Helper: seed one full cycle (registered → refilled → shipped → dist-received →
+  // dist-sent-retail → ret-received → ret-sold → ret-returned-empty →
+  // dist-returned-empty → received-empty)
+  async function seedCompleteCycle(cyl, baseMs) {
+    const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
+    await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(baseMs).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(baseMs + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(baseMs + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(baseMs + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(baseMs + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(baseMs + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(baseMs + 50*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(baseMs + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(baseMs + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+  }
 
-    // Registration
+  for (const cyl of DEMO_CYLINDERS) {
+    const mfgTime = new Date(cyl.manufactureDate).getTime();
+
+    // Step 1: Registration at LPGMC
     await txPut('events', {
       cylinderId:cyl.id, type:'registered',
-      timestamp:new Date(cyl.manufactureDate).toISOString(),
+      timestamp: new Date(mfgTime).toISOString(),
       operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration',
     });
 
-    if (mfgYear <= 2020) {
-      // Old cylinder: complete cycle ~30 months ago (will trigger stuck-in-circulation for in-circulation ones)
-      const r1 = rnd(RETAILERS), d1 = rnd(DISTRIBUTORS);
-      const t1r = new Date(now - 30*MONTH);
-      const t1s = new Date(now - 29*MONTH + 5*DAY);
-      const t1d = new Date(now - 29*MONTH + 8*DAY);
-      const t1x = new Date(now - 28*MONTH);
-      const t1b = new Date(now - 27*MONTH);
-      const t1e = new Date(now - 27*MONTH + 3*DAY);
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t1r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t1s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d1.name, destinedRegion:d1.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t1d.toISOString(), operatorId:'SYSTEM', company:d1.name, location:d1.name, region:d1.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:t1x.toISOString(), operatorId:'SYSTEM', company:r1.name, location:r1.name, region:r1.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:t1b.toISOString(), operatorId:'SYSTEM', company:r1.name, location:r1.name, region:r1.region });
-      await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:t1e.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    if (cyl.status === 'revalidation') {
+      // 1 complete cycle, then sent to revalidation
+      await seedCompleteCycle(cyl, now - 18*MONTH);
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now - 6*MONTH).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now - 5*MONTH).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now - 5*MONTH + 3*DAY).toISOString(), operatorId:'SYSTEM', company:'ProRevalid Ltd', location:'ProRevalid Ltd', region:'Dar es Salaam' });
+      continue;
+    }
 
-      if (cyl.status === 'in-circulation') {
-        // Second cycle — shipped 26 months ago, never returned → stuck alert triggers
-        const d2 = rnd(DISTRIBUTORS);
-        const t2r = new Date(now - 27*MONTH);
-        const t2s = new Date(now - 26*MONTH);
-        const t2d = new Date(now - 26*MONTH + 2*DAY);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t2s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d2.name, destinedRegion:d2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t2d.toISOString(), operatorId:'SYSTEM', company:d2.name, location:d2.name, region:d2.region });
-      } else if (cyl.status === 'in-refill') {
-        const t2r = new Date(now - 3*MONTH);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled', timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      } else if (cyl.status === 'in-use') {
-        const r2 = rnd(RETAILERS), d2 = rnd(DISTRIBUTORS);
-        const t2r = new Date(now - 6*MONTH);
-        const t2s = new Date(now - 5*MONTH);
-        const t2d = new Date(now - 5*MONTH + DAY);
-        const t2x = new Date(now - 4*MONTH);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:t2r.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:t2s.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d2.name, destinedRegion:d2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:t2d.toISOString(), operatorId:'SYSTEM', company:d2.name, location:d2.name, region:d2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:t2x.toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-      }
-    } else {
-      // Newer cylinder — 1-2 recent cycles
-      const fills = Math.min(cyl.fillCount, 2);
-      for (let i = 0; i < fills; i++) {
-        const r = rnd(RETAILERS), d = rnd(DISTRIBUTORS);
-        const off = (fills - i) * 4 * MONTH;
-        const tr = new Date(now - off);
-        const ts = new Date(now - off + 7*DAY);
-        const td = new Date(now - off + 9*DAY);
-        const tx = new Date(now - off + 20*DAY);
-        const tb = new Date(now - off + 50*DAY);
-        const te = new Date(now - off + 53*DAY);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',      timestamp:tr.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        if (cyl.status !== 'in-refill' || i < fills - 1) {
-          await txPut('events', { cylinderId:cyl.id, type:'shipped',       timestamp:ts.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-          await txPut('events', { cylinderId:cyl.id, type:'dist-received', timestamp:td.toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-          await txPut('events', { cylinderId:cyl.id, type:'ret-sold',      timestamp:tx.toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-          await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:tb.toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-          await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:te.toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        }
-      }
+    // Older cylinders: seed 2 complete past cycles going back ~30 months
+    if (parseInt(cyl.manufactureDate) <= 2020 || cyl.fillCount >= 50) {
+      await seedCompleteCycle(cyl, now - 30*MONTH);
+      await seedCompleteCycle(cyl, now - 16*MONTH);
+    } else if (cyl.fillCount >= 10) {
+      await seedCompleteCycle(cyl, now - 12*MONTH);
+    }
+
+    // Final state per current cylinder status
+    if (cyl.status === 'in-refill') {
+      // Most recent event: received-empty a few months ago, then refilled at LPGMC
+      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
+      const base = now - 4*MONTH;
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base + 50*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      // Now in-refill: refilled recently, awaiting dispatch
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+
+    } else if (cyl.status === 'in-circulation') {
+      // Shipped out ~60 days ago, stuck at distributor (triggers stuck-in-circulation alert)
+      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
+      const base = now - 60*DAY;
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 12*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+
+    } else if (cyl.status === 'in-use') {
+      // Full cycle ending at ret-sold
+      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
+      const base = now - 3*MONTH;
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
     }
   }
 
   // Misplaced cylinder demo: shipped to ABC Gas, but received by Sunrise Gas (different region)
   const misplacedPairs = [
-    { cylId:'E280116060000204C3F04E85', intendedDist:'ABC Gas Distributors',   intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',      actualRegion:'Arusha' },
-    { cylId:'E280116060000204C3F04E95', intendedDist:'Capital Gas Supplies',   intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',actualRegion:'Mbeya'  },
+    { cylId:'E280116060000204C3F04E85', intendedDist:'ABC Gas Distributors',  intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',       actualRegion:'Arusha' },
+    { cylId:'E280116060000204C3F04E95', intendedDist:'Capital Gas Supplies',  intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas', actualRegion:'Mbeya'  },
   ];
   for (const mp of misplacedPairs) {
     const tShip = new Date(now - 10*DAY);
     const tRecv = new Date(now - 8*DAY);
-    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:'Vivo LPG',      location:'Vivo LPG',      destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
-    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist,   location:mp.actualDist,   region:mp.actualRegion });
+    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:'Vivo LPG', location:'Vivo LPG', destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
+    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
   }
 
   for (const lic of DEMO_LICENSES) {
@@ -698,13 +708,19 @@ function selectRole(role) {
   if (role === 'lpgmc') {
     loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     loginCompSel.style.display = '';
+  } else if (role === 'distributor') {
+    const dists = DEMO_NETWORK.filter(n => n.type === 'Distributor');
+    loginCompSel.innerHTML = dists.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
+    loginCompSel.style.display = '';
+  } else if (role === 'retailer') {
+    const rets = DEMO_NETWORK.filter(n => n.type === 'Retailer');
+    loginCompSel.innerHTML = rets.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
+    loginCompSel.style.display = '';
   } else {
     loginCompText.placeholder = role === 'ewura'          ? 'EWURA'
       : role === 'tra'           ? 'TRA'
       : role === 'revalidator'   ? 'e.g. ProRevalid Ltd'
-      : role === 'field-auditor' ? 'e.g. Field Inspection Unit'
-      : role === 'distributor'   ? 'e.g. ABC Distributors'
-      : 'e.g. QuickGas Retail';
+      : 'e.g. Field Inspection Unit';
     loginCompText.style.display = '';
   }
 
@@ -737,9 +753,8 @@ loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!_selectedRole) return;
 
-  const company = _selectedRole === 'lpgmc'
-    ? loginCompSel.value.trim()
-    : loginCompText.value.trim();
+  const useSelect = ['lpgmc', 'distributor', 'retailer'].includes(_selectedRole);
+  const company = useSelect ? loginCompSel.value.trim() : loginCompText.value.trim();
 
   const operatorId = loginOperator.value.trim();
 
@@ -1288,12 +1303,42 @@ async function renderCylinders() {
 
 function buildCylLocations(cyls, allEvents) {
   _cylLocations = {};
-  const sorted = allEvents.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  sorted.forEach(ev => {
-    if (_cylLocations[ev.cylinderId]) return; // already have the most recent
-    const locName = ev.location || ev.company;
-    if (!locName) return;
-    _cylLocations[ev.cylinderId] = { location: locName, region: ev.region || '' };
+  const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+  const CIRC_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
+  const REVAL_TYPES      = new Set(['sent-revalidation', 'reval-received']);
+
+  cyls.forEach(cyl => {
+    if (cyl.status === 'in-use') return;
+
+    if (cyl.status === 'in-refill') {
+      _cylLocations[cyl.id] = { location: cyl.company, region: 'Refill Site' };
+      return;
+    }
+
+    const cylEvs = allEvents
+      .filter(e => e.cylinderId === cyl.id)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    if (cyl.status === 'in-circulation') {
+      const locEv = cylEvs.find(e => CIRC_FULL_TYPES.has(e.type) || CIRC_EMPTY_TYPES.has(e.type));
+      if (locEv) {
+        const isReturn = CIRC_EMPTY_TYPES.has(locEv.type);
+        _cylLocations[cyl.id] = {
+          location: locEv.location || locEv.company || '',
+          region:   locEv.region || '',
+          empty:    isReturn,
+        };
+      }
+      return;
+    }
+
+    if (cyl.status === 'revalidation') {
+      const locEv = cylEvs.find(e => REVAL_TYPES.has(e.type));
+      _cylLocations[cyl.id] = {
+        location: (locEv?.location || locEv?.company) || 'Revalidation Centre',
+        region:   locEv?.region || '',
+      };
+    }
   });
 }
 
@@ -1646,18 +1691,6 @@ async function renderAlerts() {
       }
     }
 
-    // 4. Hydro test overdue: >5 years since lastHydroTest
-    if (cyl.lastHydroTest) {
-      const hydroBase = new Date(cyl.lastHydroTest + 'T00:00:00');
-      const hydroDue  = new Date(hydroBase);
-      hydroDue.setFullYear(hydroDue.getFullYear() + 5);
-      const daysOverdue = Math.floor((now - hydroDue) / (24*60*60*1000));
-      if (daysOverdue > 0) {
-        _alertsData.push({ severity:'critical', type:'hydro-overdue', cylinder:cyl,
-          title: `${cyl.serial} — Hydro Test Overdue`,
-          desc: `Hydro test ${daysOverdue} days overdue. Last test: ${cyl.lastHydroTest}.` });
-      }
-    }
   }
 
   buildCylLocations(cyls, allEvents);
@@ -1739,10 +1772,23 @@ async function renderReports() {
     const inUse          = cyls.filter(c => c.status === 'in-use').length;
     const total          = inRefill + inCirculation + inRevalidation + inUse;
 
-    const allLicenses   = await txGetAll('licenses');
-    const refillerCount = allLicenses.filter(l => l.companyType === 'LPGMC').length;
-    const distCount     = allLicenses.filter(l => l.companyType === 'Distributor').length;
-    const retailCount   = allLicenses.filter(l => l.companyType === 'Retailer').length;
+    // In-circulation breakdown: full vs empty based on last event type
+    const CIRC_FULL_EV  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+    const CIRC_EMPTY_EV = new Set(['ret-returned-empty', 'dist-returned-empty']);
+    const cylInCirc = cyls.filter(c => c.status === 'in-circulation');
+    let circFull = 0, circEmpty = 0;
+    cylInCirc.forEach(cyl => {
+      const lastEv = events
+        .filter(e => e.cylinderId === cyl.id)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+      if (!lastEv) return;
+      if (CIRC_FULL_EV.has(lastEv.type))  circFull++;
+      else if (CIRC_EMPTY_EV.has(lastEv.type)) circEmpty++;
+    });
+
+    const refillerCount = LPGMC_COMPANIES.length;
+    const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
+    const retailCount   = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
 
     const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
     const requalSoon = cyls.filter(c => {
@@ -1754,6 +1800,19 @@ async function renderReports() {
       return (dueDate - new Date()) <= twoYears;
     }).length;
 
+    // Alerts total — compute inline so it doesn't depend on renderAlerts timing
+    let alertTotal = requalSoon;
+    cyls.forEach(cyl => {
+      if (cyl.status === 'in-circulation') {
+        const cylEvs = events.filter(e => e.cylinderId === cyl.id)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        if (cylEvs.length) {
+          const days = Math.floor((Date.now() - new Date(cylEvs[0].timestamp)) / 86400000);
+          if (days > 45) alertTotal++;
+        }
+      }
+    });
+
     reportsGrid.innerHTML = `
       <div class="dashboard-section-title">Cylinder Lifecycle</div>
       <div class="report-card">
@@ -1763,6 +1822,11 @@ async function renderReports() {
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
         <div class="report-card-label">In Circulation</div>
+        <div class="report-card-sub">
+          <span style="color:var(--green);font-size:11px">✅ ${circFull} full</span>
+          &nbsp;·&nbsp;
+          <span style="color:var(--muted);font-size:11px">📭 ${circEmpty} empty</span>
+        </div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--teal)">${inRevalidation}</span>
@@ -1776,9 +1840,14 @@ async function renderReports() {
         <span class="report-card-value">${total}</span>
         <div class="report-card-label">Total Cylinders</div>
       </div>
+      <div class="dashboard-section-title">Alerts</div>
       <div class="report-card" style="border-color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${requalSoon > 10 ? 'var(--red)' : requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
         <div class="report-card-label">Requalification Due (2yr)</div>
+      </div>
+      <div class="report-card" style="border-color:${alertTotal > 10 ? 'var(--red)' : alertTotal > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${alertTotal > 10 ? 'var(--red)' : alertTotal > 0 ? 'var(--amber)' : 'var(--green)'}">${alertTotal}</span>
+        <div class="report-card-label">Total Alerts</div>
       </div>`;
 
     if (actSec) actSec.style.display = 'none';
@@ -1917,12 +1986,13 @@ async function openPartnerModal(partnerId) {
   const partner = DEMO_NETWORK.find(n => n.id === partnerId);
   if (!partner) return;
 
-  $('partner-modal-name').textContent     = partner.name;
-  $('partner-modal-region').textContent   = partner.region;
-  $('partner-modal-city').textContent     = partner.city;
-  $('partner-modal-address').textContent  = partner.address;
-  $('partner-modal-contact').textContent  = partner.contact;
-  $('partner-modal-coords').textContent   = `${partner.lat.toFixed(4)}, ${partner.lng.toFixed(4)}`;
+  $('partner-modal-name').textContent          = partner.name;
+  $('partner-modal-region').textContent        = partner.region;
+  $('partner-modal-city').textContent          = partner.city;
+  $('partner-modal-address').textContent       = partner.address;
+  $('partner-modal-contact').textContent       = partner.contact;
+  $('partner-modal-contact-person').textContent = partner.contactPerson || '—';
+  $('partner-modal-coords').textContent        = `${partner.lat.toFixed(4)}, ${partner.lng.toFixed(4)}`;
 
   const typeBadge = $('partner-modal-type-badge');
   typeBadge.textContent  = partner.type;
@@ -1983,7 +2053,7 @@ async function openPartnerModal(partnerId) {
     } catch (e) {
       console.warn('Partner map error:', e);
     }
-  }, 150);
+  }, 350);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2003,7 +2073,7 @@ async function renderMgmtReports() {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
 
-  // Populate year filter from event data
+  // Populate year filter from event data (first call only)
   const yearSel = $('mgmt-filter-year');
   if (yearSel && yearSel.children.length <= 1) {
     const years = new Set();
@@ -2013,6 +2083,10 @@ async function renderMgmtReports() {
       opt.value = y; opt.textContent = y;
       yearSel.appendChild(opt);
     });
+    // Default to 2026
+    if ([...yearSel.options].some(o => o.value === '2026')) {
+      yearSel.value = '2026';
+    }
   }
 
   const filterYear  = yearSel?.value ? parseInt(yearSel.value) : null;
@@ -2101,10 +2175,10 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
-  // 3. Top 5 partners — by sales count when filtered, else by cylinder stock
+  // 3. Top 10 partners — by sales count when filtered, else by cylinder stock
   let top5, partnerCardTitle;
   if (filterYear !== null || filterMonth !== null) {
-    partnerCardTitle = 'Top 5 Partners by Sales' + (filterYear ? ` (${filterYear}${filterMonth !== null ? '/' + (filterMonth+1) : ''})` : '');
+    partnerCardTitle = 'Top 10 Partners by Sales';
     const salesByPartner = {};
     allEvents.forEach(ev => {
       if (ev.type !== 'ret-sold' || !ev.company) return;
@@ -2112,14 +2186,14 @@ async function renderMgmtReports() {
       salesByPartner[ev.company] = (salesByPartner[ev.company] || 0) + 1;
     });
     top5 = Object.entries(salesByPartner)
-      .sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([name, count]) => {
         const net = DEMO_NETWORK.find(n => n.name === name);
         return { name, cylinders: count, type: net?.type || 'Retailer' };
       });
   } else {
-    partnerCardTitle = 'Top 5 Partners by Cylinder Count';
-    top5 = [...DEMO_NETWORK].sort((a, b) => b.cylinders - a.cylinders).slice(0, 5);
+    partnerCardTitle = 'Top 10 Partners by Cylinder Count';
+    top5 = [...DEMO_NETWORK].sort((a, b) => b.cylinders - a.cylinders).slice(0, 10);
   }
   const maxPartnerCyls = top5.length ? Math.max(...top5.map(p => p.cylinders), 1) : 1;
   const partnerBarsHtml = top5.length ? top5.map(p => {
