@@ -603,10 +603,8 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 }
 .dot-in-refill      { background: var(--green); }
 .dot-in-circulation { background: var(--blue); }
-.dot-refilling      { background: var(--amber); }
 .dot-revalidation   { background: var(--teal); }
 .dot-in-use         { background: var(--purple); }
-.dot-returning      { background: var(--pink); }
 
 .cylinder-body { flex: 1; min-width: 0; }
 .cylinder-serial {
@@ -645,10 +643,8 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 }
 .status-in-refill      { background: rgba(16,185,129,0.15);  color: var(--green); }
 .status-in-circulation { background: rgba(59,130,246,0.15);  color: var(--blue); }
-.status-refilling      { background: rgba(245,158,11,0.15);  color: var(--amber); }
 .status-revalidation   { background: rgba(20,184,166,0.15);  color: var(--teal); }
 .status-in-use         { background: rgba(124,58,237,0.15);  color: var(--purple); }
-.status-returning      { background: rgba(236,72,153,0.15);  color: var(--pink); }
 
 .fill-bar {
   width: 64px;

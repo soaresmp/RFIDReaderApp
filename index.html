@@ -257,12 +257,10 @@
             <div class="filter-row">
               <select id="cyl-filter-status" class="filter-select">
                 <option value="">All statuses</option>
-                <option value="in-refill">In Refill (Ready)</option>
+                <option value="in-refill">In Refill</option>
                 <option value="in-circulation">In Circulation</option>
-                <option value="refilling">Refilling</option>
-                <option value="returning">Returning</option>
                 <option value="revalidation">In Revalidation</option>
-                <option value="in-use">In Use (Consumer)</option>
+                <option value="in-use">In Use</option>
               </select>
               <select id="cyl-filter-company" class="filter-select">
                 <option value="">All companies</option>
@@ -297,8 +295,7 @@
               <option value="">All types</option>
               <option value="requalification-overdue">Requalification Overdue</option>
               <option value="requalification-due">Requalification Due Soon</option>
-              <option value="stuck-refilling">Stuck in Refill</option>
-              <option value="not-received">Not Received at Plant</option>
+              <option value="stuck-in-circulation">Stuck in Circulation</option>
             </select>
           </div>
           <div id="alert-summary" class="alert-summary-row"></div>
@@ -403,7 +400,10 @@
         <div class="form-section-title">RFID &amp; Serial</div>
         <div class="form-group">
           <label>RFID Tag</label>
-          <input id="reg-tag" type="text" class="form-control font-mono" readonly />
+          <div class="input-with-action">
+            <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" />
+            <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
+          </div>
         </div>
         <div class="form-group">
           <label>Serial Number</label>
@@ -414,10 +414,6 @@
         </div>
 
         <div class="form-section-title">Cylinder Marking</div>
-        <div class="form-group">
-          <label>Brand Owner Colour &amp; Mark</label>
-          <input id="reg-brand-colour" type="text" class="form-control" placeholder="e.g. Red — VV" />
-        </div>
         <div class="form-group">
           <label>Owner Brand Name</label>
           <input id="reg-brand-name" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
@@ -462,10 +458,6 @@
           <label>Gross Weight (kg)</label>
           <input id="reg-gross-weight" type="number" class="form-control" value="26.5" step="0.1" />
         </div>
-        <div class="form-group">
-          <label>Max Fills</label>
-          <input id="reg-max-fills" type="number" class="form-control" value="500" step="1" />
-        </div>
 
         <div class="form-section-title">Pressure &amp; Testing</div>
         <div class="form-group">
@@ -475,20 +467,6 @@
         <div class="form-group">
           <label>Last Hydro Test Date</label>
           <input id="reg-hydrotest" type="date" class="form-control" />
-        </div>
-
-        <div class="form-section-title">Company Details</div>
-        <div class="form-group">
-          <label>Brand Name</label>
-          <input id="reg-company-brand" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
-        </div>
-        <div class="form-group">
-          <label>Customer Service Number</label>
-          <input id="reg-customer-service" type="tel" class="form-control" placeholder="e.g. 0800 123 456" />
-        </div>
-        <div class="form-group">
-          <label>Emergency Contacts</label>
-          <input id="reg-emergency-contacts" type="text" class="form-control" placeholder="e.g. 999 / 0722 123 456" />
         </div>
 
         <div class="form-group">

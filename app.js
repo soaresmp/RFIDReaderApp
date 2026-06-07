@@ -6,21 +6,43 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v4';
+const SEED_KEY   = 'seeded-v5';
 
 const DEMO_CYLINDERS = [
-  { id:'E280116060000204C3F04E81', serial:'LPG-2018-001', company:'Vivo LPG',       manufactureDate:'2018-03-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:342, lastHydroTest:'2020-12-20', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'LPG-2019-002', company:'Vivo LPG',       manufactureDate:'2019-06-10', tareWeight:14.5, capacity:12, maxFills:500, fillCount:461, lastHydroTest:'2024-06-10', status:'in-circulation',  notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'LPG-2020-003', company:'Vivo LPG',       manufactureDate:'2020-01-22', tareWeight:14.5, capacity:12, maxFills:500, fillCount:156, lastHydroTest:'2025-03-20', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'LPG-2018-004', company:'Vivo LPG',       manufactureDate:'2018-09-05', tareWeight:14.5, capacity:12, maxFills:500, fillCount:502, lastHydroTest:'2020-08-12', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E85', serial:'LPG-2021-005', company:'Total Energies', manufactureDate:'2021-04-18', tareWeight:14.5, capacity:12, maxFills:500, fillCount:23,  lastHydroTest:'2026-01-10', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E86', serial:'LPG-2019-006', company:'Total Energies', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, maxFills:500, fillCount:298, lastHydroTest:'2024-11-05', status:'in-circulation',  notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'LPG-2022-007', company:'Shell Gas',      manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, maxFills:500, fillCount:89,  lastHydroTest:'2025-09-14', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E88', serial:'LPG-2020-008', company:'Total Energies', manufactureDate:'2020-03-08', tareWeight:14.5, capacity:12, maxFills:500, fillCount:376, lastHydroTest:'2020-05-22', status:'refilling',       notes:'' },
-  { id:'E280116060000204C3F04E89', serial:'LPG-2023-009', company:'Shell Gas',      manufactureDate:'2023-02-27', tareWeight:14.5, capacity:12, maxFills:500, fillCount:12,  lastHydroTest:'2026-03-01', status:'in-refill',       notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'LPG-2021-010', company:'Shell Gas',      manufactureDate:'2021-08-19', tareWeight:14.5, capacity:12, maxFills:500, fillCount:478, lastHydroTest:'2024-09-18', status:'in-use',          notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'LPG-2019-011', company:'Shell Gas',      manufactureDate:'2019-05-03', tareWeight:14.5, capacity:12, maxFills:500, fillCount:234, lastHydroTest:'2020-11-15', status:'returning',       notes:'' },
-  { id:'E280116060000204C3F04E8C', serial:'LPG-2024-012', company:'Shell Gas',      manufactureDate:'2024-01-15', tareWeight:14.5, capacity:12, maxFills:500, fillCount:5,   lastHydroTest:'2025-11-30', status:'revalidation',    notes:'' },
+  // Vivo LPG
+  { id:'E280116060000204C3F04E81', serial:'VLG-2015-001', company:'Vivo LPG', manufactureDate:'2015-03-10', tareWeight:14.5, capacity:12, fillCount:342, lastHydroTest:'2020-12-20', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E82', serial:'VLG-2016-002', company:'Vivo LPG', manufactureDate:'2016-06-10', tareWeight:14.5, capacity:12, fillCount:461, lastHydroTest:'2021-06-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'VLG-2018-003', company:'Vivo LPG', manufactureDate:'2018-01-22', tareWeight:14.5, capacity:12, fillCount:156, lastHydroTest:'2023-03-20', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E84', serial:'VLG-2019-004', company:'Vivo LPG', manufactureDate:'2019-09-05', tareWeight:14.5, capacity:12, fillCount:210, lastHydroTest:'2024-08-12', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E85', serial:'VLG-2020-005', company:'Vivo LPG', manufactureDate:'2020-04-18', tareWeight:14.5, capacity:12, fillCount:98,  lastHydroTest:'2025-01-10', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E86', serial:'VLG-2021-006', company:'Vivo LPG', manufactureDate:'2021-11-30', tareWeight:14.5, capacity:12, fillCount:74,  lastHydroTest:'2026-11-05', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E87', serial:'VLG-2022-007', company:'Vivo LPG', manufactureDate:'2022-07-14', tareWeight:14.5, capacity:12, fillCount:45,  lastHydroTest:'2027-09-14', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E88', serial:'VLG-2023-008', company:'Vivo LPG', manufactureDate:'2023-03-08', tareWeight:14.5, capacity:12, fillCount:22,  lastHydroTest:'2028-05-22', status:'in-refill',      notes:'' },
+  // Total Energies
+  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:14.5, capacity:12, fillCount:512, lastHydroTest:'2019-03-01', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8A', serial:'TEN-2016-002', company:'Total Energies', manufactureDate:'2016-08-19', tareWeight:14.5, capacity:12, fillCount:320, lastHydroTest:'2021-09-18', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'TEN-2018-003', company:'Total Energies', manufactureDate:'2018-05-03', tareWeight:14.5, capacity:12, fillCount:189, lastHydroTest:'2023-11-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8C', serial:'TEN-2019-004', company:'Total Energies', manufactureDate:'2019-01-15', tareWeight:14.5, capacity:12, fillCount:145, lastHydroTest:'2024-11-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E8D', serial:'TEN-2020-005', company:'Total Energies', manufactureDate:'2020-07-22', tareWeight:14.5, capacity:12, fillCount:87,  lastHydroTest:'2025-07-22', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E8E', serial:'TEN-2021-006', company:'Total Energies', manufactureDate:'2021-09-10', tareWeight:14.5, capacity:12, fillCount:63,  lastHydroTest:'2026-09-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8F', serial:'TEN-2022-007', company:'Total Energies', manufactureDate:'2022-12-01', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-12-01', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E90', serial:'TEN-2023-008', company:'Total Energies', manufactureDate:'2023-04-15', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-04-15', status:'revalidation',   notes:'' },
+  // Shell Gas
+  { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:14.5, capacity:12, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E92', serial:'SHG-2015-002', company:'Shell Gas', manufactureDate:'2015-11-08', tareWeight:14.5, capacity:12, fillCount:402, lastHydroTest:'2020-11-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E93', serial:'SHG-2017-003', company:'Shell Gas', manufactureDate:'2017-03-25', tareWeight:14.5, capacity:12, fillCount:278, lastHydroTest:'2022-03-25', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E94', serial:'SHG-2018-004', company:'Shell Gas', manufactureDate:'2018-08-14', tareWeight:14.5, capacity:12, fillCount:198, lastHydroTest:'2023-08-14', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E95', serial:'SHG-2020-005', company:'Shell Gas', manufactureDate:'2020-02-28', tareWeight:14.5, capacity:12, fillCount:112, lastHydroTest:'2025-02-28', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E96', serial:'SHG-2021-006', company:'Shell Gas', manufactureDate:'2021-07-17', tareWeight:14.5, capacity:12, fillCount:79,  lastHydroTest:'2026-07-17', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E97', serial:'SHG-2022-007', company:'Shell Gas', manufactureDate:'2022-10-05', tareWeight:14.5, capacity:12, fillCount:38,  lastHydroTest:'2027-10-05', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E98', serial:'SHG-2024-008', company:'Shell Gas', manufactureDate:'2024-01-20', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-01-20', status:'in-refill',      notes:'' },
+  // Lake Gas
+  { id:'E280116060000204C3F04E99', serial:'LKG-2016-001', company:'Lake Gas', manufactureDate:'2016-04-12', tareWeight:14.5, capacity:12, fillCount:367, lastHydroTest:'2021-04-12', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E9A', serial:'LKG-2018-002', company:'Lake Gas', manufactureDate:'2018-10-30', tareWeight:14.5, capacity:12, fillCount:224, lastHydroTest:'2023-10-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E9B', serial:'LKG-2019-003', company:'Lake Gas', manufactureDate:'2019-06-18', tareWeight:14.5, capacity:12, fillCount:178, lastHydroTest:'2024-06-18', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04E9C', serial:'LKG-2021-004', company:'Lake Gas', manufactureDate:'2021-01-09', tareWeight:14.5, capacity:12, fillCount:95,  lastHydroTest:'2026-01-09', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E9D', serial:'LKG-2022-005', company:'Lake Gas', manufactureDate:'2022-05-24', tareWeight:14.5, capacity:12, fillCount:52,  lastHydroTest:'2027-05-24', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E9E', serial:'LKG-2023-006', company:'Lake Gas', manufactureDate:'2023-09-11', tareWeight:14.5, capacity:12, fillCount:14,  lastHydroTest:'2028-09-11', status:'revalidation',   notes:'' },
 ];
 
 const DEMO_LICENSES = [
@@ -34,18 +56,30 @@ const DEMO_LICENSES = [
 ];
 
 const DEMO_NETWORK = [
-  { id:'NET-001', name:'ABC Gas Distributors',   type:'Distributor', city:'Dar es Salaam', address:'Kariakoo Market Area',      lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145 },
-  { id:'NET-002', name:'Sunrise Gas Ltd',         type:'Distributor', city:'Arusha',        address:'Sokoni Road, Arusha',        lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98  },
-  { id:'NET-003', name:'Lake Gas Distributors',   type:'Distributor', city:'Mwanza',        address:'Pamba Road, Mwanza',          lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112 },
-  { id:'NET-004', name:'Capital Gas Supplies',    type:'Distributor', city:'Dodoma',        address:'Makole Area, Dodoma',         lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67  },
-  { id:'NET-005', name:'Kilimanjaro Gas',         type:'Distributor', city:'Moshi',         address:'Rindi Lane, Moshi',           lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89  },
-  { id:'NET-006', name:'Island Gas Zanzibar',     type:'Distributor', city:'Zanzibar',      address:'Darajani, Zanzibar City',     lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43  },
-  { id:'NET-007', name:'QuickGas Retail DSM',     type:'Retailer',    city:'Dar es Salaam', address:'Msimbazi Street',             lat:-6.7900, lng:39.2100, contact:'+255 22 211 0007', status:'active',   cylinders:32  },
-  { id:'NET-008', name:'CityGas Direct',          type:'Retailer',    city:'Dar es Salaam', address:'Temeke District',             lat:-6.8600, lng:39.2500, contact:'+255 22 215 0008', status:'active',   cylinders:28  },
-  { id:'NET-009', name:'Northern Gas Retail',     type:'Retailer',    city:'Arusha',        address:'Ngarenaro, Arusha',           lat:-3.3700, lng:36.6950, contact:'+255 27 254 0009', status:'active',   cylinders:19  },
-  { id:'NET-010', name:'Tanga Gas Shop',          type:'Retailer',    city:'Tanga',         address:'Market Street, Tanga',        lat:-5.0710, lng:39.0951, contact:'+255 27 264 0010', status:'active',   cylinders:24  },
-  { id:'NET-011', name:'Morogoro Gas Centre',     type:'Retailer',    city:'Morogoro',      address:'Boma Road, Morogoro',         lat:-6.8160, lng:37.6762, contact:'+255 23 261 0011', status:'active',   cylinders:16  },
-  { id:'NET-012', name:'Iringa Gas Retail',       type:'Retailer',    city:'Iringa',        address:'Uhuru Avenue, Iringa',        lat:-7.7700, lng:35.6900, contact:'+255 26 270 0012', status:'active',   cylinders:21  },
+  // Distributors
+  { id:'NET-001', name:'ABC Gas Distributors',        type:'Distributor', city:'Dar es Salaam', address:'Kariakoo Market Area',          lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', status:'active',   cylinders:145 },
+  { id:'NET-002', name:'Sunrise Gas Ltd',              type:'Distributor', city:'Arusha',        address:'Sokoni Road, Arusha',            lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', status:'active',   cylinders:98  },
+  { id:'NET-003', name:'Lake Victoria Gas Supply',    type:'Distributor', city:'Mwanza',        address:'Pamba Road, Mwanza',              lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', status:'active',   cylinders:112 },
+  { id:'NET-004', name:'Capital Gas Supplies',        type:'Distributor', city:'Dodoma',        address:'Makole Area, Dodoma',             lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', status:'active',   cylinders:67  },
+  { id:'NET-005', name:'Kilimanjaro Gas Distributors',type:'Distributor', city:'Moshi',         address:'Rindi Lane, Moshi',               lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', status:'active',   cylinders:89  },
+  { id:'NET-006', name:'Island Gas Zanzibar',         type:'Distributor', city:'Zanzibar',      address:'Darajani, Zanzibar City',         lat:-6.1630, lng:39.1990, contact:'+255 24 223 0006', status:'inactive', cylinders:43  },
+  { id:'NET-007', name:'Southern Highlands Gas',      type:'Distributor', city:'Mbeya',         address:'Sisimba Road, Mbeya',             lat:-8.9094, lng:33.4607, contact:'+255 25 250 0007', status:'active',   cylinders:76  },
+  { id:'NET-008', name:'Coastal Gas Ltd',             type:'Distributor', city:'Tanga',         address:'Usagara Area, Tanga',             lat:-5.0710, lng:39.0951, contact:'+255 27 264 0008', status:'active',   cylinders:54  },
+  { id:'NET-009', name:'Tabora Gas Distributors',     type:'Distributor', city:'Tabora',        address:'Market Street, Tabora',           lat:-5.0167, lng:32.8000, contact:'+255 26 260 0009', status:'active',   cylinders:41  },
+  { id:'NET-010', name:'Lindi Gas Supply Co.',        type:'Distributor', city:'Lindi',         address:'Mvua Road, Lindi',                lat:-9.9965, lng:39.7142, contact:'+255 23 220 0010', status:'inactive', cylinders:28  },
+  // Retailers
+  { id:'NET-011', name:'QuickGas Retail DSM North',   type:'Retailer',    city:'Dar es Salaam', address:'Msimbazi Street, Kinondoni',      lat:-6.7900, lng:39.2100, contact:'+255 22 211 0011', status:'active',   cylinders:32  },
+  { id:'NET-012', name:'CityGas Direct Temeke',       type:'Retailer',    city:'Dar es Salaam', address:'Temeke District',                 lat:-6.8600, lng:39.2500, contact:'+255 22 215 0012', status:'active',   cylinders:28  },
+  { id:'NET-013', name:'Kariakoo Gas Shop',           type:'Retailer',    city:'Dar es Salaam', address:'Kariakoo, Ilala',                 lat:-6.8235, lng:39.2695, contact:'+255 22 218 0013', status:'active',   cylinders:45  },
+  { id:'NET-014', name:'Mbagala Gas Point',           type:'Retailer',    city:'Dar es Salaam', address:'Mbagala Road, Temeke',            lat:-6.9010, lng:39.2850, contact:'+255 22 216 0014', status:'active',   cylinders:22  },
+  { id:'NET-015', name:'Northern Gas Retail Arusha',  type:'Retailer',    city:'Arusha',        address:'Ngarenaro, Arusha',               lat:-3.3700, lng:36.6950, contact:'+255 27 254 0015', status:'active',   cylinders:19  },
+  { id:'NET-016', name:'Moshi Gas Outlet',            type:'Retailer',    city:'Moshi',         address:'Kibo Road, Moshi',                lat:-3.3450, lng:37.3410, contact:'+255 27 275 0016', status:'active',   cylinders:17  },
+  { id:'NET-017', name:'Morogoro Gas Centre',         type:'Retailer',    city:'Morogoro',      address:'Boma Road, Morogoro',             lat:-6.8160, lng:37.6762, contact:'+255 23 261 0017', status:'active',   cylinders:16  },
+  { id:'NET-018', name:'Iringa Gas Retail',           type:'Retailer',    city:'Iringa',        address:'Uhuru Avenue, Iringa',            lat:-7.7700, lng:35.6900, contact:'+255 26 270 0018', status:'active',   cylinders:21  },
+  { id:'NET-019', name:'Zanzibar Stone Town Gas',     type:'Retailer',    city:'Zanzibar',      address:'Stone Town, Unguja',              lat:-6.1659, lng:39.1989, contact:'+255 24 223 0019', status:'active',   cylinders:14  },
+  { id:'NET-020', name:'Mwanza Lakeside Gas',         type:'Retailer',    city:'Mwanza',        address:'Capri Point, Mwanza',             lat:-2.5000, lng:32.9000, contact:'+255 28 252 0020', status:'active',   cylinders:26  },
+  { id:'NET-021', name:'Dodoma Central Gas Shop',     type:'Retailer',    city:'Dodoma',        address:'Jamatini Area, Dodoma',           lat:-6.1800, lng:35.7400, contact:'+255 26 232 0021', status:'active',   cylinders:18  },
+  { id:'NET-022', name:'Mbeya Highland Gas Retail',   type:'Retailer',    city:'Mbeya',         address:'Forest Hill Area, Mbeya',         lat:-8.9150, lng:33.4550, contact:'+255 25 250 0022', status:'active',   cylinders:23  },
 ];
 
 // ── Role configuration ────────────────────────────────────────────────────────
@@ -159,9 +193,8 @@ const State = {
   batchQueue:        [],
   focused:           false,
   scanEvents:        [],
-  // Serial capture
   serialCaptureActive: false,
-  // Passport
+  tagCaptureActive:    false,
   passportCylinderId: null,
 };
 
@@ -371,15 +404,15 @@ const licensesEmpty    = $('licenses-empty');
 // Modals
 const modalRegister    = $('modal-register');
 const regTag           = $('reg-tag');
+const regTagScanBtn    = $('reg-tag-scan-btn');
 const regSerial        = $('reg-serial');
+const regSerialScanBtn = $('reg-serial-scan-btn');
 const regManufDate     = $('reg-manufacture-date');
 const regTare          = $('reg-tare');
-const regMaxFills      = $('reg-max-fills');
 const regHydrotest     = $('reg-hydrotest');
 const regNotes         = $('reg-notes');
 const regSubmitBtn     = $('reg-submit-btn');
 
-const regBrandColour    = $('reg-brand-colour');
 const regBrandName      = $('reg-brand-name');
 const regManufacturer   = $('reg-manufacturer');
 const regProductName    = $('reg-product-name');
@@ -389,10 +422,6 @@ const regWaterCapacity  = $('reg-water-capacity');
 const regNetWeight      = $('reg-net-weight');
 const regGrossWeight    = $('reg-gross-weight');
 const regPressureTest   = $('reg-pressure-test');
-const regCompanyBrand   = $('reg-company-brand');
-const regCustomerSvc    = $('reg-customer-service');
-const regEmergency      = $('reg-emergency-contacts');
-const regSerialScanBtn  = $('reg-serial-scan-btn');
 
 const modalPassport    = $('modal-passport');
 const passportBody     = $('passport-body');
@@ -766,9 +795,17 @@ scannerInput.addEventListener('focus', () => {
 async function handleScan(tagId) {
   if (!Auth.session) return;
 
+  // Tag capture mode for register modal
+  if (State.tagCaptureActive) {
+    regTag.value = tagId;
+    State.tagCaptureActive = false;
+    showSnackbar('Tag captured.', 'success');
+    return;
+  }
+
   // Serial capture mode for register modal
   if (State.serialCaptureActive) {
-    $('reg-serial').value = tagId;
+    regSerial.value = tagId;
     State.serialCaptureActive = false;
     showSnackbar('Serial captured.', 'success');
     return;
@@ -854,10 +891,8 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     updatedCyl.status = 'in-circulation';
   } else if (eventType === 'ret-sold') {
     updatedCyl.status = 'in-use';
-  } else if (eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty') {
-    updatedCyl.status = 'returning';
-  } else if (eventType === 'received-empty') {
-    updatedCyl.status = 'refilling';
+  } else if (eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty' || eventType === 'received-empty') {
+    updatedCyl.status = 'in-refill';
   } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
     updatedCyl.status = 'revalidation';
   } else if (eventType === 'revalidated' || eventType === 'reval-returned') {
@@ -975,7 +1010,6 @@ function openRegisterModal(tagId) {
   const today   = new Date().toISOString().slice(0, 10);
   regTag.value            = tagId || '';
   regSerial.value         = '';
-  regBrandColour.value    = '';
   regBrandName.value      = company;
   regManufacturer.value   = company;
   regProductName.value    = 'LPG';
@@ -986,12 +1020,8 @@ function openRegisterModal(tagId) {
   regTare.value           = '14.5';
   regNetWeight.value      = '12';
   regGrossWeight.value    = '26.5';
-  regMaxFills.value       = '500';
   regPressureTest.value   = '';
   regHydrotest.value      = today;
-  regCompanyBrand.value   = company;
-  regCustomerSvc.value    = '';
-  regEmergency.value      = '';
   regNotes.value          = '';
   openModal('modal-register');
 }
@@ -1015,30 +1045,25 @@ regSubmitBtn.addEventListener('click', async () => {
   }
 
   const cyl = {
-    id:                   tagId,
-    serial:               serial,
-    company:              Auth.session.company,
-    brandColourMark:      regBrandColour.value.trim(),
-    ownerBrandName:       regBrandName.value.trim(),
-    manufacturer:         regManufacturer.value.trim(),
-    productName:          regProductName.value.trim(),
-    manufactureDate:      regManufDate.value,
-    lastRequalDate:       regRequalDate.value,
-    requalPlant:          regRequalPlant.value.trim(),
-    waterCapacity:        parseFloat(regWaterCapacity.value) || 26.1,
-    tareWeight:           parseFloat(regTare.value) || 14.5,
-    netWeight:            parseFloat(regNetWeight.value) || 12,
-    capacity:             parseFloat(regNetWeight.value) || 12,
-    grossWeight:          parseFloat(regGrossWeight.value) || 26.5,
-    maxFills:             parseInt(regMaxFills.value, 10) || 500,
-    fillCount:            0,
-    pressureTestValue:    regPressureTest.value.trim(),
-    lastHydroTest:        regHydrotest.value,
-    companyBrandName:     regCompanyBrand.value.trim(),
-    customerServiceNumber: regCustomerSvc.value.trim(),
-    emergencyContacts:    regEmergency.value.trim(),
-    status:               'in-refill',
-    notes:                regNotes.value.trim(),
+    id:                tagId,
+    serial:            serial,
+    company:           Auth.session.company,
+    ownerBrandName:    regBrandName.value.trim(),
+    manufacturer:      regManufacturer.value.trim(),
+    productName:       regProductName.value.trim(),
+    manufactureDate:   regManufDate.value,
+    lastRequalDate:    regRequalDate.value,
+    requalPlant:       regRequalPlant.value.trim(),
+    waterCapacity:     parseFloat(regWaterCapacity.value) || 26.1,
+    tareWeight:        parseFloat(regTare.value) || 14.5,
+    netWeight:         parseFloat(regNetWeight.value) || 12,
+    capacity:          parseFloat(regNetWeight.value) || 12,
+    grossWeight:       parseFloat(regGrossWeight.value) || 26.5,
+    fillCount:         0,
+    pressureTestValue: regPressureTest.value.trim(),
+    lastHydroTest:     regHydrotest.value,
+    status:            'in-refill',
+    notes:             regNotes.value.trim(),
   };
 
   await txPut('cylinders', cyl);
@@ -1066,6 +1091,14 @@ regSubmitBtn.addEventListener('click', async () => {
   showSnackbar(`${serial} registered.`, 'success');
   renderCylinders();
 });
+
+if (regTagScanBtn) {
+  regTagScanBtn.addEventListener('click', () => {
+    State.tagCaptureActive = true;
+    scannerInput.focus();
+    showSnackbar('Ready — scan the RFID tag now…');
+  });
+}
 
 regSerialScanBtn.addEventListener('click', () => {
   State.serialCaptureActive = true;
@@ -1101,13 +1134,11 @@ function applyCylFilters() {
   if (compF)   data = data.filter(c => c.company === compF);
 
   // Stats
-  const statuses = { 'in-refill': 0, 'in-circulation': 0, refilling: 0, returning: 0, revalidation: 0, 'in-use': 0 };
+  const statuses = { 'in-refill': 0, 'in-circulation': 0, revalidation: 0, 'in-use': 0 };
   _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
   const statLabels = {
     'in-refill':      'In Refill',
     'in-circulation': 'In Circulation',
-    'refilling':      'Refilling',
-    'returning':      'Returning',
     'revalidation':   'Revalidation',
     'in-use':         'In Use',
   };
@@ -1128,8 +1159,6 @@ function applyCylFilters() {
   const statLabelMap = {
     'in-refill':      'In Refill',
     'in-circulation': 'In Circulation',
-    'refilling':      'Refilling',
-    'returning':      'Returning',
     'revalidation':   'In Revalidation',
     'in-use':         'In Use',
   };
@@ -1138,8 +1167,6 @@ function applyCylFilters() {
     const li = document.createElement('li');
     li.className = 'cylinder-item';
 
-    const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
-    const fillClass = fillPct >= 95 ? 'crit' : fillPct >= 80 ? 'warn' : '';
     const dotClass  = 'dot-' + (cyl.status || 'in-refill');
     const statClass = 'status-' + (cyl.status || 'in-refill');
     const statLabel = statLabelMap[cyl.status] || cyl.status;
@@ -1151,15 +1178,12 @@ function applyCylFilters() {
         <div class="cylinder-tag">${escapeHtml(cyl.id)}</div>
         <div class="cylinder-meta">
           <span class="cylinder-meta-item">${escapeHtml(cyl.company)}</span>
-          <span class="cylinder-meta-item">Fills: ${cyl.fillCount}/${cyl.maxFills}</span>
+          <span class="cylinder-meta-item">Fills: ${cyl.fillCount}</span>
           ${cyl.manufactureDate ? `<span class="cylinder-meta-item">Mfg: ${escapeHtml(cyl.manufactureDate)}</span>` : ''}
         </div>
       </div>
       <div class="cylinder-badges">
         <span class="status-badge ${escapeHtml(statClass)}">${escapeHtml(statLabel)}</span>
-        <div class="fill-bar">
-          <div class="fill-bar-inner ${escapeHtml(fillClass)}" style="width:${fillPct}%"></div>
-        </div>
       </div>`;
 
     li.addEventListener('click', () => openPassportModal(cyl.id));
@@ -1178,9 +1202,9 @@ if (exportDashboardBtn) {
     if (Auth.session && Auth.session.role === 'lpgmc') {
       cyls = cyls.filter(c => c.company === Auth.session.company);
     }
-    const header = 'id,serial,company,status,fillCount,maxFills,manufactureDate,lastHydroTest\n';
+    const header = 'id,serial,company,status,fillCount,manufactureDate,lastHydroTest\n';
     const rows = cyls.map(c =>
-      `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.maxFills}","${c.manufactureDate || ''}","${c.lastHydroTest || ''}"`
+      `"${c.id}","${c.serial}","${c.company}","${c.status}","${c.fillCount}","${c.manufactureDate || ''}","${c.lastHydroTest || ''}"`
     ).join('\n');
     downloadCSV('lpg-cylinders-' + new Date().toISOString().slice(0,10) + '.csv', header + rows);
   });
@@ -1197,8 +1221,6 @@ async function openPassportModal(cylId) {
 
   const events = await txGetIndex('events', 'cylinderId', cylId);
   events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  const fillPct = Math.min(100, Math.round((cyl.fillCount / cyl.maxFills) * 100));
 
   passportBody.innerHTML = `
     <div class="passport-section">
@@ -1247,16 +1269,12 @@ async function openPassportModal(cylId) {
         <span class="passport-value">${cyl.netWeight || cyl.capacity} kg</span>
       </div>
       ${cyl.grossWeight ? `<div class="passport-row"><span class="passport-key">Gross Weight</span><span class="passport-value">${cyl.grossWeight} kg</span></div>` : ''}
-      <div class="passport-row">
-        <span class="passport-key">Max Fills</span>
-        <span class="passport-value">${cyl.maxFills}</span>
-      </div>
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
       <div class="passport-row">
         <span class="passport-key">Fill Count</span>
-        <span class="passport-value">${cyl.fillCount} (${fillPct}%)</span>
+        <span class="passport-value">${cyl.fillCount}</span>
       </div>
       <div class="passport-row">
         <span class="passport-key">Last Hydro Test</span>
@@ -1287,7 +1305,7 @@ passportExportBtn.addEventListener('click', async () => {
 
   let text = `LPG Cylinder Passport\n${'='.repeat(40)}\n`;
   text += `Serial:   ${cyl.serial}\nTag:      ${cyl.id}\nCompany:  ${cyl.company}\nStatus:   ${cyl.status}\n`;
-  text += `Fills:    ${cyl.fillCount}/${cyl.maxFills}\nHydro:    ${cyl.lastHydroTest || 'N/A'}\n\nEvents:\n`;
+  text += `Fills:    ${cyl.fillCount}\nHydro:    ${cyl.lastHydroTest || 'N/A'}\n\nEvents:\n`;
   events.forEach(ev => { text += `  ${ev.timestamp}  ${ev.type}  ${ev.operatorId || ''}\n`; });
 
   const blob = new Blob([text], { type: 'text/plain' });
@@ -1333,32 +1351,17 @@ async function renderAlerts() {
       }
     }
 
-    // 2. Stuck in refilling > 7 days
-    if (cyl.status === 'refilling') {
+    // 2. Stuck in circulation > 45 days
+    if (cyl.status === 'in-circulation') {
       const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
         .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
       const lastEv = cylEvents[0];
       if (lastEv) {
         const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
-        if (days > 7) {
-          _alertsData.push({ severity:'critical', type:'stuck-refilling', cylinder:cyl,
-            title: `${cyl.serial} — Stuck in Refill (${days}d)`,
-            desc: `Cylinder has been at refill station for ${days} days with no update.` });
-        }
-      }
-    }
-
-    // 3. Returning but not received > 3 days
-    if (cyl.status === 'returning') {
-      const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
-        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-      const lastEv = cylEvents[0];
-      if (lastEv) {
-        const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
-        if (days > 3) {
-          _alertsData.push({ severity:'warning', type:'not-received', cylinder:cyl,
-            title: `${cyl.serial} — Not Received at Plant (${days}d)`,
-            desc: `Reported empty ${days} days ago but not yet received at refilling site.` });
+        if (days > 45) {
+          _alertsData.push({ severity:'warning', type:'stuck-in-circulation', cylinder:cyl,
+            title: `${cyl.serial} — Stuck in Circulation (${days}d)`,
+            desc: `Cylinder has been in circulation for ${days} days without returning to refill.` });
         }
       }
     }
@@ -1422,12 +1425,10 @@ async function renderReports() {
     events = events.filter(e => ownIds.has(e.cylinderId));
 
     const inRefill       = cyls.filter(c => c.status === 'in-refill').length;
-    const refilling      = cyls.filter(c => c.status === 'refilling').length;
-    const returning      = cyls.filter(c => c.status === 'returning').length;
     const inCirculation  = cyls.filter(c => c.status === 'in-circulation').length;
     const inRevalidation = cyls.filter(c => c.status === 'revalidation').length;
     const inUse          = cyls.filter(c => c.status === 'in-use').length;
-    const total          = inRefill + refilling + returning + inCirculation + inRevalidation + inUse;
+    const total          = inRefill + inCirculation + inRevalidation + inUse;
 
     const allLicenses   = await txGetAll('licenses');
     const refillerCount = allLicenses.filter(l => l.companyType === 'LPGMC').length;
@@ -1439,14 +1440,6 @@ async function renderReports() {
       <div class="report-card">
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
         <div class="report-card-label">In Refill</div>
-      </div>
-      <div class="report-card">
-        <span class="report-card-value" style="color:var(--amber)">${refilling}</span>
-        <div class="report-card-label">Refilling</div>
-      </div>
-      <div class="report-card">
-        <span class="report-card-value" style="color:var(--pink)">${returning}</span>
-        <div class="report-card-label">Returning</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
@@ -1488,10 +1481,10 @@ async function renderReports() {
   } else {
     if (actSec) actSec.style.display = '';
 
-    const total     = cyls.length;
-    const inRefill  = cyls.filter(c => c.status === 'in-refill').length;
-    const inCirc    = cyls.filter(c => c.status === 'in-circulation').length;
-    const returning = cyls.filter(c => c.status === 'returning').length;
+    const total    = cyls.length;
+    const inRefill = cyls.filter(c => c.status === 'in-refill').length;
+    const inCirc   = cyls.filter(c => c.status === 'in-circulation').length;
+    const inUse    = cyls.filter(c => c.status === 'in-use').length;
 
     reportsGrid.innerHTML = `
       <div class="report-card">
@@ -1507,8 +1500,8 @@ async function renderReports() {
         <div class="report-card-label">In Circulation</div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--pink)">${returning}</span>
-        <div class="report-card-label">Returning</div>
+        <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
+        <div class="report-card-label">In Use</div>
       </div>`;
 
     const now = Date.now();
@@ -1638,24 +1631,18 @@ async function renderMgmtReports() {
   const statusCounts = {
     'in-refill':      cyls.filter(c => c.status === 'in-refill').length,
     'in-circulation': cyls.filter(c => c.status === 'in-circulation').length,
-    'refilling':      cyls.filter(c => c.status === 'refilling').length,
-    'returning':      cyls.filter(c => c.status === 'returning').length,
     'revalidation':   cyls.filter(c => c.status === 'revalidation').length,
     'in-use':         cyls.filter(c => c.status === 'in-use').length,
   };
   const statusColors = {
     'in-refill':      'var(--green)',
     'in-circulation': 'var(--blue)',
-    'refilling':      'var(--amber)',
-    'returning':      'var(--pink)',
     'revalidation':   'var(--teal)',
     'in-use':         'var(--purple)',
   };
   const statusLabels = {
     'in-refill':      'In Refill',
     'in-circulation': 'In Circulation',
-    'refilling':      'Refilling',
-    'returning':      'Returning',
     'revalidation':   'Revalidation',
     'in-use':         'In Use',
   };
