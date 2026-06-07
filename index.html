@@ -276,6 +276,7 @@
 
           <ul id="cylinders-list" class="cylinders-list"></ul>
           <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+          <div id="cyl-pagination"></div>
 
         </div><!-- /view-cylinders -->
 
@@ -302,6 +303,7 @@
           <div id="alert-summary" class="alert-summary-row"></div>
           <ul id="alerts-list" class="alerts-list"></ul>
           <p id="alerts-empty" class="list-empty">No alerts.</p>
+          <div id="alert-pagination"></div>
         </div><!-- /view-alerts -->
 
         <!-- ── REPORTS / DASHBOARD VIEW ───────────────────────────────── -->
@@ -331,6 +333,7 @@
           </div>
           <ul id="network-list" class="network-list" style="max-height:none"></ul>
           <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
+          <div id="net-pagination"></div>
         </div><!-- /view-network -->
 
         <!-- ── MGMT REPORTS VIEW (LPGMC only) ─────────────────────────── -->
@@ -589,8 +592,8 @@
           </div>
           <div id="partner-detail-map" style="height:280px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;min-height:200px"></div>
         </div>
-        <!-- Stock + Sales -->
-        <div class="partner-stats-row" style="margin:16px 0 20px">
+        <!-- Stock stats -->
+        <div class="partner-stats-row" style="margin:16px 0 12px;grid-template-columns:repeat(3,1fr)">
           <div class="partner-stat-card">
             <span class="partner-stat-value" id="partner-stat-total" style="color:var(--amber)">—</span>
             <div class="partner-stat-label">Total Cylinders</div>
@@ -603,15 +606,9 @@
             <span class="partner-stat-value" id="partner-stat-empty" style="color:var(--muted)">—</span>
             <div class="partner-stat-label">Empty (in stock)</div>
           </div>
-          <div class="partner-stat-card">
-            <span class="partner-stat-value" id="partner-stat-last-month" style="color:var(--blue)">—</span>
-            <div class="partner-stat-label">Sales Last Month</div>
-          </div>
-          <div class="partner-stat-card">
-            <span class="partner-stat-value" id="partner-stat-this-year" style="color:var(--purple)">—</span>
-            <div class="partner-stat-label">Sales This Year</div>
-          </div>
         </div>
+        <!-- Monthly sales chart -->
+        <div id="partner-sales-chart" style="padding:0 0 20px"></div>
       </div>
     </div>
   </div>

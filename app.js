@@ -254,6 +254,32 @@ const State = {
   passportCylinderId: null,
 };
 
+const PAGE_SIZE_CYLS    = 20;
+const PAGE_SIZE_NETWORK = 15;
+const PAGE_SIZE_ALERTS  = 20;
+
+let _cylPage  = 1;
+let _netPage  = 1;
+let _alertPage = 1;
+
+function renderPagination(containerId, total, page, pageSize, onPageChange) {
+  const el = $(containerId);
+  if (!el) return;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  const start = (page - 1) * pageSize + 1;
+  const end   = Math.min(page * pageSize, total);
+  el.innerHTML = `
+    <div class="pagination">
+      <button class="pg-btn" ${page <= 1 ? 'disabled' : ''} data-dir="-1">‹ Prev</button>
+      <span class="pg-info">${start}–${end} of ${total}</span>
+      <button class="pg-btn" ${page >= totalPages ? 'disabled' : ''} data-dir="1">Next ›</button>
+    </div>`;
+  el.querySelectorAll('.pg-btn').forEach(btn => {
+    btn.addEventListener('click', () => onPageChange(page + parseInt(btn.dataset.dir)));
+  });
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // INDEXED DB
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1352,28 +1378,19 @@ function applyCylFilters() {
   if (statusF) data = data.filter(c => c.status === statusF);
   if (compF)   data = data.filter(c => c.company === compF);
 
-  // Stats
-  const statuses = { 'in-refill': 0, 'in-circulation': 0, revalidation: 0, 'in-use': 0 };
-  _cylAllData.forEach(c => { if (statuses[c.status] !== undefined) statuses[c.status]++; });
-  const statLabels = {
-    'in-refill':      'In Refill',
-    'in-circulation': 'In Circulation',
-    'revalidation':   'Revalidation',
-    'in-use':         'In Use',
-  };
-  cylStats.innerHTML = Object.entries(statuses).map(([k, v]) =>
-    `<div class="stat-chip">
-       <span class="stat-chip-value">${v}</span>
-       <span class="stat-chip-label">${statLabels[k] || k}</span>
-     </div>`
-  ).join('');
+  cylStats.innerHTML = '';
 
   cylindersList.innerHTML = '';
   if (!data.length) {
     cylindersEmpty.style.display = '';
+    renderPagination('cyl-pagination', 0, 1, PAGE_SIZE_CYLS, () => {});
     return;
   }
   cylindersEmpty.style.display = 'none';
+
+  const totalCyls = data.length;
+  _cylPage = Math.min(_cylPage, Math.ceil(totalCyls / PAGE_SIZE_CYLS));
+  const pageData = data.slice((_cylPage - 1) * PAGE_SIZE_CYLS, _cylPage * PAGE_SIZE_CYLS);
 
   const statLabelMap = {
     'in-refill':      'In Refill',
@@ -1382,7 +1399,7 @@ function applyCylFilters() {
     'in-use':         'In Use',
   };
 
-  data.forEach(cyl => {
+  pageData.forEach(cyl => {
     const li = document.createElement('li');
     li.className = 'cylinder-item';
 
@@ -1414,11 +1431,16 @@ function applyCylFilters() {
     li.addEventListener('click', () => openPassportModal(cyl.id));
     cylindersList.appendChild(li);
   });
+
+  renderPagination('cyl-pagination', totalCyls, _cylPage, PAGE_SIZE_CYLS, (p) => {
+    _cylPage = p;
+    applyCylFilters();
+  });
 }
 
-cylSearch.addEventListener('input',         applyCylFilters);
-cylFilterStatus.addEventListener('change',  applyCylFilters);
-cylFilterCompany.addEventListener('change', applyCylFilters);
+cylSearch.addEventListener('input',         () => { _cylPage = 1; applyCylFilters(); });
+cylFilterStatus.addEventListener('change',  () => { _cylPage = 1; applyCylFilters(); });
+cylFilterCompany.addEventListener('change', () => { _cylPage = 1; applyCylFilters(); });
 
 // Export cylinders CSV
 if (exportDashboardBtn) {
@@ -1560,26 +1582,30 @@ async function openPassportModal(cylId) {
 
   if (passportMapPartner) {
     setTimeout(() => {
-      try {
-        const el = $('passport-location-map');
-        if (!el) return;
-        _passportMap = L.map('passport-location-map').setView([passportMapPartner.lat, passportMapPartner.lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors', maxZoom: 18
-        }).addTo(_passportMap);
-        const color = passportMapPartner.type === 'Distributor' ? '#3b82f6' : '#10b981';
-        const icon = L.divIcon({
-          className: '',
-          html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.4)"></div>`,
-          iconSize: [14, 14], iconAnchor: [7, 7],
-        });
-        L.marker([passportMapPartner.lat, passportMapPartner.lng], { icon })
-          .addTo(_passportMap)
-          .bindPopup(`<strong>${passportMapPartner.name}</strong><br>${passportMapPartner.address}`)
-          .openPopup();
-        _passportMap.invalidateSize();
-      } catch (e) { console.warn('Passport map error:', e); }
-    }, 150);
+      requestAnimationFrame(() => {
+        try {
+          const el = $('passport-location-map');
+          if (!el) return;
+          void el.getBoundingClientRect(); // force layout
+          _passportMap = L.map('passport-location-map').setView([passportMapPartner.lat, passportMapPartner.lng], 14);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors', maxZoom: 18
+          }).addTo(_passportMap);
+          const color = passportMapPartner.type === 'Distributor' ? '#3b82f6' : '#10b981';
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.4)"></div>`,
+            iconSize: [14, 14], iconAnchor: [7, 7],
+          });
+          L.marker([passportMapPartner.lat, passportMapPartner.lng], { icon })
+            .addTo(_passportMap)
+            .bindPopup(`<strong>${passportMapPartner.name}</strong><br>${passportMapPartner.address}`)
+            .openPopup();
+          _passportMap.invalidateSize();
+          setTimeout(() => { if (_passportMap) _passportMap.invalidateSize(); }, 200);
+        } catch (e) { console.warn('Passport map error:', e); }
+      });
+    }, 250);
   }
 }
 
@@ -1711,14 +1737,22 @@ function applyAlertFilters() {
     .join('');
 
   alertsList.innerHTML = '';
-  if (!data.length) { alertsEmpty.style.display = ''; return; }
+  if (!data.length) {
+    alertsEmpty.style.display = '';
+    renderPagination('alert-pagination', 0, 1, PAGE_SIZE_ALERTS, () => {});
+    return;
+  }
   alertsEmpty.style.display = 'none';
+
+  const totalAlerts = data.length;
+  _alertPage = Math.min(_alertPage, Math.ceil(totalAlerts / PAGE_SIZE_ALERTS));
+  const pageAlerts = data.slice((_alertPage - 1) * PAGE_SIZE_ALERTS, _alertPage * PAGE_SIZE_ALERTS);
 
   const statLabelMap = {
     'in-refill': 'In Refill', 'in-circulation': 'In Circulation',
     'revalidation': 'In Revalidation', 'in-use': 'In Use',
   };
-  data.forEach(al => {
+  pageAlerts.forEach(al => {
     const cyl = al.cylinder;
     const statClass = 'status-' + (cyl.status || 'in-refill');
     const statLabel = statLabelMap[cyl.status] || cyl.status;
@@ -1743,10 +1777,15 @@ function applyAlertFilters() {
     li.addEventListener('click', () => openPassportModal(cyl.id));
     alertsList.appendChild(li);
   });
+
+  renderPagination('alert-pagination', totalAlerts, _alertPage, PAGE_SIZE_ALERTS, (p) => {
+    _alertPage = p;
+    applyAlertFilters();
+  });
 }
 
-alertFilterSeverity.addEventListener('change', applyAlertFilters);
-alertFilterType.addEventListener('change',     applyAlertFilters);
+alertFilterSeverity.addEventListener('change', () => { _alertPage = 1; applyAlertFilters(); });
+alertFilterType.addEventListener('change',     () => { _alertPage = 1; applyAlertFilters(); });
 
 // ══════════════════════════════════════════════════════════════════════════════
 // REPORTS / DASHBOARD VIEW
@@ -1769,19 +1808,9 @@ async function renderReports() {
     const inUse          = cyls.filter(c => c.status === 'in-use').length;
     const total          = inRefill + inCirculation + inRevalidation + inUse;
 
-    // In-circulation breakdown: full vs empty based on last event type
-    const CIRC_FULL_EV  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
-    const CIRC_EMPTY_EV = new Set(['ret-returned-empty', 'dist-returned-empty']);
-    const cylInCirc = cyls.filter(c => c.status === 'in-circulation');
-    let circFull = 0, circEmpty = 0;
-    cylInCirc.forEach(cyl => {
-      const lastEv = events
-        .filter(e => e.cylinderId === cyl.id)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-      if (!lastEv) return;
-      if (CIRC_FULL_EV.has(lastEv.type))  circFull++;
-      else if (CIRC_EMPTY_EV.has(lastEv.type)) circEmpty++;
-    });
+    // In-circulation breakdown: use network aggregate full/empty stock
+    const circFull  = DEMO_NETWORK.reduce((s, n) => s + (n.full  || 0), 0);
+    const circEmpty = DEMO_NETWORK.reduce((s, n) => s + (n.empty || 0), 0);
 
     const refillerCount = LPGMC_COMPANIES.length;
     const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
@@ -1868,28 +1897,23 @@ async function renderReports() {
       <div class="report-card" style="border-color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--green)'}">${alertMisplaced}</span>
         <div class="report-card-label">Misplaced</div>
-      </div>`;
-
-    if (actSec) actSec.style.display = 'none';
-
-    reportChart.innerHTML = `
-      <div class="section-header" style="margin-top:8px">
-        <span>Supply Chain</span>
       </div>
-      <div class="supply-chain-row">
-        <div class="supply-chain-card">
-          <span class="supply-chain-value">${refillerCount}</span>
-          <div class="supply-chain-label">Refilling Sites</div>
-        </div>
-        <div class="supply-chain-card">
-          <span class="supply-chain-value" style="color:var(--amber)">${distCount}</span>
-          <div class="supply-chain-label">Distributors</div>
-        </div>
-        <div class="supply-chain-card">
-          <span class="supply-chain-value" style="color:var(--purple)">${retailCount}</span>
-          <div class="supply-chain-label">Retailers</div>
-        </div>
+      <div class="dashboard-section-title">Supply Chain</div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${refillerCount}</span>
+        <div class="report-card-label">Refilling Sites</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--amber)">${distCount}</span>
+        <div class="report-card-label">Distributors</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--purple)">${retailCount}</span>
+        <div class="report-card-label">Retailers</div>
       </div>`;
+
+    reportChart.innerHTML = '';
+    if (actSec) actSec.style.display = 'none';
   } else {
     if (actSec) actSec.style.display = '';
 
@@ -1953,33 +1977,41 @@ async function renderNetwork() {
     ? DEMO_NETWORK.filter(n => n.type === activeFilter)
     : DEMO_NETWORK;
 
-  // ── Render list (no Leaflet dependency) ──────────────────────────────────
+  // ── Render list with pagination ──────────────────────────────────────────
   networkList.innerHTML = '';
   if (!filtered.length) {
     networkEmpty.style.display = '';
-  } else {
-    networkEmpty.style.display = 'none';
-    filtered.forEach(partner => {
-      const li = document.createElement('li');
-      li.className = 'network-item';
-      li.style.cursor = 'pointer';
-      li.dataset.id = partner.id;
-      const typeClass = 'type-' + partner.type.toLowerCase();
-      li.innerHTML = `
-        <div class="network-item-header">
-          <span class="network-item-name">${escapeHtml(partner.name)}</span>
-          <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
-        </div>
-        <div class="network-item-meta">
-          📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
-          📞 ${escapeHtml(partner.contact)} ·
-          <span class="network-item-cyls">🛢 ${partner.cylinders} total · <span class="cyl-full">✅ ${partner.full} full</span> · <span class="cyl-empty">📭 ${partner.empty} empty</span></span> ·
-          <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
-        </div>`;
-      networkList.appendChild(li);
-    });
+    renderPagination('net-pagination', 0, 1, PAGE_SIZE_NETWORK, () => {});
+    return;
   }
+  networkEmpty.style.display = 'none';
+  _netPage = Math.min(_netPage, Math.ceil(filtered.length / PAGE_SIZE_NETWORK));
+  const pageNet = filtered.slice((_netPage - 1) * PAGE_SIZE_NETWORK, _netPage * PAGE_SIZE_NETWORK);
 
+  pageNet.forEach(partner => {
+    const li = document.createElement('li');
+    li.className = 'network-item';
+    li.style.cursor = 'pointer';
+    li.dataset.id = partner.id;
+    const typeClass = 'type-' + partner.type.toLowerCase();
+    li.innerHTML = `
+      <div class="network-item-header">
+        <span class="network-item-name">${escapeHtml(partner.name)}</span>
+        <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+      </div>
+      <div class="network-item-meta">
+        📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
+        📞 ${escapeHtml(partner.contact)} ·
+        <span class="network-item-cyls">🛢 ${partner.cylinders} total · <span class="cyl-full">✅ ${partner.full} full</span> · <span class="cyl-empty">📭 ${partner.empty} empty</span></span> ·
+        <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
+      </div>`;
+    networkList.appendChild(li);
+  });
+
+  renderPagination('net-pagination', filtered.length, _netPage, PAGE_SIZE_NETWORK, (p) => {
+    _netPage = p;
+    renderNetwork();
+  });
 }
 
 // Network filter buttons
@@ -1989,6 +2021,7 @@ document.querySelectorAll('.network-filters .btn').forEach(btn => {
       b.className = 'btn btn-sm btn-outline';
     });
     btn.className = 'btn btn-sm btn-primary';
+    _netPage = 1;
     renderNetwork();
   });
 });
@@ -2027,17 +2060,36 @@ async function openPartnerModal(partnerId) {
   $('partner-stat-full').textContent  = partner.full  != null ? partner.full  : '—';
   $('partner-stat-empty').textContent = partner.empty != null ? partner.empty : '—';
 
-  // Calculate sales from event history
+  // Monthly sales chart for current year
   const allEvents = await txGetAll('events');
-  const now = new Date();
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 1);
-  const yearStart      = new Date(now.getFullYear(), 0, 1);
-  const partnerSales   = allEvents.filter(ev => ev.type === 'ret-sold' && ev.company === partner.name);
-  const lastMonthSales = partnerSales.filter(ev => { const d = new Date(ev.timestamp); return d >= lastMonthStart && d < lastMonthEnd; }).length;
-  const thisYearSales  = partnerSales.filter(ev => new Date(ev.timestamp) >= yearStart).length;
-  $('partner-stat-last-month').textContent = lastMonthSales;
-  $('partner-stat-this-year').textContent  = thisYearSales;
+  const chartYear = new Date().getFullYear();
+  const partnerSales = allEvents.filter(ev => ev.type === 'ret-sold' && ev.company === partner.name);
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthlyCounts = Array.from({ length: 12 }, (_, i) => ({
+    label: MONTH_NAMES[i],
+    count: partnerSales.filter(ev => {
+      const d = new Date(ev.timestamp);
+      return d.getFullYear() === chartYear && d.getMonth() === i;
+    }).length,
+  }));
+  const maxCount = Math.max(...monthlyCounts.map(m => m.count), 1);
+  const chartHtml = monthlyCounts.map(m => {
+    const pct = Math.round((m.count / maxCount) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label">${m.label}</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
+          <span>${m.count || ''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const salesChartEl = $('partner-sales-chart');
+  if (salesChartEl) {
+    salesChartEl.innerHTML = `
+      <div class="passport-section-title" style="margin-bottom:10px">Sales by Month (${chartYear})</div>
+      ${chartHtml}`;
+  }
 
   // Destroy existing map so size is always fresh on each open
   if (_partnerDetailMap) {
@@ -2048,32 +2100,41 @@ async function openPartnerModal(partnerId) {
 
   openModal('modal-partner');
 
+  // Give modal animation time to complete, then force a reflow before
+  // Leaflet reads the container dimensions — prevents blank-tile bug.
   setTimeout(() => {
-    try {
-      _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
-        .setView([partner.lat, partner.lng], 14);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
-      }).addTo(_partnerDetailMap);
+    requestAnimationFrame(() => {
+      try {
+        const mapEl = $('partner-detail-map');
+        if (!mapEl) return;
+        void mapEl.getBoundingClientRect(); // force layout
 
-      const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-      });
-      _partnerDetailMarker = L.marker([partner.lat, partner.lng], { icon })
-        .addTo(_partnerDetailMap)
-        .bindPopup(`<strong>${partner.name}</strong><br>${partner.address}`)
-        .openPopup();
+        _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
+          .setView([partner.lat, partner.lng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 18,
+        }).addTo(_partnerDetailMap);
 
-      _partnerDetailMap.invalidateSize();
-    } catch (e) {
-      console.warn('Partner map error:', e);
-    }
-  }, 350);
+        const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+        _partnerDetailMarker = L.marker([partner.lat, partner.lng], { icon })
+          .addTo(_partnerDetailMap)
+          .bindPopup(`<strong>${partner.name}</strong><br>${partner.address}`)
+          .openPopup();
+
+        _partnerDetailMap.invalidateSize();
+        setTimeout(() => { if (_partnerDetailMap) _partnerDetailMap.invalidateSize(); }, 200);
+      } catch (e) {
+        console.warn('Partner map error:', e);
+      }
+    });
+  }, 250);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
