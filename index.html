@@ -324,20 +324,13 @@
           <div class="page-header">
             <h2 class="page-title">🗺️ Network</h2>
           </div>
-          <div class="network-layout">
-            <!-- Partner list -->
-            <div>
-              <div class="network-filters">
-                <button class="btn btn-sm btn-primary" id="net-filter-all" data-filter="">All</button>
-                <button class="btn btn-sm btn-outline" id="net-filter-dist" data-filter="Distributor">Distributors</button>
-                <button class="btn btn-sm btn-outline" id="net-filter-ret" data-filter="Retailer">Retailers</button>
-              </div>
-              <ul id="network-list" class="network-list"></ul>
-              <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
-            </div>
-            <!-- Map -->
-            <div id="network-map"></div>
+          <div class="network-filters">
+            <button class="btn btn-sm btn-primary" id="net-filter-all" data-filter="">All</button>
+            <button class="btn btn-sm btn-outline" id="net-filter-dist" data-filter="Distributor">Distributors</button>
+            <button class="btn btn-sm btn-outline" id="net-filter-ret" data-filter="Retailer">Retailers</button>
           </div>
+          <ul id="network-list" class="network-list" style="max-height:none"></ul>
+          <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
         </div><!-- /view-network -->
 
         <!-- ── MGMT REPORTS VIEW (LPGMC only) ─────────────────────────── -->

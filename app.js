@@ -1692,9 +1692,6 @@ async function renderReports() {
 // NETWORK VIEW
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _networkMap = null;
-let _networkMarkers = [];
-
 async function renderNetwork() {
   const networkList  = $('network-list');
   const networkEmpty = $('network-empty');
@@ -1735,38 +1732,6 @@ async function renderNetwork() {
     });
   }
 
-  // ── Initialize / update Leaflet map ──────────────────────────────────────
-  try {
-    if (!_networkMap) {
-      _networkMap = L.map('network-map', { zoomControl: true }).setView([-6.3, 35.7], 5);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
-      }).addTo(_networkMap);
-    }
-
-    // Clear old markers
-    _networkMarkers.forEach(m => m.remove());
-    _networkMarkers = [];
-
-    filtered.forEach(partner => {
-      const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5)"></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
-      });
-      const marker = L.marker([partner.lat, partner.lng], { icon })
-        .addTo(_networkMap)
-        .bindPopup(`<strong>${partner.name}</strong><br>${partner.type}<br>${partner.city}<br>${partner.cylinders} total · ${partner.full} full · ${partner.empty} empty`);
-      _networkMarkers.push(marker);
-    });
-
-    setTimeout(() => { if (_networkMap) _networkMap.invalidateSize(); }, 150);
-  } catch (e) {
-    console.warn('Map render error:', e);
-  }
 }
 
 // Network filter buttons
