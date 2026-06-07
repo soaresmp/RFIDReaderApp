@@ -1720,7 +1720,10 @@ async function renderNetwork() {
       li.innerHTML = `
         <div class="network-item-header">
           <span class="network-item-name">${escapeHtml(partner.name)}</span>
-          <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="network-type-badge ${escapeHtml(typeClass)}">${escapeHtml(partner.type)}</span>
+            <button class="btn btn-sm btn-outline partner-detail-btn" data-id="${escapeHtml(partner.id)}" type="button">📍 Details</button>
+          </div>
         </div>
         <div class="network-item-meta">
           📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
@@ -1776,6 +1779,70 @@ document.querySelectorAll('.network-filters .btn').forEach(btn => {
     renderNetwork();
   });
 });
+
+// Partner detail button delegation
+$('network-list').addEventListener('click', e => {
+  const btn = e.target.closest('.partner-detail-btn');
+  if (btn) openPartnerModal(btn.dataset.id);
+});
+
+let _partnerDetailMap = null;
+let _partnerDetailMarker = null;
+
+function openPartnerModal(partnerId) {
+  const partner = DEMO_NETWORK.find(n => n.id === partnerId);
+  if (!partner) return;
+
+  $('partner-modal-name').textContent     = partner.name;
+  $('partner-modal-region').textContent   = partner.region;
+  $('partner-modal-city').textContent     = partner.city;
+  $('partner-modal-address').textContent  = partner.address;
+  $('partner-modal-contact').textContent  = partner.contact;
+  $('partner-modal-coords').textContent   = `${partner.lat.toFixed(4)}, ${partner.lng.toFixed(4)}`;
+
+  const typeBadge = $('partner-modal-type-badge');
+  typeBadge.textContent  = partner.type;
+  typeBadge.className    = 'network-type-badge type-' + partner.type.toLowerCase();
+
+  const statusEl = $('partner-modal-status');
+  statusEl.textContent  = partner.status;
+  statusEl.style.color  = partner.status === 'active' ? 'var(--green)' : 'var(--red)';
+
+  openModal('modal-partner');
+
+  // Render the detail map after the modal is visible
+  setTimeout(() => {
+    try {
+      if (!_partnerDetailMap) {
+        _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
+          .setView([partner.lat, partner.lng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 18,
+        }).addTo(_partnerDetailMap);
+      } else {
+        _partnerDetailMap.setView([partner.lat, partner.lng], 14);
+        if (_partnerDetailMarker) _partnerDetailMarker.remove();
+      }
+
+      const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+      _partnerDetailMarker = L.marker([partner.lat, partner.lng], { icon })
+        .addTo(_partnerDetailMap)
+        .bindPopup(`<strong>${partner.name}</strong><br>${partner.address}`)
+        .openPopup();
+
+      _partnerDetailMap.invalidateSize();
+    } catch (e) {
+      console.warn('Partner map error:', e);
+    }
+  }, 100);
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MGMT REPORTS VIEW

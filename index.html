@@ -551,6 +551,50 @@
   <!-- Snackbar -->
   <div id="snackbar" role="status" aria-live="polite"></div>
 
+  <!-- Partner detail modal -->
+  <div id="modal-partner" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Partner Details">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="partner-modal-name" style="margin:0"></h2>
+          <span id="partner-modal-type-badge" class="network-type-badge" style="margin-top:4px;display:inline-block"></span>
+        </div>
+        <button class="modal-close" data-close="modal-partner" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" style="padding-bottom:0">
+        <div class="partner-detail-grid">
+          <div class="partner-detail-info">
+            <div class="passport-row">
+              <span class="passport-key">Region</span>
+              <span class="passport-value" id="partner-modal-region"></span>
+            </div>
+            <div class="passport-row">
+              <span class="passport-key">City</span>
+              <span class="passport-value" id="partner-modal-city"></span>
+            </div>
+            <div class="passport-row">
+              <span class="passport-key">Address</span>
+              <span class="passport-value" id="partner-modal-address"></span>
+            </div>
+            <div class="passport-row">
+              <span class="passport-key">Contact</span>
+              <span class="passport-value" id="partner-modal-contact"></span>
+            </div>
+            <div class="passport-row">
+              <span class="passport-key">Status</span>
+              <span class="passport-value" id="partner-modal-status"></span>
+            </div>
+            <div class="passport-row">
+              <span class="passport-key">Coordinates</span>
+              <span class="passport-value" id="partner-modal-coords" style="font-family:var(--font-mono);font-size:12px"></span>
+            </div>
+          </div>
+          <div id="partner-detail-map" style="height:320px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
   <script src="app.js"></script>
 </body>

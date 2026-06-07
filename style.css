@@ -1132,7 +1132,18 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   animation: slide-up 0.2s ease;
   overflow: hidden;
 }
-.modal-wide { max-width: 760px; max-height: 92vh; }
+.modal-wide { max-width: 800px; max-height: 92vh; }
+
+.partner-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  padding-bottom: 20px;
+}
+@media (max-width: 600px) {
+  .partner-detail-grid { grid-template-columns: 1fr; }
+}
 
 @keyframes slide-up {
   from { transform: translateY(20px); opacity: 0; }
