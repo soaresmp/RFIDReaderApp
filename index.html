@@ -156,11 +156,11 @@
             <span class="nav-label">Scan</span>
           </button>
           <button class="nav-tab" data-view="cylinders">
-            <span class="nav-icon">🗄️</span>
+            <span class="nav-icon">🛢️</span>
             <span class="nav-label">Cylinders</span>
           </button>
           <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
-            <span class="nav-icon">🗺️</span>
+            <span class="nav-icon">⛽</span>
             <span class="nav-label">Network</span>
           </button>
           <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
@@ -245,7 +245,7 @@
         <!-- ── CYLINDERS VIEW ─────────────────────────────────────────── -->
         <div id="view-cylinders" class="view">
           <div class="page-header">
-            <h2 class="page-title">🗄️ Cylinders</h2>
+            <h2 class="page-title">🛢️ Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">+ Register</button>
               <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
@@ -324,12 +324,17 @@
         <!-- ── NETWORK VIEW (LPGMC only) ──────────────────────────────── -->
         <div id="view-network" class="view">
           <div class="page-header">
-            <h2 class="page-title">🗺️ Network</h2>
+            <h2 class="page-title">⛽ Network</h2>
           </div>
           <div class="network-filters">
             <button class="btn btn-sm btn-primary" id="net-filter-all" data-filter="">All</button>
             <button class="btn btn-sm btn-outline" id="net-filter-dist" data-filter="Distributor">Distributors</button>
             <button class="btn btn-sm btn-outline" id="net-filter-ret" data-filter="Retailer">Retailers</button>
+            <select id="net-filter-status" class="filter-select" style="margin-left:8px">
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
           <ul id="network-list" class="network-list" style="max-height:none"></ul>
           <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>

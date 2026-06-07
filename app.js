@@ -254,9 +254,9 @@ const State = {
   passportCylinderId: null,
 };
 
-const PAGE_SIZE_CYLS    = 20;
-const PAGE_SIZE_NETWORK = 15;
-const PAGE_SIZE_ALERTS  = 20;
+const PAGE_SIZE_CYLS    = 10;
+const PAGE_SIZE_NETWORK = 10;
+const PAGE_SIZE_ALERTS  = 10;
 
 let _cylPage  = 1;
 let _netPage  = 1;
@@ -1808,9 +1808,30 @@ async function renderReports() {
     const inUse          = cyls.filter(c => c.status === 'in-use').length;
     const total          = inRefill + inCirculation + inRevalidation + inUse;
 
-    // In-circulation breakdown: use network aggregate full/empty stock
-    const circFull  = DEMO_NETWORK.reduce((s, n) => s + (n.full  || 0), 0);
-    const circEmpty = DEMO_NETWORK.reduce((s, n) => s + (n.empty || 0), 0);
+    // Compute full/empty breakdown from actual events for both in-refill and in-circulation
+    const REFILL_FULL_EV = new Set(['refilled']);
+    const REFILL_EMPTY_EV = new Set(['received-empty', 'registered']);
+    const CIRC_FULL_EV   = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+    const CIRC_EMPTY_EV  = new Set(['ret-returned-empty', 'dist-returned-empty']);
+
+    // Build a map of last-event-type per cylinder for quick lookup
+    const lastEvType = {};
+    const sortedEvs = events.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    sortedEvs.forEach(e => { lastEvType[e.cylinderId] = e.type; });
+
+    let refillFull = 0, refillEmpty = 0;
+    cyls.filter(c => c.status === 'in-refill').forEach(c => {
+      const t = lastEvType[c.id];
+      if (REFILL_FULL_EV.has(t))  refillFull++;
+      else                         refillEmpty++;
+    });
+
+    let circFull = 0, circEmpty = 0;
+    cyls.filter(c => c.status === 'in-circulation').forEach(c => {
+      const t = lastEvType[c.id];
+      if (CIRC_FULL_EV.has(t))   circFull++;
+      else if (CIRC_EMPTY_EV.has(t)) circEmpty++;
+    });
 
     const refillerCount = LPGMC_COMPANIES.length;
     const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
@@ -1859,6 +1880,11 @@ async function renderReports() {
       <div class="report-card">
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
         <div class="report-card-label">In Refill</div>
+        <div class="report-card-sub">
+          <span style="color:var(--green);font-size:11px">✅ ${refillFull} filled</span>
+          &nbsp;·&nbsp;
+          <span style="color:var(--muted);font-size:11px">📭 ${refillEmpty} empty</span>
+        </div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
@@ -1973,9 +1999,11 @@ async function renderNetwork() {
   const activeFilterBtn = document.querySelector('.network-filters .btn-primary');
   const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : '';
 
-  const filtered = activeFilter
-    ? DEMO_NETWORK.filter(n => n.type === activeFilter)
-    : DEMO_NETWORK;
+  const statusFilter = $('net-filter-status') ? $('net-filter-status').value : '';
+  const filtered = DEMO_NETWORK.filter(n =>
+    (!activeFilter   || n.type   === activeFilter) &&
+    (!statusFilter   || n.status === statusFilter)
+  );
 
   // ── Render list with pagination ──────────────────────────────────────────
   networkList.innerHTML = '';
@@ -2012,6 +2040,12 @@ async function renderNetwork() {
     _netPage = p;
     renderNetwork();
   });
+}
+
+// Network status filter
+const netFilterStatus = $('net-filter-status');
+if (netFilterStatus) {
+  netFilterStatus.addEventListener('change', () => { _netPage = 1; renderNetwork(); });
 }
 
 // Network filter buttons
