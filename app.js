@@ -542,7 +542,6 @@ const loginFormLabel   = $('login-form-role-label');
 const loginForm        = $('login-form');
 const loginCompSel     = $('login-company-select');
 const loginCompText    = $('login-company-text');
-const loginOperator    = $('login-operator');
 
 // Scan view
 const scanEventBar     = $('scan-event-bar');
@@ -709,7 +708,6 @@ function showLoginOverlay() {
   // Reset to card selection
   loginFormWrapper.hidden = true;
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-  loginOperator.value = '';
   loginCompSel.value  = '';
   loginCompText.value = '';
   _selectedRole = null;
@@ -725,6 +723,12 @@ function selectRole(role) {
     c.classList.toggle('selected', c.dataset.role === role);
     c.setAttribute('aria-pressed', String(c.dataset.role === role));
   });
+
+  // EWURA: auto-login immediately, no form needed
+  if (role === 'ewura') {
+    Auth.login('ewura', 'EWURA', '');
+    return;
+  }
 
   // Configure company input
   loginFormLabel.textContent = ROLE_LABELS[role] || role;
@@ -743,15 +747,13 @@ function selectRole(role) {
     loginCompSel.innerHTML = rets.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
     loginCompSel.style.display = '';
   } else {
-    loginCompText.placeholder = role === 'ewura'          ? 'EWURA'
-      : role === 'tra'           ? 'TRA'
+    loginCompText.placeholder = role === 'tra'           ? 'TRA'
       : role === 'revalidator'   ? 'e.g. ProRevalid Ltd'
       : 'e.g. Field Inspection Unit';
     loginCompText.style.display = '';
   }
 
   loginFormWrapper.hidden = false;
-  loginOperator.focus();
 }
 
 // Role card clicks
@@ -782,12 +784,9 @@ loginForm.addEventListener('submit', (e) => {
   const useSelect = ['lpgmc', 'distributor', 'retailer'].includes(_selectedRole);
   const company = useSelect ? loginCompSel.value.trim() : loginCompText.value.trim();
 
-  const operatorId = loginOperator.value.trim();
-
   if (!company) { showSnackbar('Please enter a company name.', 'error'); return; }
-  if (!operatorId) { showSnackbar('Please enter an Operator ID.', 'error'); return; }
 
-  Auth.login(_selectedRole, company, operatorId);
+  Auth.login(_selectedRole, company, '');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -803,7 +802,7 @@ function applySession() {
   headerRoleBadge.className   = 'header-role-badge role-' + s.role;
   headerRoleBadge.hidden      = false;
 
-  headerOpPill.textContent = s.company + ' · ' + s.operatorId;
+  headerOpPill.textContent = s.company;
   headerOpPill.hidden      = false;
 
   logoutBtn.hidden = false;
@@ -1887,7 +1886,7 @@ async function renderReports() {
         </div>
       </div>
       <div class="report-card">
-        <span class="report-card-value" style="color:var(--blue)">${inCirculation}</span>
+        <span class="report-card-value" style="color:var(--blue)">${circFull + circEmpty}</span>
         <div class="report-card-label">In Circulation</div>
         <div class="report-card-sub">
           <span style="color:var(--green);font-size:11px">✅ ${circFull} full</span>
@@ -1995,15 +1994,33 @@ async function renderNetwork() {
   const networkList  = $('network-list');
   const networkEmpty = $('network-empty');
 
-  // Current filter
-  const activeFilterBtn = document.querySelector('.network-filters .btn-primary');
-  const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : '';
-
+  const typeFilter   = $('net-filter-type')   ? $('net-filter-type').value   : '';
   const statusFilter = $('net-filter-status') ? $('net-filter-status').value : '';
   const filtered = DEMO_NETWORK.filter(n =>
-    (!activeFilter   || n.type   === activeFilter) &&
-    (!statusFilter   || n.status === statusFilter)
+    (!typeFilter   || n.type   === typeFilter) &&
+    (!statusFilter || n.status === statusFilter)
   );
+
+  // Build per-partner full/empty counts from actual cylinder events
+  const [allCyls, allEvs] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+  const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+  const CIRC_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
+
+  const lastEvByType = {};
+  allEvs.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(ev => { lastEvByType[ev.cylinderId] = ev; });
+
+  const partnerCounts = {};
+  allCyls.filter(c => c.status === 'in-circulation').forEach(c => {
+    const ev = lastEvByType[c.id];
+    if (!ev) return;
+    const loc = ev.location || ev.company || '';
+    if (!loc) return;
+    if (!partnerCounts[loc]) partnerCounts[loc] = { total: 0, full: 0, empty: 0 };
+    partnerCounts[loc].total++;
+    if (CIRC_FULL_TYPES.has(ev.type))       partnerCounts[loc].full++;
+    else if (CIRC_EMPTY_TYPES.has(ev.type)) partnerCounts[loc].empty++;
+  });
 
   // ── Render list with pagination ──────────────────────────────────────────
   networkList.innerHTML = '';
@@ -2017,6 +2034,7 @@ async function renderNetwork() {
   const pageNet = filtered.slice((_netPage - 1) * PAGE_SIZE_NETWORK, _netPage * PAGE_SIZE_NETWORK);
 
   pageNet.forEach(partner => {
+    const counts = partnerCounts[partner.name] || { total: 0, full: 0, empty: 0 };
     const li = document.createElement('li');
     li.className = 'network-item';
     li.style.cursor = 'pointer';
@@ -2030,7 +2048,7 @@ async function renderNetwork() {
       <div class="network-item-meta">
         📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
         📞 ${escapeHtml(partner.contact)} ·
-        <span class="network-item-cyls">🛢 ${partner.cylinders} total · <span class="cyl-full">✅ ${partner.full} full</span> · <span class="cyl-empty">📭 ${partner.empty} empty</span></span> ·
+        <span class="network-item-cyls">🔥 ${counts.total} total · <span class="cyl-full">✅ ${counts.full} full</span> · <span class="cyl-empty">📭 ${counts.empty} empty</span></span> ·
         <span class="network-status-${escapeHtml(partner.status)}">${escapeHtml(partner.status)}</span>
       </div>`;
     networkList.appendChild(li);
@@ -2042,23 +2060,11 @@ async function renderNetwork() {
   });
 }
 
-// Network status filter
+// Network filters — type dropdown + status dropdown
+const netFilterType   = $('net-filter-type');
 const netFilterStatus = $('net-filter-status');
-if (netFilterStatus) {
-  netFilterStatus.addEventListener('change', () => { _netPage = 1; renderNetwork(); });
-}
-
-// Network filter buttons
-document.querySelectorAll('.network-filters .btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.network-filters .btn').forEach(b => {
-      b.className = 'btn btn-sm btn-outline';
-    });
-    btn.className = 'btn btn-sm btn-primary';
-    _netPage = 1;
-    renderNetwork();
-  });
-});
+if (netFilterType)   netFilterType.addEventListener('change',   () => { _netPage = 1; renderNetwork(); });
+if (netFilterStatus) netFilterStatus.addEventListener('change', () => { _netPage = 1; renderNetwork(); });
 
 // Network item click → open partner modal
 $('network-list').addEventListener('click', e => {
@@ -2089,13 +2095,28 @@ async function openPartnerModal(partnerId) {
   statusEl.textContent  = partner.status;
   statusEl.style.color  = partner.status === 'active' ? 'var(--green)' : 'var(--red)';
 
-  // Populate stock stats
-  $('partner-stat-total').textContent = partner.cylinders ?? '—';
-  $('partner-stat-full').textContent  = partner.full  != null ? partner.full  : '—';
-  $('partner-stat-empty').textContent = partner.empty != null ? partner.empty : '—';
+  // Compute stock stats from actual cylinder events
+  const [allCylinders, allEvents] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+  const MODAL_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+  const MODAL_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
+  const lastEvModal = {};
+  allEvents.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(ev => { lastEvModal[ev.cylinderId] = ev; });
+  let pTotal = 0, pFull = 0, pEmpty = 0;
+  allCylinders.filter(c => c.status === 'in-circulation').forEach(c => {
+    const ev = lastEvModal[c.id];
+    if (!ev) return;
+    const loc = ev.location || ev.company || '';
+    if (loc !== partner.name) return;
+    pTotal++;
+    if (MODAL_FULL_TYPES.has(ev.type))       pFull++;
+    else if (MODAL_EMPTY_TYPES.has(ev.type)) pEmpty++;
+  });
+  $('partner-stat-total').textContent = pTotal;
+  $('partner-stat-full').textContent  = pFull;
+  $('partner-stat-empty').textContent = pEmpty;
 
   // Monthly sales chart for current year
-  const allEvents = await txGetAll('events');
   const chartYear = new Date().getFullYear();
   const partnerSales = allEvents.filter(ev => ev.type === 'ret-sold' && ev.company === partner.name);
   const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
