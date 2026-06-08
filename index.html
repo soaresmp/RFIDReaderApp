@@ -31,20 +31,20 @@
       <!-- Role cards -->
       <div class="role-cards" id="role-cards">
 
-        <div class="role-card" data-role="lpgmc" tabindex="0" role="button" aria-pressed="false">
-          <div class="role-card-icon">🏭</div>
-          <div class="role-card-body">
-            <div class="role-card-title">LPGMC</div>
-            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive · Send Revalidation</div>
-          </div>
-          <div class="role-card-chevron">›</div>
-        </div>
-
         <div class="role-card" data-role="ewura" tabindex="0" role="button" aria-pressed="false">
           <div class="role-card-icon">🏛️</div>
           <div class="role-card-body">
             <div class="role-card-title">EWURA</div>
             <div class="role-card-desc">Regulatory Authority<br>Grant &amp; Revoke Licences · Monitor Supply Chain</div>
+          </div>
+          <div class="role-card-chevron">›</div>
+        </div>
+
+        <div class="role-card" data-role="lpgmc" tabindex="0" role="button" aria-pressed="false">
+          <div class="role-card-icon">🏭</div>
+          <div class="role-card-body">
+            <div class="role-card-title">LPGMC</div>
+            <div class="role-card-desc">LPG Marketing Company<br>Register · Refill · Ship · Receive · Send Revalidation</div>
           </div>
           <div class="role-card-chevron">›</div>
         </div>
@@ -124,7 +124,6 @@
     <!-- ── Top Header Bar ──────────────────────────────────────────────── -->
     <header id="app-header">
       <div class="header-left">
-        <span class="header-logo">⛽</span>
         <div>
           <h1>LPG Tracer</h1>
           <p class="subtitle" id="header-subtitle">Ready</p>
@@ -145,31 +144,24 @@
       <nav id="app-sidebar">
         <div class="sidebar-nav" id="app-nav">
           <button class="nav-tab" data-view="reports">
-            <span class="nav-icon">📊</span>
             <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
           </button>
           <button class="nav-tab" data-view="scan">
-            <span class="nav-icon">📡</span>
             <span class="nav-label" data-i18n="nav.scan">Scan</span>
           </button>
           <button class="nav-tab" data-view="cylinders">
-            <span class="nav-icon">🔥</span>
             <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
           </button>
           <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
-            <span class="nav-icon">🏪</span>
             <span class="nav-label" data-i18n="nav.network">Network</span>
           </button>
           <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
-            <span class="nav-icon">🔔</span>
             <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
           </button>
           <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
-            <span class="nav-icon">📋</span>
             <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
           </button>
           <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
-            <span class="nav-icon">📈</span>
             <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
         </div>
@@ -245,7 +237,6 @@
             <h2 class="page-title">🔥 Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">+ Register</button>
-              <button id="export-report-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
             </div>
           </div>
 
@@ -307,9 +298,7 @@
         <div id="view-reports" class="view">
           <div class="page-header">
             <h2 class="page-title">📊 Dashboard</h2>
-            <div class="page-actions">
-              <button id="export-dashboard-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
-            </div>
+            <div class="page-actions"></div>
           </div>
           <div class="reports-grid" id="reports-grid"></div>
           <div id="report-activity-section" class="section-header" style="display:flex;align-items:center;justify-content:space-between">

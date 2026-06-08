@@ -32,6 +32,7 @@ const TRANSLATIONS = {
     'status.distSentRetail':'Sent to Retailer','status.retReceived':'Retailer Received','status.retSold':'Sold',
     'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
     'dash.totalAlerts':'Total Alerts','dash.refillingSites':'Refilling Sites',
+    'dash.marketCompliance':'Market Compliance','mgmt.complianceRate':'Compliance Rate',
     'dash.avgRefillCycle':'Avg Refill Cycle','dash.utilisationRate':'Utilisation Rate',
     'dash.daysLabel':'days received→refilled','dash.utilLabel':'in-use + in-circ / total',
     'kpi.filled':'filled','kpi.empty':'empty','kpi.full':'full',
@@ -85,6 +86,7 @@ const TRANSLATIONS = {
     'status.distSentRetail':'Imetumwa kwa Muuzaji','status.retReceived':'Imepokelewa (Muuzaji)','status.retSold':'Imeuzwa',
     'status.retReturnedEmpty':'Imerudishwa Tupu (Muuzaji)','status.distReturnedEmpty':'Imerudishwa Tupu (Msambazaji)','status.receivedEmpty':'Imepokelewa Tupu',
     'dash.totalAlerts':'Tahadhari Zote','dash.refillingSites':'Vituo vya Kujaza',
+    'dash.marketCompliance':'Uzingatiaji wa Soko','mgmt.complianceRate':'Kiwango cha Kuzingatia',
     'dash.avgRefillCycle':'Wastani wa Kujaza','dash.utilisationRate':'Kiwango cha Matumizi',
     'dash.daysLabel':'siku (zilipokelewa→kujazwa)','dash.utilLabel':'inatumika + mzunguko / jumla',
     'kpi.filled':'imejazwa','kpi.empty':'tupu','kpi.full':'kamili',
@@ -1650,14 +1652,25 @@ let _cylLocations = {}; // cylinderId → { location, region }
 
 async function renderCylinders() {
   _cylAllData = await txGetAll('cylinders');
+  const allEvents = await txGetAll('events');
 
   // Filter by company for LPGMC
   if (Auth.session && Auth.session.role === 'lpgmc') {
     _cylAllData = _cylAllData.filter(c => c.company === Auth.session.company);
+  } else if (Auth.session && (Auth.session.role === 'distributor' || Auth.session.role === 'retailer')) {
+    // Show only cylinders currently at this partner's location
+    const lastEvMap = {};
+    allEvents.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
+    const partnerName = Auth.session.company;
+    _cylAllData = _cylAllData.filter(c => {
+      const ev = lastEvMap[c.id];
+      if (!ev) return false;
+      return (ev.location || ev.company || '') === partnerName;
+    });
   }
 
   // Build last-known-location cache for cylinders not in-use
-  const allEvents = await txGetAll('events');
   buildCylLocations(_cylAllData, allEvents);
 
   applyCylFilters();
@@ -1858,17 +1871,6 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Status</span>
         <span class="passport-value">${escapeHtml(cyl.status)}</span>
       </div>
-    </div>
-    <div class="passport-section">
-      <div class="passport-section-title">Cylinder Marking</div>
-      ${cyl.ownerBrandName ? `<div class="passport-row"><span class="passport-key">Brand Name</span><span class="passport-value">${escapeHtml(cyl.ownerBrandName)}</span></div>` : ''}
-      ${cyl.brandColourMark ? `<div class="passport-row"><span class="passport-key">Colour &amp; Mark</span><span class="passport-value">${escapeHtml(cyl.brandColourMark)}</span></div>` : ''}
-      ${cyl.manufacturer ? `<div class="passport-row"><span class="passport-key">Manufacturer</span><span class="passport-value">${escapeHtml(cyl.manufacturer)}</span></div>` : ''}
-      ${cyl.productName ? `<div class="passport-row"><span class="passport-key">Product</span><span class="passport-value">${escapeHtml(cyl.productName)}</span></div>` : ''}
-      ${cyl.pressureTestValue ? `<div class="passport-row"><span class="passport-key">Pressure Test</span><span class="passport-value">${escapeHtml(cyl.pressureTestValue)}</span></div>` : ''}
-      ${cyl.lastRequalDate ? `<div class="passport-row"><span class="passport-key">Last Requalification</span><span class="passport-value">${formatDate(cyl.lastRequalDate)}${cyl.requalPlant ? ' · ' + escapeHtml(cyl.requalPlant) : ''}</span></div>` : ''}
-      ${cyl.customerServiceNumber ? `<div class="passport-row"><span class="passport-key">Customer Service</span><span class="passport-value">${escapeHtml(cyl.customerServiceNumber)}</span></div>` : ''}
-      ${cyl.emergencyContacts ? `<div class="passport-row"><span class="passport-key">Emergency Contacts</span><span class="passport-value">${escapeHtml(cyl.emergencyContacts)}</span></div>` : ''}
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Specifications</div>
@@ -2363,7 +2365,28 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--blue)">${utilisationRate}%</span>
         <div class="report-card-label">${t('dash.utilisationRate')}</div>
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
+      </div>
+      ${role === 'ewura' ? (() => {
+        const INSP_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
+        const inspEvs = events.filter(e => INSP_TYPES.has(e.type));
+        const compC  = inspEvs.filter(e => e.compliant !== false).length;
+        const nonCompC = inspEvs.filter(e => e.compliant === false).length;
+        const compRate = inspEvs.length ? Math.round(compC / inspEvs.length * 100) : 0;
+        return `
+      <div class="dashboard-section-title">${t('dash.marketCompliance')}</div>
+      <div class="report-card" style="border-color:var(--green)">
+        <span class="report-card-value" style="color:var(--green)">${compC}</span>
+        <div class="report-card-label">${t('mgmt.compliant')}</div>
+      </div>
+      <div class="report-card" style="border-color:${nonCompC > 0 ? 'var(--red)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${nonCompC > 0 ? 'var(--red)' : 'var(--green)'}">${nonCompC}</span>
+        <div class="report-card-label">${t('mgmt.nonCompliant')}</div>
+      </div>
+      <div class="report-card" style="border-color:${compRate < 75 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${compRate >= 75 ? 'var(--green)' : 'var(--amber)'}">${compRate}%</span>
+        <div class="report-card-label">${t('mgmt.complianceRate')}</div>
       </div>`;
+      })() : ''}`;
 
     // Both lpgmc and ewura: hide activity section
     reportChart.innerHTML = '';
@@ -2922,35 +2945,35 @@ async function renderMgmtReports() {
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.status')}</div>
-        <button class="mgmt-card-export-btn" data-export="status" type="button">↓ CSV</button>
+        
       </div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.refills')}</div>
-        <button class="mgmt-card-export-btn" data-export="refills" type="button">↓ CSV</button>
+        
       </div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
-        <button class="mgmt-card-export-btn" data-export="partners" type="button">↓ CSV</button>
+        
       </div>
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
-        <button class="mgmt-card-export-btn" data-export="regions" type="button">↓ CSV</button>
+        
       </div>
       ${regionBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.inspections')}</div>
-        <button class="mgmt-card-export-btn" data-export="inspections" type="button">↓ CSV</button>
+        
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total inspections: <strong style="color:var(--text)">${inspEvents.length}</strong></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
