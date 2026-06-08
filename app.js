@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v13';
+const SEED_KEY   = 'seeded-v14';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -62,6 +62,8 @@ const TRANSLATIONS = {
     'mgmt.inspections':'Inspections & Scans',
     'mgmt.compliant':'Compliant',
     'mgmt.nonCompliant':'Non-Compliant',
+    'mgmt.salesByWeight':'Sales by Net Weight',
+    'mgmt.weightKg':'kg cylinders',
     'kpi.totalInactive':'total',
   },
   sw: {
@@ -116,6 +118,8 @@ const TRANSLATIONS = {
     'mgmt.inspections':'Ukaguzi na Uchanganuzi',
     'mgmt.compliant':'Inakidhi',
     'mgmt.nonCompliant':'Haikusidhi',
+    'mgmt.salesByWeight':'Mauzo kwa Uzito wa Gesi',
+    'mgmt.weightKg':'kg mitungi',
     'kpi.totalInactive':'jumla',
   },
 };
@@ -141,9 +145,9 @@ function applyLang() {
 
 const DEMO_CYLINDERS = [
   // Vivo LPG (12)
-  { id:'E280116060000204C3F04E81', serial:'VLG-2013-001', company:'Vivo LPG', manufactureDate:'2013-03-10', tareWeight:14.5, capacity:12, fillCount:520, lastHydroTest:'2018-03-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'VLG-2015-002', company:'Vivo LPG', manufactureDate:'2015-06-10', tareWeight:14.5, capacity:12, fillCount:461, lastHydroTest:'2020-06-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'VLG-2016-003', company:'Vivo LPG', manufactureDate:'2016-01-22', tareWeight:14.5, capacity:12, fillCount:390, lastHydroTest:'2021-01-22', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E81', serial:'VLG-2013-001', company:'Vivo LPG', manufactureDate:'2013-03-10', tareWeight:8.0, capacity:6, fillCount:520, lastHydroTest:'2018-03-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E82', serial:'VLG-2015-002', company:'Vivo LPG', manufactureDate:'2015-06-10', tareWeight:8.0, capacity:6, fillCount:461, lastHydroTest:'2020-06-10', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E83', serial:'VLG-2016-003', company:'Vivo LPG', manufactureDate:'2016-01-22', tareWeight:8.0, capacity:6, fillCount:390, lastHydroTest:'2021-01-22', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E84', serial:'VLG-2017-004', company:'Vivo LPG', manufactureDate:'2017-09-05', tareWeight:14.5, capacity:12, fillCount:310, lastHydroTest:'2022-09-05', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04E85', serial:'VLG-2018-005', company:'Vivo LPG', manufactureDate:'2018-04-18', tareWeight:14.5, capacity:12, fillCount:230, lastHydroTest:'2023-04-18', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E86', serial:'VLG-2019-006', company:'Vivo LPG', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, fillCount:174, lastHydroTest:'2024-11-30', status:'in-refill',      notes:'' },
@@ -153,13 +157,13 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EA2', serial:'VLG-2022-010', company:'Vivo LPG', manufactureDate:'2022-02-15', tareWeight:14.5, capacity:12, fillCount:55,  lastHydroTest:'2027-02-15', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EA3', serial:'VLG-2023-011', company:'Vivo LPG', manufactureDate:'2023-05-01', tareWeight:14.5, capacity:12, fillCount:28,  lastHydroTest:'2028-05-01', status:'revalidation',   notes:'' },
   { id:'E280116060000204C3F04EA4', serial:'VLG-2024-012', company:'Vivo LPG', manufactureDate:'2024-01-10', tareWeight:14.5, capacity:12, fillCount:9,   lastHydroTest:'2029-01-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF1', serial:'VLG-2012-013', company:'Vivo LPG', manufactureDate:'2012-05-15', tareWeight:14.5, capacity:12, fillCount:640, lastHydroTest:'2017-05-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EF2', serial:'VLG-2014-014', company:'Vivo LPG', manufactureDate:'2014-08-22', tareWeight:14.5, capacity:12, fillCount:490, lastHydroTest:'2019-08-22', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EF1', serial:'VLG-2012-013', company:'Vivo LPG', manufactureDate:'2012-05-15', tareWeight:28.5, capacity:38, fillCount:640, lastHydroTest:'2017-05-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF2', serial:'VLG-2014-014', company:'Vivo LPG', manufactureDate:'2014-08-22', tareWeight:28.5, capacity:38, fillCount:490, lastHydroTest:'2019-08-22', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04EF3', serial:'VLG-2025-015', company:'Vivo LPG', manufactureDate:'2025-02-01', tareWeight:14.5, capacity:12, fillCount:3,   lastHydroTest:'2030-02-01', status:'in-refill',      notes:'' },
   // Total Energies (15)
-  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:14.5, capacity:12, fillCount:512, lastHydroTest:'2019-02-27', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'TEN-2015-002', company:'Total Energies', manufactureDate:'2015-08-19', tareWeight:14.5, capacity:12, fillCount:420, lastHydroTest:'2020-08-19', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'TEN-2016-003', company:'Total Energies', manufactureDate:'2016-05-03', tareWeight:14.5, capacity:12, fillCount:360, lastHydroTest:'2021-05-03', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:8.0, capacity:6, fillCount:512, lastHydroTest:'2019-02-27', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E8A', serial:'TEN-2015-002', company:'Total Energies', manufactureDate:'2015-08-19', tareWeight:8.0, capacity:6, fillCount:420, lastHydroTest:'2020-08-19', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E8B', serial:'TEN-2016-003', company:'Total Energies', manufactureDate:'2016-05-03', tareWeight:8.0, capacity:6, fillCount:360, lastHydroTest:'2021-05-03', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E8C', serial:'TEN-2017-004', company:'Total Energies', manufactureDate:'2017-01-15', tareWeight:14.5, capacity:12, fillCount:295, lastHydroTest:'2022-01-15', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04E8D', serial:'TEN-2018-005', company:'Total Energies', manufactureDate:'2018-07-22', tareWeight:14.5, capacity:12, fillCount:220, lastHydroTest:'2023-07-22', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04E8E', serial:'TEN-2019-006', company:'Total Energies', manufactureDate:'2019-09-10', tareWeight:14.5, capacity:12, fillCount:163, lastHydroTest:'2024-09-10', status:'in-circulation', notes:'' },
@@ -169,12 +173,12 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EB2', serial:'TEN-2022-010', company:'Total Energies', manufactureDate:'2022-06-18', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-06-18', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EB3', serial:'TEN-2023-011', company:'Total Energies', manufactureDate:'2023-02-05', tareWeight:14.5, capacity:12, fillCount:23,  lastHydroTest:'2028-02-05', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04EB4', serial:'TEN-2024-012', company:'Total Energies', manufactureDate:'2024-03-20', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF4', serial:'TEN-2013-013', company:'Total Energies', manufactureDate:'2013-07-10', tareWeight:14.5, capacity:12, fillCount:570, lastHydroTest:'2018-07-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EF5', serial:'TEN-2012-014', company:'Total Energies', manufactureDate:'2012-11-30', tareWeight:14.5, capacity:12, fillCount:610, lastHydroTest:'2017-11-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04EF4', serial:'TEN-2013-013', company:'Total Energies', manufactureDate:'2013-07-10', tareWeight:28.5, capacity:38, fillCount:570, lastHydroTest:'2018-07-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF5', serial:'TEN-2012-014', company:'Total Energies', manufactureDate:'2012-11-30', tareWeight:28.5, capacity:38, fillCount:610, lastHydroTest:'2017-11-30', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04EF6', serial:'TEN-2025-015', company:'Total Energies', manufactureDate:'2025-01-15', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-01-15', status:'in-refill',      notes:'' },
   // Shell Gas (15)
-  { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:14.5, capacity:12, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E92', serial:'SHG-2014-002', company:'Shell Gas', manufactureDate:'2014-11-08', tareWeight:14.5, capacity:12, fillCount:480, lastHydroTest:'2019-11-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:8.0, capacity:6, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E92', serial:'SHG-2014-002', company:'Shell Gas', manufactureDate:'2014-11-08', tareWeight:8.0, capacity:6, fillCount:480, lastHydroTest:'2019-11-08', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04E93', serial:'SHG-2016-003', company:'Shell Gas', manufactureDate:'2016-03-25', tareWeight:14.5, capacity:12, fillCount:355, lastHydroTest:'2021-03-25', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E94', serial:'SHG-2017-004', company:'Shell Gas', manufactureDate:'2017-08-14', tareWeight:14.5, capacity:12, fillCount:280, lastHydroTest:'2022-08-14', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04E95', serial:'SHG-2018-005', company:'Shell Gas', manufactureDate:'2018-02-28', tareWeight:14.5, capacity:12, fillCount:212, lastHydroTest:'2023-02-28', status:'in-circulation', notes:'' },
@@ -185,11 +189,11 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04EC2', serial:'SHG-2022-010', company:'Shell Gas', manufactureDate:'2022-09-28', tareWeight:14.5, capacity:12, fillCount:35,  lastHydroTest:'2027-09-28', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EC3', serial:'SHG-2023-011', company:'Shell Gas', manufactureDate:'2023-07-04', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-07-04', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04EC4', serial:'SHG-2024-012', company:'Shell Gas', manufactureDate:'2024-02-14', tareWeight:14.5, capacity:12, fillCount:5,   lastHydroTest:'2029-02-14', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF7', serial:'SHG-2012-013', company:'Shell Gas', manufactureDate:'2012-09-10', tareWeight:14.5, capacity:12, fillCount:618, lastHydroTest:'2017-09-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EF7', serial:'SHG-2012-013', company:'Shell Gas', manufactureDate:'2012-09-10', tareWeight:28.5, capacity:38, fillCount:618, lastHydroTest:'2017-09-10', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04EF8', serial:'SHG-2015-014', company:'Shell Gas', manufactureDate:'2015-02-20', tareWeight:14.5, capacity:12, fillCount:445, lastHydroTest:'2020-02-20', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04EF9', serial:'SHG-2025-015', company:'Shell Gas', manufactureDate:'2025-03-12', tareWeight:14.5, capacity:12, fillCount:4,   lastHydroTest:'2030-03-12', status:'in-refill',      notes:'' },
   // Lake Gas (9)
-  { id:'E280116060000204C3F04E99', serial:'LKG-2015-001', company:'Lake Gas', manufactureDate:'2015-04-12', tareWeight:14.5, capacity:12, fillCount:430, lastHydroTest:'2020-04-12', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04E99', serial:'LKG-2015-001', company:'Lake Gas', manufactureDate:'2015-04-12', tareWeight:8.0, capacity:6, fillCount:430, lastHydroTest:'2020-04-12', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04E9A', serial:'LKG-2016-002', company:'Lake Gas', manufactureDate:'2016-10-30', tareWeight:14.5, capacity:12, fillCount:340, lastHydroTest:'2021-10-30', status:'in-refill',      notes:'' },
   { id:'E280116060000204C3F04E9B', serial:'LKG-2018-003', company:'Lake Gas', manufactureDate:'2018-06-18', tareWeight:14.5, capacity:12, fillCount:238, lastHydroTest:'2023-06-18', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04E9C', serial:'LKG-2019-004', company:'Lake Gas', manufactureDate:'2019-01-09', tareWeight:14.5, capacity:12, fillCount:185, lastHydroTest:'2024-01-09', status:'in-circulation', notes:'' },
@@ -198,8 +202,8 @@ const DEMO_CYLINDERS = [
   { id:'E280116060000204C3F04ED1', serial:'LKG-2022-007', company:'Lake Gas', manufactureDate:'2022-03-15', tareWeight:14.5, capacity:12, fillCount:49,  lastHydroTest:'2027-03-15', status:'in-circulation', notes:'' },
   { id:'E280116060000204C3F04ED2', serial:'LKG-2023-008', company:'Lake Gas', manufactureDate:'2023-07-22', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-07-22', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04ED3', serial:'LKG-2024-009', company:'Lake Gas', manufactureDate:'2024-04-05', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-04-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EFA', serial:'LKG-2013-010', company:'Lake Gas', manufactureDate:'2013-04-08', tareWeight:14.5, capacity:12, fillCount:548, lastHydroTest:'2018-04-08', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EFB', serial:'LKG-2014-011', company:'Lake Gas', manufactureDate:'2014-12-15', tareWeight:14.5, capacity:12, fillCount:415, lastHydroTest:'2019-12-15', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04EFA', serial:'LKG-2013-010', company:'Lake Gas', manufactureDate:'2013-04-08', tareWeight:28.5, capacity:38, fillCount:548, lastHydroTest:'2018-04-08', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04EFB', serial:'LKG-2014-011', company:'Lake Gas', manufactureDate:'2014-12-15', tareWeight:28.5, capacity:38, fillCount:415, lastHydroTest:'2019-12-15', status:'in-use',         notes:'' },
   { id:'E280116060000204C3F04EFC', serial:'LKG-2025-012', company:'Lake Gas', manufactureDate:'2025-04-20', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-04-20', status:'in-refill',      notes:'' },
 ];
 
@@ -948,9 +952,7 @@ const regManufacturer   = $('reg-manufacturer');
 const regProductName    = $('reg-product-name');
 const regRequalDate     = $('reg-requalification-date');
 const regRequalPlant    = $('reg-requalification-plant');
-const regWaterCapacity  = $('reg-water-capacity');
 const regNetWeight      = $('reg-net-weight');
-const regGrossWeight    = $('reg-gross-weight');
 const regPressureTest   = $('reg-pressure-test');
 
 const modalPassport    = $('modal-passport');
@@ -1591,11 +1593,9 @@ regSubmitBtn.addEventListener('click', async () => {
     manufactureDate:   regManufDate.value,
     lastRequalDate:    regRequalDate.value,
     requalPlant:       regRequalPlant.value.trim(),
-    waterCapacity:     parseFloat(regWaterCapacity.value) || 26.1,
     tareWeight:        parseFloat(regTare.value) || 14.5,
     netWeight:         parseFloat(regNetWeight.value) || 12,
     capacity:          parseFloat(regNetWeight.value) || 12,
-    grossWeight:       parseFloat(regGrossWeight.value) || 26.5,
     fillCount:         0,
     pressureTestValue: regPressureTest.value.trim(),
     lastHydroTest:     regHydrotest.value,
@@ -1882,12 +1882,10 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Tare Weight</span>
         <span class="passport-value">${cyl.tareWeight} kg</span>
       </div>
-      ${cyl.waterCapacity ? `<div class="passport-row"><span class="passport-key">Water Capacity</span><span class="passport-value">${cyl.waterCapacity} L</span></div>` : ''}
       <div class="passport-row">
         <span class="passport-key">Net Weight</span>
         <span class="passport-value">${cyl.netWeight || cyl.capacity} kg</span>
       </div>
-      ${cyl.grossWeight ? `<div class="passport-row"><span class="passport-key">Gross Weight</span><span class="passport-value">${cyl.grossWeight} kg</span></div>` : ''}
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
@@ -2130,6 +2128,42 @@ alertFilterType.addEventListener('change',     () => { _alertPage = 1; applyAler
 // ══════════════════════════════════════════════════════════════════════════════
 // REPORTS / DASHBOARD VIEW
 // ══════════════════════════════════════════════════════════════════════════════
+
+function buildSalesByWeightHtml(soldEvs, cylMap) {
+  const weights = [6, 12, 38];
+  const counts = {};
+  weights.forEach(w => { counts[w] = 0; });
+  soldEvs.forEach(ev => {
+    const cyl = cylMap[ev.cylinderId];
+    const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
+    const bucket = weights.includes(w) ? w : 12;
+    counts[bucket] = (counts[bucket] || 0) + 1;
+  });
+  const maxC = Math.max(...weights.map(w => counts[w] || 0), 1);
+  const total = weights.reduce((s, w) => s + (counts[w] || 0), 0);
+  const bars = weights.map(w => {
+    const c = counts[w] || 0;
+    const pct = Math.round((c / maxC) * 100);
+    const share = total > 0 ? Math.round((c / total) * 100) : 0;
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label">${w} kg</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
+          <span>${c}</span>
+        </div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);min-width:36px;text-align:right">${share}%</span>
+    </div>`;
+  }).join('');
+  return `<div class="dashboard-section-title">${t('mgmt.salesByWeight')}</div>
+    <div class="mgmt-card" style="margin-bottom:0">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('mgmt.salesByWeight')}</div>
+      </div>
+      <div style="margin-bottom:8px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${total}</strong></div>
+      ${bars || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
+    </div>`;
+}
 
 function renderPartnerSalesChart(events, partnerEntry, yearSel) {
   const reportChart = $('report-chart');
@@ -2388,6 +2422,11 @@ async function renderReports() {
       </div>`;
       })() : ''}`;
 
+    // Sales by Net Weight
+    const cylMapLR = {};
+    cyls.forEach(c => { cylMapLR[c.id] = c; });
+    reportsGrid.innerHTML += buildSalesByWeightHtml(events.filter(e => e.type === 'ret-sold'), cylMapLR);
+
     // Both lpgmc and ewura: hide activity section
     reportChart.innerHTML = '';
     if (actSec) actSec.style.display = 'none';
@@ -2482,6 +2521,11 @@ async function renderReports() {
       }
       renderPartnerSalesChart(events, partnerEntry, salesYearSel);
     }
+    // Sales by Net Weight for dist/retailer
+    const cylMapP = {};
+    cyls.forEach(c => { cylMapP[c.id] = c; });
+    const partnerSoldEvs = events.filter(e => e.type === 'ret-sold' && partnerEntry && (e.company === partnerEntry.name || e.location === partnerEntry.name));
+    reportsGrid.innerHTML += buildSalesByWeightHtml(partnerSoldEvs, cylMapP);
   } else {
     if (actSec) actSec.style.display = '';
 
@@ -2526,6 +2570,10 @@ async function renderReports() {
           </div>
         </div>`;
       }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
+    // Sales by Net Weight for other roles
+    const cylMapO = {};
+    cyls.forEach(c => { cylMapO[c.id] = c; });
+    reportsGrid.innerHTML += buildSalesByWeightHtml(events.filter(e => e.type === 'ret-sold'), cylMapO);
   }
 }
 
@@ -2895,49 +2943,33 @@ async function renderMgmtReports() {
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
 
   // 5. Inspections & Scans
-  const INSPECTION_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
-  const inspEvents = allEvents.filter(ev => INSPECTION_TYPES.has(ev.type) && inPeriod(ev.timestamp));
-  const compliantCount    = inspEvents.filter(ev => ev.compliant !== false).length;
-  const nonCompliantCount = inspEvents.filter(ev => ev.compliant === false).length;
-
-  // Monthly inspection bar chart (same axes logic as refills)
-  const inspMonths = [];
-  if (filterYear !== null && filterMonth !== null) {
-    inspMonths.push({ label: new Date(filterYear, filterMonth, 1).toLocaleString('default', { month: 'long' }) + ' ' + filterYear, year: filterYear, month: filterMonth, count: 0 });
-  } else if (filterYear !== null) {
-    for (let mo = 0; mo < 12; mo++) {
-      inspMonths.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
-    }
-  } else if (filterMonth !== null) {
-    const nowInsp = new Date();
-    for (let y = nowInsp.getFullYear() - 4; y <= nowInsp.getFullYear(); y++) {
-      inspMonths.push({ label: `${new Date(y, filterMonth, 1).toLocaleString('default', { month: 'short' })}'${String(y).slice(2)}`, year: y, month: filterMonth, count: 0 });
-    }
-  } else {
-    const yearSet2 = new Set();
-    allEvents.forEach(ev => { if (INSPECTION_TYPES.has(ev.type)) yearSet2.add(new Date(ev.timestamp).getFullYear()); });
-    [...yearSet2].sort().forEach(y => inspMonths.push({ label: String(y), year: y, month: -1, count: 0 }));
-    if (!inspMonths.length) {
-      const nowInsp2 = new Date();
-      inspMonths.push({ label: String(nowInsp2.getFullYear()), year: nowInsp2.getFullYear(), month: -1, count: 0 });
-    }
-  }
-  allEvents.forEach(ev => {
-    if (!INSPECTION_TYPES.has(ev.type)) return;
-    const d = new Date(ev.timestamp);
-    const m = inspMonths.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
-    if (m) m.count++;
+  // Sales by Net Weight
+  const cylMapM = {};
+  allCyls.forEach(c => { cylMapM[c.id] = c; });
+  const soldEvsM = allEvents.filter(ev => ev.type === 'ret-sold' && inPeriod(ev.timestamp));
+  const weightGroups = [6, 12, 38];
+  const weightCounts = {};
+  weightGroups.forEach(w => { weightCounts[w] = 0; });
+  soldEvsM.forEach(ev => {
+    const cyl = cylMapM[ev.cylinderId];
+    const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
+    const bucket = weightGroups.includes(w) ? w : 12;
+    weightCounts[bucket] = (weightCounts[bucket] || 0) + 1;
   });
-  const maxInsp = Math.max(...inspMonths.map(m => m.count), 1);
-  const inspBarsHtml = inspMonths.map(m => {
-    const pct = Math.round((m.count / maxInsp) * 100);
+  const maxWC = Math.max(...weightGroups.map(w => weightCounts[w] || 0), 1);
+  const totalSoldW = weightGroups.reduce((s, w) => s + (weightCounts[w] || 0), 0);
+  const weightBarsHtml = weightGroups.map(w => {
+    const c = weightCounts[w] || 0;
+    const pct = Math.round((c / maxWC) * 100);
+    const share = totalSoldW > 0 ? Math.round((c / totalSoldW) * 100) : 0;
     return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label">${m.label}</span>
+      <span class="mgmt-bar-label">${w} kg</span>
       <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--teal)">
-          <span>${m.count}</span>
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
+          <span>${c}</span>
         </div>
       </div>
+      <span style="font-size:11px;color:var(--muted);min-width:36px;text-align:right">${share}%</span>
     </div>`;
   }).join('');
 
@@ -2945,51 +2977,37 @@ async function renderMgmtReports() {
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.status')}</div>
-        
+
       </div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.refills')}</div>
-        
+
       </div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
-        
+
       </div>
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
-        
+
       </div>
       ${regionBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
-        <div class="mgmt-card-title">${t('mgmt.inspections')}</div>
-        
+        <div class="mgmt-card-title">${t('mgmt.salesByWeight')}</div>
       </div>
-      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total inspections: <strong style="color:var(--text)">${inspEvents.length}</strong></div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
-          <div style="font-size:32px;font-weight:700;color:var(--green)">${compliantCount}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">✓ ${t('mgmt.compliant')}</div>
-        </div>
-        <div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
-          <div style="font-size:32px;font-weight:700;color:var(--red)">${nonCompliantCount}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">✗ ${t('mgmt.nonCompliant')}</div>
-        </div>
-        ${inspEvents.length > 0 ? `<div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
-          <div style="font-size:32px;font-weight:700;color:var(--blue)">${Math.round(compliantCount / inspEvents.length * 100)}%</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Compliance Rate</div>
-        </div>` : ''}
-      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${totalSoldW}</strong></div>
+      ${weightBarsHtml || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
     </div>`;
 }
 
