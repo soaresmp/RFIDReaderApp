@@ -31,6 +31,21 @@ const TRANSLATIONS = {
     'status.registered':'Registered','status.refilled':'Refilled','status.shipped':'Shipped','status.distReceived':'Dist. Received',
     'status.distSentRetail':'Sent to Retailer','status.retReceived':'Retailer Received','status.retSold':'Sold',
     'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
+    'dash.totalAlerts':'Total Alerts','dash.refillingSites':'Refilling Sites',
+    'dash.avgRefillCycle':'Avg Refill Cycle','dash.utilisationRate':'Utilisation Rate',
+    'dash.daysLabel':'days received→refilled','dash.utilLabel':'in-use + in-circ / total',
+    'kpi.filled':'filled','kpi.empty':'empty','kpi.full':'full',
+    'kpi.activeDistributors':'Active Distributors','kpi.activeRetailers':'Active Retailers',
+    'passport.eventHistory':'Event History','passport.sortNewest':'Newest first','passport.sortOldest':'Oldest first',
+    'ev.registered':'Cylinder Created & Registered','ev.refilled':'Refilled at Plant',
+    'ev.shipped':'Shipped to Distributor/Retailer','ev.receivedEmpty':'Empty Received at Refill Site',
+    'ev.sentRevalidation':'Sent for Revalidation','ev.revalReceived':'Received at Revalidation Centre',
+    'ev.revalidated':'Revalidated & Approved','ev.revalReturned':'Returned after Revalidation',
+    'ev.distReceived':'Received by Distributor','ev.distSentRetail':'Sent to Retailer',
+    'ev.distReturnedEmpty':'Returned Empty by Distributor','ev.retReceived':'Received by Retailer',
+    'ev.retSold':'Sold to Consumer','ev.retReturnedEmpty':'Returned Empty by Consumer',
+    'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by EWURA',
+    'ev.traVerified':'Refills Verified by TRA','ev.traRegistered':'Shipment Registered by TRA',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -53,6 +68,21 @@ const TRANSLATIONS = {
     'status.registered':'Imesajiliwa','status.refilled':'Imejazwa','status.shipped':'Imetumwa','status.distReceived':'Imepokelewa (Msambazaji)',
     'status.distSentRetail':'Imetumwa kwa Muuzaji','status.retReceived':'Imepokelewa (Muuzaji)','status.retSold':'Imeuzwa',
     'status.retReturnedEmpty':'Imerudishwa Tupu (Muuzaji)','status.distReturnedEmpty':'Imerudishwa Tupu (Msambazaji)','status.receivedEmpty':'Imepokelewa Tupu',
+    'dash.totalAlerts':'Tahadhari Zote','dash.refillingSites':'Vituo vya Kujaza',
+    'dash.avgRefillCycle':'Wastani wa Kujaza','dash.utilisationRate':'Kiwango cha Matumizi',
+    'dash.daysLabel':'siku (zilipokelewa→kujazwa)','dash.utilLabel':'inatumika + mzunguko / jumla',
+    'kpi.filled':'imejazwa','kpi.empty':'tupu','kpi.full':'kamili',
+    'kpi.activeDistributors':'Wasambazaji Wanaofanya Kazi','kpi.activeRetailers':'Wauzaji Wanaofanya Kazi',
+    'passport.eventHistory':'Historia ya Matukio','passport.sortNewest':'Mpya kwanza','passport.sortOldest':'Kongwe kwanza',
+    'ev.registered':'Mtungi Umeundwa na Kusajiliwa','ev.refilled':'Imejazwa Kiwandani',
+    'ev.shipped':'Imetumwa kwa Msambazaji/Muuzaji','ev.receivedEmpty':'Mtungi Tupu Umepokelewa Kituo cha Kujaza',
+    'ev.sentRevalidation':'Imetumwa kwa Uthibitishaji Upya','ev.revalReceived':'Imepokelewa Kituo cha Uthibitishaji',
+    'ev.revalidated':'Imethibitishwa na Kukubaliwa','ev.revalReturned':'Imerudishwa baada ya Uthibitishaji',
+    'ev.distReceived':'Imepokelewa na Msambazaji','ev.distSentRetail':'Imetumwa kwa Muuzaji',
+    'ev.distReturnedEmpty':'Mtungi Tupu Umerudishwa na Msambazaji','ev.retReceived':'Imepokelewa na Muuzaji',
+    'ev.retSold':'Imeuzwa kwa Mnunuzi','ev.retReturnedEmpty':'Mtungi Tupu Umerudishwa na Mnunuzi',
+    'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na EWURA',
+    'ev.traVerified':'Kujaza Kuthibitishwa na TRA','ev.traRegistered':'Mzigo Umesajiliwa na TRA',
   },
 };
 
@@ -205,6 +235,22 @@ const EVENT_LABELS = {
   'tra-registered':      'Shipment Registered by TRA',
 };
 
+const EV_TYPE_I18N = {
+  'registered': 'ev.registered', 'refilled': 'ev.refilled', 'shipped': 'ev.shipped',
+  'received-empty': 'ev.receivedEmpty', 'sent-revalidation': 'ev.sentRevalidation',
+  'reval-received': 'ev.revalReceived', 'revalidated': 'ev.revalidated',
+  'reval-returned': 'ev.revalReturned', 'dist-received': 'ev.distReceived',
+  'dist-sent-retail': 'ev.distSentRetail', 'dist-returned-empty': 'ev.distReturnedEmpty',
+  'ret-received': 'ev.retReceived', 'ret-sold': 'ev.retSold',
+  'ret-returned-empty': 'ev.retReturnedEmpty', 'inspected': 'ev.inspected',
+  'ewura-monitored': 'ev.ewuraMonitored', 'tra-verified': 'ev.traVerified',
+  'tra-registered': 'ev.traRegistered',
+};
+function tEvent(type) {
+  const key = EV_TYPE_I18N[type];
+  return key ? t(key) : (EVENT_LABELS[type] || type);
+}
+
 // ── Role configuration ────────────────────────────────────────────────────────
 
 const ROLE_EVENTS = {
@@ -329,6 +375,7 @@ let _cylPage  = 1;
 let _netPage  = 1;
 let _alertPage = 1;
 let _passportEvPage = 1;
+let _passportEvSort = 'desc';
 const PAGE_SIZE_PASSPORT_EVTS = 10;
 
 function renderPagination(containerId, total, page, pageSize, onPageChange) {
@@ -349,23 +396,28 @@ function renderPagination(containerId, total, page, pageSize, onPageChange) {
   });
 }
 
-function renderPassportEvents(eventsChronological) {
+function renderPassportEvents(allEvents) {
   const listEl = $('passport-ev-list');
   const pagEl  = $('passport-ev-pagination');
   if (!listEl) return;
+  const sorted = allEvents.slice().sort((a, b) =>
+    _passportEvSort === 'desc'
+      ? new Date(b.timestamp) - new Date(a.timestamp)
+      : new Date(a.timestamp) - new Date(b.timestamp)
+  );
   const start = (_passportEvPage - 1) * PAGE_SIZE_PASSPORT_EVTS;
-  const pageEvts = eventsChronological.slice(start, start + PAGE_SIZE_PASSPORT_EVTS);
+  const pageEvts = sorted.slice(start, start + PAGE_SIZE_PASSPORT_EVTS);
   listEl.innerHTML = pageEvts.length
     ? pageEvts.map((ev, idx) => `
         <li>
           <span class="ph-step">${start + idx + 1}</span>
           <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
-          <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
+          <span class="ph-desc">${escapeHtml(tEvent(ev.type))}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
         </li>`).join('')
     : '<li><span class="ph-desc">No events.</span></li>';
-  if (pagEl) renderPagination('passport-ev-pagination', eventsChronological.length, _passportEvPage, PAGE_SIZE_PASSPORT_EVTS, (p) => {
+  if (pagEl) renderPagination('passport-ev-pagination', allEvents.length, _passportEvPage, PAGE_SIZE_PASSPORT_EVTS, (p) => {
     _passportEvPage = p;
-    renderPassportEvents(eventsChronological);
+    renderPassportEvents(allEvents);
   });
 }
 
@@ -1776,7 +1828,13 @@ async function openPassportModal(cylId) {
       ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
     <div class="passport-section">
-      <div class="passport-section-title">Event History (${events.length})</div>
+      <div class="passport-section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>${t('passport.eventHistory')} (${events.length})</span>
+        <select id="passport-ev-sort" class="filter-select" style="font-size:11px;padding:2px 6px;height:auto">
+          <option value="desc">${t('passport.sortNewest')}</option>
+          <option value="asc">${t('passport.sortOldest')}</option>
+        </select>
+      </div>
       <ul class="passport-history" id="passport-ev-list"></ul>
       <div id="passport-ev-pagination"></div>
     </div>
@@ -1790,8 +1848,19 @@ async function openPassportModal(cylId) {
   openModal('modal-passport');
 
   _passportEvPage = 1;
-  const _passportEventsChronological = events.slice().reverse();
-  renderPassportEvents(_passportEventsChronological);
+  _passportEvSort = 'desc';
+  const _passportAllEvents = events.slice();
+  renderPassportEvents(_passportAllEvents);
+
+  const evSortSel = $('passport-ev-sort');
+  if (evSortSel) {
+    evSortSel.value = 'desc';
+    evSortSel.addEventListener('change', () => {
+      _passportEvSort = evSortSel.value;
+      _passportEvPage = 1;
+      renderPassportEvents(_passportAllEvents);
+    });
+  }
 
   if (passportMapPartner) {
     requestAnimationFrame(() => {
@@ -2026,8 +2095,8 @@ async function renderReports() {
     });
 
     const refillerCount = LPGMC_COMPANIES.length;
-    const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
-    const retailCount   = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
+    const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
+    const retailCount   = DEMO_NETWORK.filter(n => n.type === 'Retailer'    && n.status === 'active').length;
 
     // Refill Cycle Time: avg days from received-empty → next refilled
     const cylEventsMap = {};
@@ -2103,18 +2172,18 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
         <div class="report-card-label">${t('kpi.inrefill')}</div>
         <div class="report-card-sub">
-          <span style="color:var(--green);font-size:11px">🧯 ${refillFull} filled</span>
+          <span style="color:var(--green);font-size:11px">🧯 ${refillFull} ${t('kpi.filled')}</span>
           &nbsp;·&nbsp;
-          <span style="color:var(--muted);font-size:11px">📭 ${refillEmpty} empty</span>
+          <span style="color:var(--muted);font-size:11px">📭 ${refillEmpty} ${t('kpi.empty')}</span>
         </div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${circFull + circEmpty}</span>
         <div class="report-card-label">${t('kpi.incirc')}</div>
         <div class="report-card-sub">
-          <span style="color:var(--green);font-size:11px">🧯 ${circFull} full</span>
+          <span style="color:var(--green);font-size:11px">🧯 ${circFull} ${t('kpi.full')}</span>
           &nbsp;·&nbsp;
-          <span style="color:var(--muted);font-size:11px">📭 ${circEmpty} empty</span>
+          <span style="color:var(--muted);font-size:11px">📭 ${circEmpty} ${t('kpi.empty')}</span>
         </div>
       </div>
       <div class="report-card">
@@ -2148,30 +2217,30 @@ async function renderReports() {
       </div>
       <div class="report-card" style="border-color:${totalAlerts > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${totalAlerts > 0 ? 'var(--amber)' : 'var(--green)'}">${totalAlerts}</span>
-        <div class="report-card-label">Total Alerts</div>
+        <div class="report-card-label">${t('dash.totalAlerts')}</div>
       </div>
       <div class="dashboard-section-title">${t('dash.supplychain')}</div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${refillerCount}</span>
-        <div class="report-card-label">Refilling Sites</div>
+        <div class="report-card-label">${t('dash.refillingSites')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--amber)">${distCount}</span>
-        <div class="report-card-label">${t('kpi.distributors')}</div>
+        <div class="report-card-label">${t('kpi.activeDistributors')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${retailCount}</span>
-        <div class="report-card-label">${t('kpi.retailers')}</div>
+        <div class="report-card-label">${t('kpi.activeRetailers')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--teal)">${avgRefillCycle}</span>
-        <div class="report-card-label">Avg Refill Cycle</div>
-        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days received→refilled</div>
+        <div class="report-card-label">${t('dash.avgRefillCycle')}</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.daysLabel')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--blue)">${utilisationRate}%</span>
-        <div class="report-card-label">Utilisation Rate</div>
-        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">in-use + in-circ / total</div>
+        <div class="report-card-label">${t('dash.utilisationRate')}</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>`;
 
     reportChart.innerHTML = '';
@@ -2717,10 +2786,6 @@ licFilterStatus.addEventListener('change',  applyLicenseFilters);
 mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
 mgmtFilterMonth?.addEventListener('change', renderMgmtReports);
 
-const mgmtExportPdfBtn = $('mgmt-export-pdf-btn');
-if (mgmtExportPdfBtn) {
-  mgmtExportPdfBtn.addEventListener('click', () => { window.print(); });
-}
 
 issueLicenseBtn.addEventListener('click', () => {
   licCompanyName.value = '';
