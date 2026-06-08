@@ -1880,6 +1880,13 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Status</span>
         <span class="passport-value">${escapeHtml(cyl.status)}</span>
       </div>
+      ${(() => {
+        if (cyl.status === 'in-use') return '';
+        const lastEv = events[0];
+        const filledTypes = new Set(['refilled','shipped','dist-received','ret-received','dist-sent-retail']);
+        const level = lastEv && filledTypes.has(lastEv.type) ? 'Filled' : 'Empty';
+        return `<div class="passport-row"><span class="passport-key">Level</span><span class="passport-value">${level}</span></div>`;
+      })()}
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Specifications</div>
@@ -1895,16 +1902,6 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Net Weight</span>
         <span class="passport-value">${cyl.netWeight || cyl.capacity} kg</span>
       </div>
-    </div>
-    <div class="passport-section">
-      <div class="passport-section-title">Operational</div>
-      <div class="passport-row">
-        <span class="passport-key">Fill Count</span>
-        <span class="passport-value">${cyl.fillCount || 0}</span>
-      </div>
-      ${cyl.lastStampCode ? `<div class="passport-row"><span class="passport-key">Last Stamp Code</span><span class="passport-value mono">${escapeHtml(cyl.lastStampCode)}</span></div>` : ''}
-      ${cyl.lastRequalDate ? `<div class="passport-row"><span class="passport-key">Last Requalification</span><span class="passport-value">${formatDate(cyl.lastRequalDate)}</span></div>` : ''}
-      ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
     <div class="passport-section">
       <div class="passport-section-title" style="display:flex;align-items:center;justify-content:space-between">
@@ -1923,36 +1920,7 @@ async function openPassportModal(cylId) {
       <div style="font-size:12px;color:var(--dim);margin-bottom:8px">📍 ${escapeHtml(passportMapPartner.name)} · ${escapeHtml(passportMapPartner.city)}, ${escapeHtml(passportMapPartner.region)}</div>
       <div id="passport-location-map" style="height:200px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
     </div>` : ''}
-    ${(() => {
-      const role = Auth.session ? Auth.session.role : null;
-      const actions = role ? getNextActions(cyl, role) : [];
-      if (!actions.length) return '';
-      const partnerOptions = DEMO_NETWORK.map(n =>
-        `<option value="${escapeHtml(n.name)}" data-region="${escapeHtml(n.region)}">${escapeHtml(n.name)} (${escapeHtml(n.city)})</option>`
-      ).join('');
-      const rows = actions.map(a => {
-        if (a.type === 'shipped') {
-          return `<div class="passport-action-row">
-            <select id="ship-partner-${escapeHtml(cylId)}" class="filter-select passport-action-select">
-              <option value="">— Select destination —</option>
-              ${partnerOptions}
-            </select>
-            <button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}" data-partner-select="ship-partner-${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>
-          </div>`;
-        }
-        if (a.type === 'refilled') {
-          return `<div class="passport-action-row">
-            <input type="text" id="stamp-code-${escapeHtml(cylId)}" class="passport-action-input" placeholder="Stamp code (required)" maxlength="50">
-            <button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}" data-stamp-input="stamp-code-${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>
-          </div>`;
-        }
-        return `<button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>`;
-      }).join('');
-      return `<div class="passport-section passport-actions-section">
-        <div class="passport-section-title">Actions</div>
-        <div class="passport-actions">${rows}</div>
-      </div>`;
-    })()}`;
+`;
 
   openModal('modal-passport');
 
