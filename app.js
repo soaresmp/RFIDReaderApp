@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v11';
+const SEED_KEY   = 'seeded-v12';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -443,19 +443,19 @@ function buildGeneratedCylinders() {
     { name:'Shell Gas',      prefix:'SHG', code:'03' },
     { name:'Lake Gas',       prefix:'LKG', code:'04' },
   ];
-  // Status distribution (cycles through): target ~35% in-use, 30% in-circulation, 25% in-refill, 10% revalidation
-  // 'in-circ-empty' means status=in-circulation but last event is ret-returned-empty
-  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill','in-use','in-circulation','revalidation'];
+  // 'in-circ-empty' = status in-circulation, last event ret-returned-empty (empty, waiting at retailer)
+  // 'in-refill-empty' = status in-refill, last event received-empty (empty, arrived at LPGMC for refill)
+  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill-empty','in-use','in-circulation','revalidation','in-use','in-refill','in-use','in-circulation','in-circ-empty','in-use','in-use','in-refill','in-use','in-use'];
   const capacities  = [12,12,15,12,12,12,15,12,12,12];
   const result = [];
-  // Existing demo cylinders: Vivo LPG 15, TEN 15, SHG 15, LKG 12 → generate enough to reach 300 each
+  // Existing demo cylinders: Vivo LPG 15, TEN 15, SHG 15, LKG 12 → generate to reach 500 each
   const existingCounts = { 'Vivo LPG':15, 'Total Energies':15, 'Shell Gas':15, 'Lake Gas':12 };
   companies.forEach((co, ci) => {
-    const needed = 300 - (existingCounts[co.name] || 0);
+    const needed = 500 - (existingCounts[co.name] || 0);
     for (let i = 1; i <= needed; i++) {
-      // Only ~10% of cylinders are old (pre-2016) → fewer requalification overdue alerts
-      const isOld = (i % 10 === 0);
-      const year = isOld ? (2010 + (Math.floor(i/10) % 6)) : (2016 + (i % 10));
+      // Only ~5% of cylinders are old (pre-2016) → minimal requalification overdue alerts
+      const isOld = (i % 20 === 0);
+      const year = isOld ? (2010 + (Math.floor(i/20) % 6)) : (2016 + (i % 10));
       const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
       const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
       const mfgDate  = `${year}-${month}-${day}`;
@@ -463,7 +463,10 @@ function buildGeneratedCylinders() {
       const age = 2026 - year;
       const fillCount = Math.max(1, age * 30 + (i % 50));
       const rawStatus = statusCycle[i % statusCycle.length];
-      const cylStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus;
+      const cylStatus = (rawStatus === 'in-circ-empty' || rawStatus === 'in-refill-empty')
+        ? rawStatus.replace('-empty','').replace('in-circ','in-circulation').replace('in-refill','in-refill')
+        : rawStatus;
+      const resolvedStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus === 'in-refill-empty' ? 'in-refill' : rawStatus;
       result.push({
         id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
         serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
@@ -473,8 +476,9 @@ function buildGeneratedCylinders() {
         capacity: capacities[i % capacities.length],
         fillCount,
         lastHydroTest: hydroDate,
-        status: cylStatus,
+        status: resolvedStatus,
         _seedEmpty: rawStatus === 'in-circ-empty',
+        _seedRefillEmpty: rawStatus === 'in-refill-empty',
         notes: '',
       });
     }
@@ -629,8 +633,22 @@ async function seedDemoData() {
     });
     // Seed final-state events only (lightweight seeding)
     const now2  = Date.now();
+    const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
     const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-    if (cyl.status === 'in-refill') {
+    if (cyl._seedRefillEmpty) {
+      // Empty cylinder returned to LPGMC, awaiting refill — last event is received-empty
+      const base = now2 - (5 + (idHash % 20)) * DAY;
+      const r2 = rnd(RETAILERS);
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',           timestamp:new Date(base - 60*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',            timestamp:new Date(base - 53*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',      timestamp:new Date(base - 51*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',   timestamp:new Date(base - 45*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r2.name, destinedRegion:r2.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',       timestamp:new Date(base - 43*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',           timestamp:new Date(base - 38*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:new Date(base - 15*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty',timestamp:new Date(base - 10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    } else if (cyl.status === 'in-refill') {
       const base = now2 - 2 * MONTH;
       await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
@@ -647,9 +665,8 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base - 8*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
       await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
     } else if (cyl.status === 'in-circulation') {
-      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      const isStuck = (idHash % 10 === 0);
-      const daysAgo = isStuck ? 65 : (12 + (idHash % 28));
+      const isStuck = (idHash % 20 === 0);
+      const daysAgo = isStuck ? 65 : (8 + (idHash % 30));
       const base = now2 - daysAgo * DAY;
       await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
@@ -2174,16 +2191,28 @@ async function renderNetwork() {
     else if (CIRC_EMPTY_TYPES.has(ev.type)) partnerCounts[loc].empty++;
   });
 
+  // ── Sort ─────────────────────────────────────────────────────────────────
+  const sortVal = $('net-sort') ? $('net-sort').value : '';
+  const sorted = filtered.slice().sort((a, b) => {
+    const ca = partnerCounts[a.name] || { total:0, full:0, empty:0 };
+    const cb = partnerCounts[b.name] || { total:0, full:0, empty:0 };
+    if (sortVal === 'stock-desc') return cb.total - ca.total;
+    if (sortVal === 'stock-asc')  return ca.total - cb.total;
+    if (sortVal === 'full-desc')  return cb.full  - ca.full;
+    if (sortVal === 'empty-desc') return cb.empty - ca.empty;
+    return a.name.localeCompare(b.name);
+  });
+
   // ── Render list with pagination ──────────────────────────────────────────
   networkList.innerHTML = '';
-  if (!filtered.length) {
+  if (!sorted.length) {
     networkEmpty.style.display = '';
     renderPagination('net-pagination', 0, 1, PAGE_SIZE_NETWORK, () => {});
     return;
   }
   networkEmpty.style.display = 'none';
-  _netPage = Math.min(_netPage, Math.ceil(filtered.length / PAGE_SIZE_NETWORK));
-  const pageNet = filtered.slice((_netPage - 1) * PAGE_SIZE_NETWORK, _netPage * PAGE_SIZE_NETWORK);
+  _netPage = Math.min(_netPage, Math.ceil(sorted.length / PAGE_SIZE_NETWORK));
+  const pageNet = sorted.slice((_netPage - 1) * PAGE_SIZE_NETWORK, _netPage * PAGE_SIZE_NETWORK);
 
   pageNet.forEach(partner => {
     const counts = partnerCounts[partner.name] || { total: 0, full: 0, empty: 0 };
@@ -2208,17 +2237,19 @@ async function renderNetwork() {
     networkList.appendChild(li);
   });
 
-  renderPagination('net-pagination', filtered.length, _netPage, PAGE_SIZE_NETWORK, (p) => {
+  renderPagination('net-pagination', sorted.length, _netPage, PAGE_SIZE_NETWORK, (p) => {
     _netPage = p;
     renderNetwork();
   });
 }
 
-// Network filters — type dropdown + status dropdown
+// Network filters — type dropdown + status dropdown + sort
 const netFilterType   = $('net-filter-type');
 const netFilterStatus = $('net-filter-status');
+const netSort         = $('net-sort');
 if (netFilterType)   netFilterType.addEventListener('change',   () => { _netPage = 1; renderNetwork(); });
 if (netFilterStatus) netFilterStatus.addEventListener('change', () => { _netPage = 1; renderNetwork(); });
+if (netSort)         netSort.addEventListener('change',         () => { _netPage = 1; renderNetwork(); });
 
 // Network item click → open partner modal
 $('network-list').addEventListener('click', e => {

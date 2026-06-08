@@ -157,7 +157,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   color: var(--text);
 }
 
-/* ── Main content area ────────────────────────────────────────────────────── */
+/* ── Main content area — light/white theme ───────────────────────────────── */
 #content-area {
   margin-left: var(--sidebar-w);
   flex: 1;
@@ -165,6 +165,16 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   padding: var(--content-pad);
   max-width: calc(var(--max-content) + var(--sidebar-w));
   overflow-y: auto;
+  /* Scoped light-theme overrides — all child elements using var() inherit these */
+  --bg:       #f0f4f8;
+  --surface:  #ffffff;
+  --surface2: #edf2f7;
+  --border:   #c8d9ef;
+  --text:     #1a2f4a;
+  --muted:    #4a6f9a;
+  --dim:      #7ea3c7;
+  background: #f0f4f8;
+  color: #1a2f4a;
 }
 
 /* ── Header role badge & operator pill ───────────────────────────────────── */
