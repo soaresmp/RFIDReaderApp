@@ -1657,9 +1657,6 @@ function getNextActions(cyl, role) {
 }
 
 async function openPassportModal(cylId) {
-  // Destroy any previous passport map
-  if (_passportMap) { _passportMap.remove(); _passportMap = null; }
-
   State.passportCylinderId = cylId;
   const cyl = await txGet('cylinders', cylId);
   if (!cyl) return;
@@ -1752,31 +1749,10 @@ async function openPassportModal(cylId) {
   openModal('modal-passport');
 
   if (passportMapPartner) {
-    setTimeout(() => {
-      requestAnimationFrame(() => {
-        try {
-          const el = $('passport-location-map');
-          if (!el) return;
-          void el.getBoundingClientRect(); // force layout
-          _passportMap = L.map('passport-location-map').setView([passportMapPartner.lat, passportMapPartner.lng], 14);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors', maxZoom: 18
-          }).addTo(_passportMap);
-          const color = passportMapPartner.type === 'Distributor' ? '#3b82f6' : '#10b981';
-          const icon = L.divIcon({
-            className: '',
-            html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.4)"></div>`,
-            iconSize: [14, 14], iconAnchor: [7, 7],
-          });
-          L.marker([passportMapPartner.lat, passportMapPartner.lng], { icon })
-            .addTo(_passportMap)
-            .bindPopup(`<strong>${passportMapPartner.name}</strong><br>${passportMapPartner.address}`)
-            .openPopup();
-          _passportMap.invalidateSize();
-          setTimeout(() => { if (_passportMap) _passportMap.invalidateSize(); }, 200);
-        } catch (e) { console.warn('Passport map error:', e); }
-      });
-    }, 250);
+    requestAnimationFrame(() => {
+      const el = $('passport-location-map');
+      if (el) el.innerHTML = buildOsmEmbed(passportMapPartner.lat, passportMapPartner.lng);
+    });
   }
 }
 
@@ -2052,7 +2028,7 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
         <div class="report-card-label">${t('kpi.inrefill')}</div>
         <div class="report-card-sub">
-          <span style="color:var(--green);font-size:11px">✅ ${refillFull} filled</span>
+          <span style="color:var(--green);font-size:11px">🧯 ${refillFull} filled</span>
           &nbsp;·&nbsp;
           <span style="color:var(--muted);font-size:11px">📭 ${refillEmpty} empty</span>
         </div>
@@ -2061,7 +2037,7 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--blue)">${circFull + circEmpty}</span>
         <div class="report-card-label">${t('kpi.incirc')}</div>
         <div class="report-card-sub">
-          <span style="color:var(--green);font-size:11px">✅ ${circFull} full</span>
+          <span style="color:var(--green);font-size:11px">🧯 ${circFull} full</span>
           &nbsp;·&nbsp;
           <span style="color:var(--muted);font-size:11px">📭 ${circEmpty} empty</span>
         </div>
@@ -2094,6 +2070,10 @@ async function renderReports() {
       <div class="report-card" style="border-color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--surface-3)'}">
         <span class="report-card-value" style="color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--green)'}">${alertMisplaced}</span>
         <div class="report-card-label">${t('alert.misplaced')}</div>
+      </div>
+      <div class="report-card" style="border-color:${(alertRequalOverdue + alertStuck + alertMisplaced) > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${(alertRequalOverdue + alertStuck + alertMisplaced) > 0 ? 'var(--amber)' : 'var(--green)'}">${alertRequalOverdue + alertStuck + alertMisplaced}</span>
+        <div class="report-card-label">Total Alerts</div>
       </div>
       <div class="dashboard-section-title">${t('dash.supplychain')}</div>
       <div class="report-card">
@@ -2223,7 +2203,7 @@ async function renderNetwork() {
       <div class="network-item-meta">
         📍 ${escapeHtml(partner.city)} · ${escapeHtml(partner.address)}<br>
         📞 ${escapeHtml(partner.contact)} ·
-        <span class="network-item-cyls">🔥 ${counts.total} total · <span class="cyl-full">✅ ${counts.full} full</span> · <span class="cyl-empty">📭 ${counts.empty} empty</span></span>
+        <span class="network-item-cyls">🔥 ${counts.total} total · <span class="cyl-full">🧯 ${counts.full} full</span> · <span class="cyl-empty">📭 ${counts.empty} empty</span></span>
       </div>`;
     networkList.appendChild(li);
   });
@@ -2302,17 +2282,19 @@ async function openPartnerModal(partnerId) {
     }).length,
   }));
   const maxCount = Math.max(...monthlyCounts.map(m => m.count), 1);
-  const chartHtml = monthlyCounts.map(m => {
+  const chartHtml = `<div class="v-chart">
+  ${monthlyCounts.map(m => {
     const pct = Math.round((m.count / maxCount) * 100);
-    return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label">${m.label}</span>
-      <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
-          <span>${m.count || ''}</span>
+    return `<div class="v-chart-col">
+      <div class="v-chart-bar-wrap">
+        <div class="v-chart-bar" style="height:${pct}%;background:var(--blue)">
+          ${m.count ? `<span class="v-chart-val">${m.count}</span>` : ''}
         </div>
       </div>
+      <div class="v-chart-label">${m.label}</div>
     </div>`;
-  }).join('');
+  }).join('')}
+</div>`;
   const salesChartEl = $('partner-sales-chart');
   if (salesChartEl) {
     salesChartEl.innerHTML = `
@@ -2320,50 +2302,11 @@ async function openPartnerModal(partnerId) {
       ${chartHtml}`;
   }
 
-  // Destroy existing map so size is always fresh on each open
-  if (_partnerDetailMap) {
-    _partnerDetailMap.remove();
-    _partnerDetailMap    = null;
-    _partnerDetailMarker = null;
-  }
-
   openModal('modal-partner');
-
-  // Give modal animation time to complete, then force a reflow before
-  // Leaflet reads the container dimensions — prevents blank-tile bug.
-  setTimeout(() => {
-    requestAnimationFrame(() => {
-      try {
-        const mapEl = $('partner-detail-map');
-        if (!mapEl) return;
-        void mapEl.getBoundingClientRect(); // force layout
-
-        _partnerDetailMap = L.map('partner-detail-map', { zoomControl: true })
-          .setView([partner.lat, partner.lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 18,
-        }).addTo(_partnerDetailMap);
-
-        const color = partner.type === 'Distributor' ? '#3b82f6' : '#10b981';
-        const icon = L.divIcon({
-          className: '',
-          html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>`,
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
-        });
-        _partnerDetailMarker = L.marker([partner.lat, partner.lng], { icon })
-          .addTo(_partnerDetailMap)
-          .bindPopup(`<strong>${partner.name}</strong><br>${partner.address}`)
-          .openPopup();
-
-        _partnerDetailMap.invalidateSize();
-        setTimeout(() => { if (_partnerDetailMap) _partnerDetailMap.invalidateSize(); }, 200);
-      } catch (e) {
-        console.warn('Partner map error:', e);
-      }
-    });
-  }, 250);
+  requestAnimationFrame(() => {
+    const mapEl = $('partner-detail-map');
+    if (mapEl) mapEl.innerHTML = buildOsmEmbed(partner.lat, partner.lng);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2759,12 +2702,6 @@ logoutBtn.addEventListener('click', () => {
   eventsList.innerHTML   = '';
   eventsEmpty.style.display = '';
   lastScanCard.hidden    = true;
-
-  // Destroy partner detail map
-  if (_partnerDetailMap) {
-    _partnerDetailMap.remove();
-    _partnerDetailMap = null;
-  }
 
   // Hide all views
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));

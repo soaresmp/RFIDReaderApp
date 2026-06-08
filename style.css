@@ -2,23 +2,23 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #0f172a;
-  --surface:   #1e293b;
-  --surface2:  #263548;
-  --border:    #334155;
-  --text:      #f1f5f9;
-  --muted:     #94a3b8;
-  --dim:       #475569;
-  --green:     #10b981;
-  --green-dim: #064e3b;
-  --blue:      #3b82f6;
+  --bg:        #05111f;
+  --surface:   #0a1f3d;
+  --surface2:  #102a50;
+  --border:    #1e4080;
+  --text:      #e8f1fb;
+  --muted:     #7ba3cc;
+  --dim:       #3a6494;
+  --green:     #22c55e;
+  --green-dim: #052e16;
+  --blue:      #2563eb;
   --blue-dim:  #1e3a8a;
   --purple:    #7c3aed;
-  --red:       #ef4444;
+  --red:       #dc2626;
   --red-dim:   #7f1d1d;
   --amber:     #f59e0b;
   --amber-dim: #78350f;
-  --teal:      #14b8a6;
+  --teal:      #0d9488;
   --pink:      #ec4899;
   --radius:    12px;
   --radius-sm: 8px;
@@ -57,18 +57,16 @@ html, body {
 /* ── Top header bar ───────────────────────────────────────────────────────── */
 #app-header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: var(--header-h);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, #002f7a 0%, #0044b3 100%);
+  border-bottom: 3px solid var(--amber);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   z-index: 100;
-  gap: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
 }
 
 .header-left {
@@ -116,11 +114,8 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 16px 0;
+  background: linear-gradient(180deg, #00266a 0%, #003080 100%);
+  border-right: 1px solid #1a4aaa;
   overflow-y: auto;
   z-index: 90;
 }
@@ -152,8 +147,9 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .nav-tab .nav-icon { font-size: 16px; flex-shrink: 0; }
 .nav-tab .nav-label { flex: 1; }
 .nav-tab.active {
-  background: rgba(59,130,246,0.15);
-  color: var(--blue);
+  background: rgba(245,158,11,0.15);
+  color: var(--amber);
+  border-left: 3px solid var(--amber);
   font-weight: 600;
 }
 .nav-tab:hover:not(.active) {
@@ -1587,4 +1583,51 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   .mgmt-card { border: 1px solid #ccc; background: #fff; color: #000; break-inside: avoid; }
   .mgmt-bar-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .mgmt-bar-label { color: #333; }
+}
+
+/* ── Vertical column chart ───────────────────────────────────────────────── */
+.v-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+  padding-bottom: 24px;
+  position: relative;
+}
+.v-chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+.v-chart-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.v-chart-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  position: relative;
+  transition: height 0.3s ease;
+}
+.v-chart-val {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.v-chart-label {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
 }
