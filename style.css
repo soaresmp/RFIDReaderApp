@@ -1237,14 +1237,40 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 /* Passport action buttons */
 .passport-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 8px;
+}
+.passport-action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.passport-action-select {
+  flex: 1;
+  min-width: 0;
+}
+.passport-action-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.passport-action-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 .passport-action-btn {
   border-width: 1.5px !important;
   font-size: 12px !important;
   padding: 5px 12px !important;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @keyframes slide-up {

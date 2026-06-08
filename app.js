@@ -457,7 +457,7 @@ function renderPassportEvents(allEvents) {
         <li>
           <span class="ph-step">${start + idx + 1}</span>
           <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
-          <span class="ph-desc">${escapeHtml(tEvent(ev.type))}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
+          <span class="ph-desc">${escapeHtml(tEvent(ev.type))}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}${ev.stampCode ? ' · Stamp: ' + escapeHtml(ev.stampCode) : ''}</span>
         </li>`).join('')
     : '<li><span class="ph-desc">No events.</span></li>';
   if (pagEl) renderPagination('passport-ev-pagination', allEvents.length, _passportEvPage, PAGE_SIZE_PASSPORT_EVTS, (p) => {
@@ -1410,7 +1410,7 @@ async function handleScan(tagId) {
   }
 }
 
-async function commitScanEvent(cyl, timestamp, overrideType) {
+async function commitScanEvent(cyl, timestamp, overrideType, extraFields = {}) {
   const eventType = overrideType || State.activeEventType;
   if (!eventType) { showSnackbar('Select an event type first.', 'error'); return; }
 
@@ -1423,6 +1423,7 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
     operatorId: session.operatorId,
     company:    session.company,
     notes:      '',
+    ...extraFields,
   };
 
   await txPut('events', event);
@@ -1433,6 +1434,7 @@ async function commitScanEvent(cyl, timestamp, overrideType) {
   if (eventType === 'refilled') {
     updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
     updatedCyl.status = 'in-refill'; // ready to ship after refill
+    if (extraFields.stampCode) updatedCyl.lastStampCode = extraFields.stampCode;
   } else if (eventType === 'shipped' || eventType === 'dist-received' || eventType === 'ret-received' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-circulation';
   } else if (eventType === 'ret-sold') {
@@ -1896,6 +1898,12 @@ async function openPassportModal(cylId) {
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Operational</div>
+      <div class="passport-row">
+        <span class="passport-key">Fill Count</span>
+        <span class="passport-value">${cyl.fillCount || 0}</span>
+      </div>
+      ${cyl.lastStampCode ? `<div class="passport-row"><span class="passport-key">Last Stamp Code</span><span class="passport-value mono">${escapeHtml(cyl.lastStampCode)}</span></div>` : ''}
+      ${cyl.lastRequalDate ? `<div class="passport-row"><span class="passport-key">Last Requalification</span><span class="passport-value">${formatDate(cyl.lastRequalDate)}</span></div>` : ''}
       ${cyl.notes ? `<div class="passport-row"><span class="passport-key">Notes</span><span class="passport-value">${escapeHtml(cyl.notes)}</span></div>` : ''}
     </div>
     <div class="passport-section">
@@ -1914,7 +1922,37 @@ async function openPassportModal(cylId) {
       <div class="passport-section-title">Current Location</div>
       <div style="font-size:12px;color:var(--dim);margin-bottom:8px">📍 ${escapeHtml(passportMapPartner.name)} · ${escapeHtml(passportMapPartner.city)}, ${escapeHtml(passportMapPartner.region)}</div>
       <div id="passport-location-map" style="height:200px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
-    </div>` : ''}`;
+    </div>` : ''}
+    ${(() => {
+      const role = Auth.session ? Auth.session.role : null;
+      const actions = role ? getNextActions(cyl, role) : [];
+      if (!actions.length) return '';
+      const partnerOptions = DEMO_NETWORK.map(n =>
+        `<option value="${escapeHtml(n.name)}" data-region="${escapeHtml(n.region)}">${escapeHtml(n.name)} (${escapeHtml(n.city)})</option>`
+      ).join('');
+      const rows = actions.map(a => {
+        if (a.type === 'shipped') {
+          return `<div class="passport-action-row">
+            <select id="ship-partner-${escapeHtml(cylId)}" class="filter-select passport-action-select">
+              <option value="">— Select destination —</option>
+              ${partnerOptions}
+            </select>
+            <button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}" data-partner-select="ship-partner-${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>
+          </div>`;
+        }
+        if (a.type === 'refilled') {
+          return `<div class="passport-action-row">
+            <input type="text" id="stamp-code-${escapeHtml(cylId)}" class="passport-action-input" placeholder="Stamp code (required)" maxlength="50">
+            <button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}" data-stamp-input="stamp-code-${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>
+          </div>`;
+        }
+        return `<button class="btn btn-sm passport-action-btn" data-action-type="${a.type}" data-cyl-id="${escapeHtml(cylId)}">${a.icon} ${escapeHtml(a.label)}</button>`;
+      }).join('');
+      return `<div class="passport-section passport-actions-section">
+        <div class="passport-section-title">Actions</div>
+        <div class="passport-actions">${rows}</div>
+      </div>`;
+    })()}`;
 
   openModal('modal-passport');
 
@@ -1949,7 +1987,24 @@ passportBody.addEventListener('click', async (e) => {
   if (!cylId || !type) return;
   const cyl = await txGet('cylinders', cylId);
   if (!cyl) return;
-  await commitScanEvent(cyl, null, type);
+
+  const extraFields = {};
+
+  if (type === 'shipped') {
+    const sel = btn.dataset.partnerSelect ? document.getElementById(btn.dataset.partnerSelect) : null;
+    if (!sel || !sel.value) { showSnackbar('Select a destination partner first.', 'error'); return; }
+    const partner = DEMO_NETWORK.find(n => n.name === sel.value);
+    extraFields.destinedFor    = sel.value;
+    extraFields.destinedRegion = partner ? partner.region : '';
+  }
+
+  if (type === 'refilled') {
+    const input = btn.dataset.stampInput ? document.getElementById(btn.dataset.stampInput) : null;
+    if (!input || !input.value.trim()) { showSnackbar('Enter a stamp code first.', 'error'); return; }
+    extraFields.stampCode = input.value.trim();
+  }
+
+  await commitScanEvent(cyl, null, type, extraFields);
   await openPassportModal(cylId);
 });
 
