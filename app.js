@@ -2397,7 +2397,7 @@ async function renderReports() {
         <div class="report-card-label">${t('dash.utilisationRate')}</div>
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>
-      ${(() => {
+      ${role === 'ewura' ? (() => {
         const INSP_TYPES_D = new Set(['inspected','ewura-monitored']);
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
@@ -2405,9 +2405,9 @@ async function renderReports() {
         return `<div class="report-card">
           <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
           <div class="report-card-label">${t('dash.marketCompliance')}</div>
-          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')} · ${inspEvsD.length} inspections</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')}</div>
         </div>`;
-      })()}
+      })() : ''}
       `;
 
     // Both lpgmc and ewura: hide activity section
@@ -2859,11 +2859,18 @@ async function renderMgmtReports() {
   }).join('');
 
   // 3. Field Inspection by Region
+  // Pre-compute last known region per cylinder from location-bearing events
+  const cylLastRegion = {};
+  allEvents
+    .filter(e => e.region)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(e => { cylLastRegion[e.cylinderId] = e.region; });
+
   const inspByRegion = {};
   allEvents.forEach(ev => {
     if (!['inspected','ewura-monitored'].includes(ev.type)) return;
     if (!inPeriod(ev.timestamp)) return;
-    const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || 'Unknown';
+    const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || cylLastRegion[ev.cylinderId] || 'Unknown';
     if (!inspByRegion[reg]) inspByRegion[reg] = { total: 0, compliant: 0 };
     inspByRegion[reg].total++;
     if (ev.compliant !== false) inspByRegion[reg].compliant++;
@@ -2977,6 +2984,7 @@ async function renderMgmtReports() {
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${totalSoldW}</strong></div>
       ${weightBarsHtml || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
     </div>
+    ${role !== 'lpgmc' ? `
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('dash.marketCompliance')}</div>
@@ -3005,7 +3013,7 @@ async function renderMgmtReports() {
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Inspections: <strong style="color:var(--text)">${inspRegEntries.reduce((s,[,v])=>s+v.total,0)}</strong></div>
       ${inspRegBarsHtml}
-    </div>`;
+    </div>` : ''}`;
 }
 
 // Per-card CSV export buttons
@@ -3053,9 +3061,11 @@ if (mgmtGrid) {
         .map(([r,c]) => `"${r}",${c}`).join('\n');
       downloadCSV(`lpg-regions-${date}.csv`, csv);
     } else if (type === 'insp-region') {
+      const cylRegMap = {};
+      allEvents.filter(e => e.region).sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp)).forEach(e => { cylRegMap[e.cylinderId] = e.region; });
       const regMap = {};
       allEvents.filter(ev => ['inspected','ewura-monitored'].includes(ev.type) && inP(ev.timestamp)).forEach(ev => {
-        const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || 'Unknown';
+        const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || cylRegMap[ev.cylinderId] || 'Unknown';
         if (!regMap[reg]) regMap[reg] = { total: 0, compliant: 0 };
         regMap[reg].total++;
         if (ev.compliant !== false) regMap[reg].compliant++;
@@ -3184,7 +3194,7 @@ async function openLicenseDetailModal(licId) {
   const companyCylIds = new Set(allCylsL.filter(c => c.company === lic.companyName || (netEntry && (lastEvL[c.id]?.company || '') === netEntry.name)).map(c => c.id));
   const inspEventsL = allEvsL.filter(e => e.type === 'inspected' && companyCylIds.has(e.cylinderId));
   const lastInspEv  = inspEventsL.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-  const lastInspDate = lastInspEv ? formatDate(lastInspEv.timestamp) : 'N/A';
+  const lastInspDate = lastInspEv ? formatDate(lastInspEv.timestamp) : '-';
 
   const stockHtml = `
     <div class="passport-section-title" style="margin-top:16px">Cylinder Stock</div>
@@ -3194,15 +3204,16 @@ async function openLicenseDetailModal(licId) {
       <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--muted)">${lEmpty}</span><div class="partner-stat-label">${t('kpi.empty')}</div></div>
     </div>`;
 
-  const locationHtml = infoEntry ? `
+  const locationHtml = `
     <div class="passport-section-title" style="margin-top:16px">${t('license.location')}</div>
-    <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value">${escapeHtml(infoEntry.region)}</span></div>
-    <div class="passport-row"><span class="passport-key">City</span><span class="passport-value">${escapeHtml(infoEntry.city)}</span></div>
-    <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value">${escapeHtml(infoEntry.address)}</span></div>
-    <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(infoEntry.contact)}</span></div>
-    <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(infoEntry.contactPerson || '—')}</span></div>
-    <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${infoEntry.lat.toFixed(4)}, ${infoEntry.lng.toFixed(4)}</span></div>
-    <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>` : '';
+    <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value">${escapeHtml(infoEntry?.region || '—')}</span></div>
+    <div class="passport-row"><span class="passport-key">City</span><span class="passport-value">${escapeHtml(infoEntry?.city || '—')}</span></div>
+    <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value">${escapeHtml(infoEntry?.address || '—')}</span></div>
+    <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(infoEntry?.contact || '—')}</span></div>
+    <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(infoEntry?.contactPerson || '—')}</span></div>
+    ${infoEntry?.lat != null ? `<div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${infoEntry.lat.toFixed(4)}, ${infoEntry.lng.toFixed(4)}</span></div>
+    <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>` : ''}
+  `;
 
   // License history timeline
   const history = lic.history || [];
