@@ -208,13 +208,13 @@ const DEMO_CYLINDERS = [
 ];
 
 const DEMO_LICENSES = [
-  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',         licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active' },
-  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',         licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active' },
-  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',         licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active' },
-  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',   licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired' },
-  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired' },
-  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active' },
-  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active' },
+  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',         licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active',  history:[{type:'granted', date:'2020-01-15', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',         licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active',  history:[{type:'granted', date:'2019-06-01', by:'EWURA', note:'Initial license granted'},{type:'renewed', date:'2023-06-01', by:'EWURA', note:'License renewed for 3 years'}] },
+  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',         licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active',  history:[{type:'granted', date:'2021-03-10', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',   licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired', history:[{type:'granted', date:'2022-07-20', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired', history:[{type:'granted', date:'2023-02-14', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active',  history:[{type:'granted', date:'2021-09-01', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active',  history:[{type:'granted', date:'2024-11-01', by:'EWURA', note:'Initial license granted'}] },
 ];
 
 const DEMO_NETWORK = [
@@ -3076,10 +3076,13 @@ licensesList.addEventListener('click', (e) => {
   if (item) openLicenseDetailModal(item.dataset.licId);
 });
 
+let _licDetailCurrentId = null;
+
 async function openLicenseDetailModal(licId) {
   const lic = _licensesData.find(l => l.id === licId);
   if (!lic) return;
 
+  _licDetailCurrentId = licId;
   const detailBody = $('license-detail-body');
   if (!detailBody) return;
 
@@ -3093,7 +3096,6 @@ async function openLicenseDetailModal(licId) {
   // Compute cylinder stock
   let lTotal = 0, lFull = 0, lEmpty = 0;
   if (netEntry) {
-    // Dist/retailer: match by last event location
     const LFULL  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
     const LEMPTY = new Set(['ret-returned-empty', 'dist-returned-empty']);
     const lastEvL = {};
@@ -3107,7 +3109,6 @@ async function openLicenseDetailModal(licId) {
       else if (LEMPTY.has(ev.type)) lEmpty++;
     });
   } else if (lpgmcInfo) {
-    // LPGMC company: count all their cylinders
     const FILL_EV  = new Set(['refilled']);
     const EMPTY_EV = new Set(['received-empty', 'registered']);
     const lastEvL  = {};
@@ -3140,7 +3141,26 @@ async function openLicenseDetailModal(licId) {
     ${stockHtml}
     <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>` : '';
 
-  const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'expired' ? 'var(--red)' : 'var(--amber)';
+  // License history timeline
+  const history = lic.history || [];
+  const historyHtml = history.length ? `
+    <div class="passport-section-title" style="margin-top:16px">License History</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      ${history.slice().reverse().map(ev => {
+        const evColor = ev.type === 'granted' ? 'var(--green)' : ev.type === 'revoked' ? 'var(--red)' : ev.type === 'renewed' ? 'var(--blue)' : 'var(--muted)';
+        const evIcon  = ev.type === 'granted' ? '✓' : ev.type === 'revoked' ? '✕' : ev.type === 'renewed' ? '↻' : '•';
+        return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--surface2);border-radius:6px;border-left:3px solid ${evColor}">
+          <span style="color:${evColor};font-weight:700;font-size:14px;flex-shrink:0">${evIcon}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--text);text-transform:capitalize">${escapeHtml(ev.type)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${formatDate(ev.date)} · by ${escapeHtml(ev.by)}</div>
+            ${ev.note ? `<div style="font-size:12px;color:var(--dim);margin-top:2px">${escapeHtml(ev.note)}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'revoked' ? 'var(--red)' : lic.status === 'expired' ? 'var(--amber)' : 'var(--muted)';
 
   detailBody.innerHTML = `
     <div class="passport-section-title">${t('license.details')}</div>
@@ -3150,7 +3170,15 @@ async function openLicenseDetailModal(licId) {
     <div class="passport-row"><span class="passport-key">${t('license.issued')}</span><span class="passport-value">${formatDate(lic.issuedDate)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.expires')}</span><span class="passport-value">${formatDate(lic.expiryDate)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.status')}</span><span class="passport-value" style="color:${statusColor};font-weight:600">${escapeHtml(lic.status)}</span></div>
-    ${locationHtml}`;
+    ${locationHtml}
+    ${historyHtml}`;
+
+  // Show/hide revoke & renew buttons for EWURA
+  const revokeBtn = $('lic-detail-revoke-btn');
+  const renewBtn  = $('lic-detail-renew-btn');
+  const isEwura   = Auth.session?.role === 'ewura';
+  if (revokeBtn) revokeBtn.style.display = isEwura && lic.status !== 'revoked' ? '' : 'none';
+  if (renewBtn)  renewBtn.style.display  = isEwura && (lic.status === 'revoked' || lic.status === 'expired') ? '' : 'none';
 
   openModal('modal-license-detail');
 
@@ -3161,6 +3189,45 @@ async function openLicenseDetailModal(licId) {
     });
   }
 }
+
+// License detail: Revoke / Renew
+$('lic-detail-revoke-btn')?.addEventListener('click', async () => {
+  if (!_licDetailCurrentId) return;
+  const idx = _licensesData.findIndex(l => l.id === _licDetailCurrentId);
+  if (idx < 0) return;
+  if (!confirm(`Revoke license for ${_licensesData[idx].companyName}? This will set the company status to inactive.`)) return;
+  const today = new Date().toISOString().slice(0, 10);
+  _licensesData[idx].status = 'revoked';
+  _licensesData[idx].revokedDate = today;
+  if (!_licensesData[idx].history) _licensesData[idx].history = [];
+  _licensesData[idx].history.push({ type: 'revoked', date: today, by: Auth.session?.company || 'EWURA', note: 'License revoked by EWURA' });
+  await txPut('licenses', _licensesData[idx]);
+  // Mark associated network entry inactive
+  const netEntry = DEMO_NETWORK.find(n => n.name === _licensesData[idx].companyName);
+  if (netEntry) netEntry.status = 'inactive';
+  showSnackbar('License revoked. Company set to inactive.', 'error');
+  renderLicenses();
+  await openLicenseDetailModal(_licDetailCurrentId);
+});
+
+$('lic-detail-renew-btn')?.addEventListener('click', async () => {
+  if (!_licDetailCurrentId) return;
+  const idx = _licensesData.findIndex(l => l.id === _licDetailCurrentId);
+  if (idx < 0) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const newExpiry = new Date();
+  newExpiry.setFullYear(newExpiry.getFullYear() + 3);
+  _licensesData[idx].status = 'active';
+  _licensesData[idx].expiryDate = newExpiry.toISOString().slice(0, 10);
+  if (!_licensesData[idx].history) _licensesData[idx].history = [];
+  _licensesData[idx].history.push({ type: 'renewed', date: today, by: Auth.session?.company || 'EWURA', note: `License renewed. New expiry: ${newExpiry.toISOString().slice(0, 10)}` });
+  await txPut('licenses', _licensesData[idx]);
+  const netEntry = DEMO_NETWORK.find(n => n.name === _licensesData[idx].companyName);
+  if (netEntry) netEntry.status = 'active';
+  showSnackbar('License renewed for 3 years.', 'success');
+  renderLicenses();
+  await openLicenseDetailModal(_licDetailCurrentId);
+});
 
 mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
 mgmtFilterMonth?.addEventListener('change', renderMgmtReports);
@@ -3196,6 +3263,7 @@ licSubmitBtn.addEventListener('click', async () => {
     issuedDate:   issued,
     expiryDate:   expiry,
     status,
+    history: [{ type: 'granted', date: issued, by: Auth.session?.company || 'EWURA', note: 'License granted' }],
   };
 
   await txPut('licenses', lic);
