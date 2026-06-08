@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     'mgmt.inspections':'Inspections & Scans',
     'mgmt.compliant':'Compliant',
     'mgmt.nonCompliant':'Non-Compliant',
-    'mgmt.salesByWeight':'Sales by Net Weight',
+    'mgmt.salesByWeight':'Sales by SKU',
     'mgmt.weightKg':'kg cylinders',
     'kpi.totalInactive':'total',
   },
@@ -118,7 +118,7 @@ const TRANSLATIONS = {
     'mgmt.inspections':'Ukaguzi na Uchanganuzi',
     'mgmt.compliant':'Inakidhi',
     'mgmt.nonCompliant':'Haikusidhi',
-    'mgmt.salesByWeight':'Mauzo kwa Uzito wa Gesi',
+    'mgmt.salesByWeight':'Mauzo kwa SKU',
     'mgmt.weightKg':'kg mitungi',
     'kpi.totalInactive':'jumla',
   },
@@ -347,6 +347,13 @@ const ROLE_LABELS = {
 };
 
 const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
+
+const DEMO_LPGMC_INFO = {
+  'Vivo LPG':       { region:'Dar es Salaam', city:'Dar es Salaam', address:'Ubungo Industrial Area, Dar es Salaam', contact:'+255 22 286 0101', contactPerson:'George Mtambo',   lat:-6.7924, lng:39.2083 },
+  'Total Energies': { region:'Dar es Salaam', city:'Dar es Salaam', address:'Mikocheni Light Industrial Area',       contact:'+255 22 277 0202', contactPerson:'Sophie Munisi',    lat:-6.7700, lng:39.2400 },
+  'Shell Gas':      { region:'Dar es Salaam', city:'Dar es Salaam', address:'Chang\'ombe Industrial Area',            contact:'+255 22 285 0303', contactPerson:'Richard Kijazi',   lat:-6.8370, lng:39.2560 },
+  'Lake Gas':       { region:'Mwanza',        city:'Mwanza',        address:'Isamilo Road, Mwanza',                  contact:'+255 28 254 0404', contactPerson:'Catherine Masebo', lat:-2.5200, lng:32.9100 },
+};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH MODULE
@@ -2129,42 +2136,6 @@ alertFilterType.addEventListener('change',     () => { _alertPage = 1; applyAler
 // REPORTS / DASHBOARD VIEW
 // ══════════════════════════════════════════════════════════════════════════════
 
-function buildSalesByWeightHtml(soldEvs, cylMap) {
-  const weights = [6, 12, 38];
-  const counts = {};
-  weights.forEach(w => { counts[w] = 0; });
-  soldEvs.forEach(ev => {
-    const cyl = cylMap[ev.cylinderId];
-    const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
-    const bucket = weights.includes(w) ? w : 12;
-    counts[bucket] = (counts[bucket] || 0) + 1;
-  });
-  const maxC = Math.max(...weights.map(w => counts[w] || 0), 1);
-  const total = weights.reduce((s, w) => s + (counts[w] || 0), 0);
-  const bars = weights.map(w => {
-    const c = counts[w] || 0;
-    const pct = Math.round((c / maxC) * 100);
-    const share = total > 0 ? Math.round((c / total) * 100) : 0;
-    return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label">${w} kg</span>
-      <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
-          <span>${c}</span>
-        </div>
-      </div>
-      <span style="font-size:11px;color:var(--muted);min-width:36px;text-align:right">${share}%</span>
-    </div>`;
-  }).join('');
-  return `<div class="dashboard-section-title">${t('mgmt.salesByWeight')}</div>
-    <div class="mgmt-card" style="margin-bottom:0">
-      <div class="mgmt-card-header">
-        <div class="mgmt-card-title">${t('mgmt.salesByWeight')}</div>
-      </div>
-      <div style="margin-bottom:8px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${total}</strong></div>
-      ${bars || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
-    </div>`;
-}
-
 function renderPartnerSalesChart(events, partnerEntry, yearSel) {
   const reportChart = $('report-chart');
   if (!reportChart) return;
@@ -2422,10 +2393,6 @@ async function renderReports() {
       </div>`;
       })() : ''}`;
 
-    // Sales by Net Weight
-    const cylMapLR = {};
-    cyls.forEach(c => { cylMapLR[c.id] = c; });
-    reportsGrid.innerHTML += buildSalesByWeightHtml(events.filter(e => e.type === 'ret-sold'), cylMapLR);
 
     // Both lpgmc and ewura: hide activity section
     reportChart.innerHTML = '';
@@ -2521,11 +2488,6 @@ async function renderReports() {
       }
       renderPartnerSalesChart(events, partnerEntry, salesYearSel);
     }
-    // Sales by Net Weight for dist/retailer
-    const cylMapP = {};
-    cyls.forEach(c => { cylMapP[c.id] = c; });
-    const partnerSoldEvs = events.filter(e => e.type === 'ret-sold' && partnerEntry && (e.company === partnerEntry.name || e.location === partnerEntry.name));
-    reportsGrid.innerHTML += buildSalesByWeightHtml(partnerSoldEvs, cylMapP);
   } else {
     if (actSec) actSec.style.display = '';
 
@@ -2570,10 +2532,6 @@ async function renderReports() {
           </div>
         </div>`;
       }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
-    // Sales by Net Weight for other roles
-    const cylMapO = {};
-    cyls.forEach(c => { cylMapO[c.id] = c; });
-    reportsGrid.innerHTML += buildSalesByWeightHtml(events.filter(e => e.type === 'ret-sold'), cylMapO);
   }
 }
 
@@ -2942,11 +2900,10 @@ async function renderMgmtReports() {
       }).join('')
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
 
-  // 5. Inspections & Scans
-  // Sales by Net Weight
+  // Sales by SKU (Net Weight) - filtered to profile's cylinders
   const cylMapM = {};
-  allCyls.forEach(c => { cylMapM[c.id] = c; });
-  const soldEvsM = allEvents.filter(ev => ev.type === 'ret-sold' && inPeriod(ev.timestamp));
+  cyls.forEach(c => { cylMapM[c.id] = c; });
+  const soldEvsM = allEvents.filter(ev => ev.type === 'ret-sold' && inPeriod(ev.timestamp) && cylMapM[ev.cylinderId]);
   const weightGroups = [6, 12, 38];
   const weightCounts = {};
   weightGroups.forEach(w => { weightCounts[w] = 0; });
@@ -3123,50 +3080,65 @@ async function openLicenseDetailModal(licId) {
   const lic = _licensesData.find(l => l.id === licId);
   if (!lic) return;
 
-  const netEntry = DEMO_NETWORK.find(n => n.name === lic.companyName);
   const detailBody = $('license-detail-body');
   if (!detailBody) return;
 
-  // Compute cylinder stock for network partners
-  let stockHtml = '';
+  // Look up location info from DEMO_NETWORK (dist/retailer) or DEMO_LPGMC_INFO (LPGMC)
+  const netEntry  = DEMO_NETWORK.find(n => n.name === lic.companyName);
+  const lpgmcInfo = DEMO_LPGMC_INFO[lic.companyName];
+  const infoEntry = netEntry || lpgmcInfo || null;
+
+  const [allCylsL, allEvsL] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+
+  // Compute cylinder stock
+  let lTotal = 0, lFull = 0, lEmpty = 0;
   if (netEntry) {
-    const [allCylsL, allEvsL] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+    // Dist/retailer: match by last event location
     const LFULL  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
     const LEMPTY = new Set(['ret-returned-empty', 'dist-returned-empty']);
     const lastEvL = {};
     allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
       .forEach(ev => { lastEvL[ev.cylinderId] = ev; });
-    let lTotal = 0, lFull = 0, lEmpty = 0;
     allCylsL.filter(c => c.status === 'in-circulation').forEach(c => {
       const ev = lastEvL[c.id];
-      if (!ev) return;
-      if ((ev.location || ev.company || '') !== netEntry.name) return;
+      if (!ev || (ev.location || ev.company || '') !== netEntry.name) return;
       lTotal++;
       if (LFULL.has(ev.type))       lFull++;
       else if (LEMPTY.has(ev.type)) lEmpty++;
     });
-    stockHtml = `
-      <div class="passport-section-title" style="margin-top:16px">Cylinder Stock</div>
-      <div class="partner-stats-row" style="margin:8px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--amber)">${lTotal}</span><div class="partner-stat-label">Total</div></div>
-        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--green)">${lFull}</span><div class="partner-stat-label">${t('kpi.full')}</div></div>
-        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--muted)">${lEmpty}</span><div class="partner-stat-label">${t('kpi.empty')}</div></div>
-      </div>`;
+  } else if (lpgmcInfo) {
+    // LPGMC company: count all their cylinders
+    const FILL_EV  = new Set(['refilled']);
+    const EMPTY_EV = new Set(['received-empty', 'registered']);
+    const lastEvL  = {};
+    allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvL[ev.cylinderId] = ev; });
+    allCylsL.filter(c => c.company === lic.companyName).forEach(c => {
+      lTotal++;
+      const evType = (lastEvL[c.id] || {}).type;
+      if (FILL_EV.has(evType))       lFull++;
+      else if (EMPTY_EV.has(evType)) lEmpty++;
+    });
   }
 
-  let locationHtml = '';
-  if (netEntry) {
-    locationHtml = `
-      <div class="passport-section-title" style="margin-top:16px">${t('license.location')}</div>
-      <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value">${escapeHtml(netEntry.region)}</span></div>
-      <div class="passport-row"><span class="passport-key">City</span><span class="passport-value">${escapeHtml(netEntry.city)}</span></div>
-      <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value">${escapeHtml(netEntry.address)}</span></div>
-      <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(netEntry.contact)}</span></div>
-      <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(netEntry.contactPerson || '—')}</span></div>
-      <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${netEntry.lat.toFixed(4)}, ${netEntry.lng.toFixed(4)}</span></div>
-      ${stockHtml}
-      <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>`;
-  }
+  const stockHtml = infoEntry ? `
+    <div class="passport-section-title" style="margin-top:16px">Cylinder Stock</div>
+    <div class="partner-stats-row" style="margin:8px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--amber)">${lTotal}</span><div class="partner-stat-label">Total</div></div>
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--green)">${lFull}</span><div class="partner-stat-label">${t('kpi.full')}</div></div>
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--muted)">${lEmpty}</span><div class="partner-stat-label">${t('kpi.empty')}</div></div>
+    </div>` : '';
+
+  const locationHtml = infoEntry ? `
+    <div class="passport-section-title" style="margin-top:16px">${t('license.location')}</div>
+    <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value">${escapeHtml(infoEntry.region)}</span></div>
+    <div class="passport-row"><span class="passport-key">City</span><span class="passport-value">${escapeHtml(infoEntry.city)}</span></div>
+    <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value">${escapeHtml(infoEntry.address)}</span></div>
+    <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(infoEntry.contact)}</span></div>
+    <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(infoEntry.contactPerson || '—')}</span></div>
+    <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${infoEntry.lat.toFixed(4)}, ${infoEntry.lng.toFixed(4)}</span></div>
+    ${stockHtml}
+    <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>` : '';
 
   const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'expired' ? 'var(--red)' : 'var(--amber)';
 
@@ -3182,10 +3154,10 @@ async function openLicenseDetailModal(licId) {
 
   openModal('modal-license-detail');
 
-  if (netEntry) {
+  if (infoEntry) {
     requestAnimationFrame(() => {
       const mapEl = $('license-detail-map');
-      if (mapEl) mapEl.innerHTML = buildOsmEmbed(netEntry.lat, netEntry.lng);
+      if (mapEl) mapEl.innerHTML = buildOsmEmbed(infoEntry.lat, infoEntry.lng);
     });
   }
 }
