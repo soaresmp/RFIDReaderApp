@@ -32,7 +32,7 @@ const TRANSLATIONS = {
     'status.distSentRetail':'Sent to Retailer','status.retReceived':'Retailer Received','status.retSold':'Sold',
     'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
     'dash.totalAlerts':'Total Alerts','dash.refillingSites':'Refilling Sites',
-    'dash.marketCompliance':'Market Compliance','mgmt.complianceRate':'Compliance Rate',
+    'dash.marketCompliance':'Field Inspection','mgmt.complianceRate':'Compliance Rate',
     'dash.avgRefillCycle':'Avg Refill Cycle','dash.utilisationRate':'Utilisation Rate',
     'dash.daysLabel':'days received→refilled','dash.utilLabel':'in-use + in-circ / total',
     'kpi.filled':'filled','kpi.empty':'empty','kpi.full':'full',
@@ -88,7 +88,7 @@ const TRANSLATIONS = {
     'status.distSentRetail':'Imetumwa kwa Muuzaji','status.retReceived':'Imepokelewa (Muuzaji)','status.retSold':'Imeuzwa',
     'status.retReturnedEmpty':'Imerudishwa Tupu (Muuzaji)','status.distReturnedEmpty':'Imerudishwa Tupu (Msambazaji)','status.receivedEmpty':'Imepokelewa Tupu',
     'dash.totalAlerts':'Tahadhari Zote','dash.refillingSites':'Vituo vya Kujaza',
-    'dash.marketCompliance':'Uzingatiaji wa Soko','mgmt.complianceRate':'Kiwango cha Kuzingatia',
+    'dash.marketCompliance':'Ukaguzi wa Uwanjani','mgmt.complianceRate':'Kiwango cha Kuzingatia',
     'dash.avgRefillCycle':'Wastani wa Kujaza','dash.utilisationRate':'Kiwango cha Matumizi',
     'dash.daysLabel':'siku (zilipokelewa→kujazwa)','dash.utilLabel':'inatumika + mzunguko / jumla',
     'kpi.filled':'imejazwa','kpi.empty':'tupu','kpi.full':'kamili',
@@ -2371,28 +2371,7 @@ async function renderReports() {
         <div class="report-card-label">${t('dash.utilisationRate')}</div>
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>
-      ${role === 'ewura' ? (() => {
-        const INSP_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
-        const inspEvs = events.filter(e => INSP_TYPES.has(e.type));
-        const compC  = inspEvs.filter(e => e.compliant !== false).length;
-        const nonCompC = inspEvs.filter(e => e.compliant === false).length;
-        const compRate = inspEvs.length ? Math.round(compC / inspEvs.length * 100) : 0;
-        return `
-      <div class="dashboard-section-title">${t('dash.marketCompliance')}</div>
-      <div class="report-card" style="border-color:var(--green)">
-        <span class="report-card-value" style="color:var(--green)">${compC}</span>
-        <div class="report-card-label">${t('mgmt.compliant')}</div>
-      </div>
-      <div class="report-card" style="border-color:${nonCompC > 0 ? 'var(--red)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${nonCompC > 0 ? 'var(--red)' : 'var(--green)'}">${nonCompC}</span>
-        <div class="report-card-label">${t('mgmt.nonCompliant')}</div>
-      </div>
-      <div class="report-card" style="border-color:${compRate < 75 ? 'var(--amber)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${compRate >= 75 ? 'var(--green)' : 'var(--amber)'}">${compRate}%</span>
-        <div class="report-card-label">${t('mgmt.complianceRate')}</div>
-      </div>`;
-      })() : ''}`;
-
+      `;
 
     // Both lpgmc and ewura: hide activity section
     reportChart.innerHTML = '';
@@ -2930,41 +2909,70 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
+  // Field Inspection compliance
+  const INSP_TYPES_M = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
+  const inspEventsM  = allEvents.filter(ev => INSP_TYPES_M.has(ev.type) && inPeriod(ev.timestamp));
+  const inspCompM    = inspEventsM.filter(ev => ev.compliant !== false).length;
+  const inspNonM     = inspEventsM.filter(ev => ev.compliant === false).length;
+  const inspRateM    = inspEventsM.length ? Math.round(inspCompM / inspEventsM.length * 100) : 0;
+
   grid.innerHTML = `
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.status')}</div>
-
+        <button class="mgmt-card-export-btn" data-export="status" type="button">↓ CSV</button>
       </div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.refills')}</div>
-
+        <button class="mgmt-card-export-btn" data-export="refills" type="button">↓ CSV</button>
       </div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
-
+        <button class="mgmt-card-export-btn" data-export="partners" type="button">↓ CSV</button>
       </div>
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
-
+        <button class="mgmt-card-export-btn" data-export="regions" type="button">↓ CSV</button>
       </div>
       ${regionBarsHtml}
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.salesByWeight')}</div>
+        <button class="mgmt-card-export-btn" data-export="sales-weight" type="button">↓ CSV</button>
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${totalSoldW}</strong></div>
       ${weightBarsHtml || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('dash.marketCompliance')}</div>
+        <button class="mgmt-card-export-btn" data-export="field-inspection" type="button">↓ CSV</button>
+      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total inspections: <strong style="color:var(--text)">${inspEventsM.length}</strong></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:100px;background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:var(--green)">${inspCompM}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">✓ ${t('mgmt.compliant')}</div>
+        </div>
+        <div style="flex:1;min-width:100px;background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:var(--red)">${inspNonM}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">✗ ${t('mgmt.nonCompliant')}</div>
+        </div>
+        ${inspEventsM.length > 0 ? `<div style="flex:1;min-width:100px;background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:var(--blue)">${inspRateM}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">${t('mgmt.complianceRate')}</div>
+        </div>` : ''}
+      </div>
     </div>`;
 }
 
@@ -3012,12 +3020,20 @@ if (mgmtGrid) {
       csv = 'Region,Sales\n' + Object.entries(regMap).sort((a,b) => b[1]-a[1])
         .map(([r,c]) => `"${r}",${c}`).join('\n');
       downloadCSV(`lpg-regions-${date}.csv`, csv);
-    } else if (type === 'inspections') {
+    } else if (type === 'inspections' || type === 'field-inspection') {
       const INSP_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
       csv = 'Timestamp,CylinderID,Type,Company,Compliant\n' +
         allEvents.filter(ev => INSP_TYPES.has(ev.type) && inP(ev.timestamp))
           .map(ev => `"${ev.timestamp}","${ev.cylinderId}","${ev.type}","${ev.company || ''}","${ev.compliant !== false ? 'true' : 'false'}"`).join('\n');
-      downloadCSV(`lpg-inspections-${date}.csv`, csv);
+      downloadCSV(`lpg-field-inspection-${date}.csv`, csv);
+    } else if (type === 'sales-weight') {
+      csv = 'Timestamp,CylinderID,NetWeight_kg,Company\n' +
+        allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp)).map(ev => {
+          const cyl = allCyls.find(c => c.id === ev.cylinderId);
+          const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
+          return `"${ev.timestamp}","${ev.cylinderId}",${w},"${ev.company || ''}"`;
+        }).join('\n');
+      downloadCSV(`lpg-sales-by-sku-${date}.csv`, csv);
     }
   });
 }
