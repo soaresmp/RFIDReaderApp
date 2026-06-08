@@ -1105,6 +1105,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .btn-green   { background: var(--green); color: #fff; }
 .btn-blue    { background: var(--blue);  color: #fff; }
 .btn-red     { background: var(--red);   color: #fff; }
+.btn-danger  { background: var(--red);   color: #fff; }
 
 .btn-outline {
   background: transparent;
@@ -1412,9 +1413,6 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   flex-shrink: 0;
 }
 
-.login-logo { font-size: 36px; line-height: 1; }
-.login-ewura-logo { display: inline-block; margin-bottom: 10px; }
-.login-ewura-logo svg { width: 160px; height: 64px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
 .login-title { color: #fff; font-size: 22px; font-weight: 700; margin: 4px 0 2px; }
 .login-subtitle { color: #b3c8e8; font-size: 13px; }
 
@@ -1445,7 +1443,8 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 .role-card:active { transform: scale(0.98); }
 .role-card.selected { border-color: var(--blue); background: #e8f0ff; }
 
-.role-card-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+.role-card-icon { width: 36px; height: 36px; flex-shrink: 0; color: #3a6baa; display: flex; align-items: center; justify-content: center; }
+.role-card-icon svg { width: 28px; height: 28px; }
 .role-card-body { flex: 1; min-width: 0; }
 .role-card-title { font-size: 14px; font-weight: 600; color: #1a2f4a; }
 .role-card-desc  { font-size: 11px; color: #4a6f9a; margin-top: 2px; }
