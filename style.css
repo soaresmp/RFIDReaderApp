@@ -1413,6 +1413,8 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 }
 
 .login-logo { font-size: 36px; line-height: 1; }
+.login-ewura-logo { display: inline-block; margin-bottom: 10px; }
+.login-ewura-logo svg { width: 160px; height: 64px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
 .login-title { color: #fff; font-size: 22px; font-weight: 700; margin: 4px 0 2px; }
 .login-subtitle { color: #b3c8e8; font-size: 13px; }
 
