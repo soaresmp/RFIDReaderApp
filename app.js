@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v10';
+const SEED_KEY   = 'seeded-v11';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -417,6 +417,15 @@ function txDelete(storeName, key) {
   });
 }
 
+function txClearStore(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const req = tx.objectStore(storeName).clear();
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
 function txGetIndex(storeName, indexName, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
@@ -435,7 +444,8 @@ function buildGeneratedCylinders() {
     { name:'Lake Gas',       prefix:'LKG', code:'04' },
   ];
   // Status distribution (cycles through): target ~35% in-use, 30% in-circulation, 25% in-refill, 10% revalidation
-  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circulation','in-use','in-refill','in-use','in-circulation','revalidation'];
+  // 'in-circ-empty' means status=in-circulation but last event is ret-returned-empty
+  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill','in-use','in-circulation','revalidation'];
   const capacities  = [12,12,15,12,12,12,15,12,12,12];
   const result = [];
   // Existing demo cylinders: Vivo LPG 15, TEN 15, SHG 15, LKG 12 → generate enough to reach 300 each
@@ -443,13 +453,17 @@ function buildGeneratedCylinders() {
   companies.forEach((co, ci) => {
     const needed = 300 - (existingCounts[co.name] || 0);
     for (let i = 1; i <= needed; i++) {
-      const year = 2010 + (i % 16);
+      // Only ~10% of cylinders are old (pre-2016) → fewer requalification overdue alerts
+      const isOld = (i % 10 === 0);
+      const year = isOld ? (2010 + (Math.floor(i/10) % 6)) : (2016 + (i % 10));
       const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
       const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
       const mfgDate  = `${year}-${month}-${day}`;
       const hydroDate = `${year + 5}-${month}-${day}`;
       const age = 2026 - year;
       const fillCount = Math.max(1, age * 30 + (i % 50));
+      const rawStatus = statusCycle[i % statusCycle.length];
+      const cylStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus;
       result.push({
         id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
         serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
@@ -459,7 +473,8 @@ function buildGeneratedCylinders() {
         capacity: capacities[i % capacities.length],
         fillCount,
         lastHydroTest: hydroDate,
-        status: statusCycle[i % statusCycle.length],
+        status: cylStatus,
+        _seedEmpty: rawStatus === 'in-circ-empty',
         notes: '',
       });
     }
@@ -470,6 +485,10 @@ function buildGeneratedCylinders() {
 async function seedDemoData() {
   const seeded = await txGet('meta', SEED_KEY);
   if (seeded) return;
+
+  // Clear any stale data from previous seed versions
+  await txClearStore('cylinders');
+  await txClearStore('events');
 
   for (const cyl of DEMO_CYLINDERS) {
     await txPut('cylinders', cyl);
@@ -615,8 +634,23 @@ async function seedDemoData() {
       const base = now2 - 2 * MONTH;
       await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    } else if (cyl._seedEmpty) {
+      // Empty cylinder returned to distributor
+      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const base = now2 - (20 + (idHash % 30)) * DAY;
+      const r = rnd(RETAILERS);
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base - 30*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base - 22*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base - 20*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base - 15*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base - 13*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base - 8*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
     } else if (cyl.status === 'in-circulation') {
-      const base = now2 - 50 * DAY;
+      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const isStuck = (idHash % 10 === 0);
+      const daysAgo = isStuck ? 65 : (12 + (idHash % 28));
+      const base = now2 - daysAgo * DAY;
       await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
       await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
@@ -1600,7 +1634,15 @@ if (exportDashboardBtn) {
 // CYLINDER PASSPORT MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _passportMap = null;
+function buildOsmEmbed(lat, lng) {
+  const d = 0.018;
+  return `<iframe
+    src="https://www.openstreetmap.org/export/embed.html?bbox=${(lng-d).toFixed(6)},${(lat-d).toFixed(6)},${(lng+d).toFixed(6)},${(lat+d).toFixed(6)}&layer=mapnik&marker=${lat.toFixed(6)},${lng.toFixed(6)}"
+    style="width:100%;height:100%;border:0;border-radius:inherit"
+    loading="lazy"
+    title="Location map"
+  ></iframe>`;
+}
 
 function getNextActions(cyl, role) {
   const s = cyl.status;
@@ -1705,17 +1747,7 @@ async function openPassportModal(cylId) {
       <div class="passport-section-title">Current Location</div>
       <div style="font-size:12px;color:var(--dim);margin-bottom:8px">📍 ${escapeHtml(passportMapPartner.name)} · ${escapeHtml(passportMapPartner.city)}, ${escapeHtml(passportMapPartner.region)}</div>
       <div id="passport-location-map" style="height:200px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
-    </div>` : ''}
-    ${(() => {
-      const acts = getNextActions(cyl, Auth.session?.role || '');
-      if (!acts.length) return '';
-      return `<div class="passport-section">
-        <div class="passport-section-title">Record Action</div>
-        <div class="passport-actions">
-          ${acts.map(a => `<button class="btn btn-outline passport-action-btn" data-action-type="${escapeHtml(a.type)}" data-cyl-id="${escapeHtml(cyl.id)}" type="button">${a.icon} ${escapeHtml(a.label)}</button>`).join('')}
-        </div>
-      </div>`;
-    })()}`;
+    </div>` : ''}`;
 
   openModal('modal-passport');
 
