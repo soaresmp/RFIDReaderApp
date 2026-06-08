@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v12';
+const SEED_KEY   = 'seeded-v13';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -46,6 +46,21 @@ const TRANSLATIONS = {
     'ev.retSold':'Sold to Consumer','ev.retReturnedEmpty':'Returned Empty by Consumer',
     'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by EWURA',
     'ev.traVerified':'Refills Verified by TRA','ev.traRegistered':'Shipment Registered by TRA',
+    'dash.activityTitle':'Activity — Last 30 Days',
+    'kpi.cylAssigned':'Cylinders Assigned',
+    'kpi.yourStock':'Your Stock',
+    'dash.noActivity':'No activity in last 30 days.',
+    'license.company':'Company',
+    'license.number':'License No.',
+    'license.issued':'Issued',
+    'license.expires':'Expires',
+    'license.status':'Status',
+    'license.details':'License Details',
+    'license.location':'Location Info',
+    'mgmt.inspections':'Inspections & Scans',
+    'mgmt.compliant':'Compliant',
+    'mgmt.nonCompliant':'Non-Compliant',
+    'kpi.totalInactive':'total',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -83,6 +98,21 @@ const TRANSLATIONS = {
     'ev.retSold':'Imeuzwa kwa Mnunuzi','ev.retReturnedEmpty':'Mtungi Tupu Umerudishwa na Mnunuzi',
     'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na EWURA',
     'ev.traVerified':'Kujaza Kuthibitishwa na TRA','ev.traRegistered':'Mzigo Umesajiliwa na TRA',
+    'dash.activityTitle':'Shughuli — Siku 30 Zilizopita',
+    'kpi.cylAssigned':'Mitungi Iliyokasimiwa',
+    'kpi.yourStock':'Hifadhi Yako',
+    'dash.noActivity':'Hakuna shughuli katika siku 30 zilizopita.',
+    'license.company':'Kampuni',
+    'license.number':'Nambari ya Leseni',
+    'license.issued':'Ilitolewa',
+    'license.expires':'Inaisha',
+    'license.status':'Hali',
+    'license.details':'Maelezo ya Leseni',
+    'license.location':'Maelezo ya Eneo',
+    'mgmt.inspections':'Ukaguzi na Uchanganuzi',
+    'mgmt.compliant':'Inakidhi',
+    'mgmt.nonCompliant':'Haikusidhi',
+    'kpi.totalInactive':'jumla',
   },
 };
 
@@ -291,7 +321,7 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'licenses'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'licenses', 'mgmt-reports'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'scan', 'cylinders', 'alerts'],
@@ -780,6 +810,38 @@ async function seedDemoData() {
     const tRecv = new Date(now - 8*DAY);
     await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:'Vivo LPG', location:'Vivo LPG', destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
     await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
+  }
+
+  // Seed inspection events (Feature 8) spread across 2025-2026
+  const INSPECTION_SEED_DATA = [
+    // 2025 months (6 months back from June 2026)
+    { cylId:'E280116060000204C3F04E81', type:'inspected',      ts:'2025-12-10T10:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E82', type:'inspected',      ts:'2025-12-15T11:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E83', type:'ewura-monitored',ts:'2025-12-20T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E89', type:'inspected',      ts:'2026-01-08T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8A', type:'inspected',      ts:'2026-01-15T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8B', type:'ewura-monitored',ts:'2026-01-22T08:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E91', type:'inspected',      ts:'2026-02-05T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E92', type:'inspected',      ts:'2026-02-12T09:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E99', type:'inspected',      ts:'2026-02-18T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E84', type:'ewura-monitored',ts:'2026-03-03T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E85', type:'inspected',      ts:'2026-03-10T14:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8C', type:'inspected',      ts:'2026-03-20T09:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E9A', type:'inspected',      ts:'2026-04-04T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E9B', type:'ewura-monitored',ts:'2026-04-11T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E93', type:'inspected',      ts:'2026-04-18T08:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E86', type:'inspected',      ts:'2026-05-06T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E94', type:'inspected',      ts:'2026-05-14T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04EA1', type:'ewura-monitored',ts:'2026-05-22T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E87', type:'inspected',      ts:'2026-06-02T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E95', type:'inspected',      ts:'2026-06-07T11:00:00Z', compliant:true  },
+  ];
+  for (const s of INSPECTION_SEED_DATA) {
+    await txPut('events', {
+      cylinderId: s.cylId, type: s.type, timestamp: s.ts,
+      operatorId: 'SYSTEM', company: s.type === 'ewura-monitored' ? 'EWURA' : 'Field Inspection Unit',
+      compliant: s.compliant,
+    });
   }
 
   for (const lic of DEMO_LICENSES) {
@@ -2058,10 +2120,14 @@ async function renderReports() {
   const role = Auth.session ? Auth.session.role : null;
   const actSec = $('report-activity-section');
 
-  if (role === 'lpgmc') {
-    cyls = cyls.filter(c => c.company === Auth.session.company);
-    const ownIds = new Set(cyls.map(c => c.id));
-    events = events.filter(e => ownIds.has(e.cylinderId));
+  if (role === 'lpgmc' || role === 'ewura') {
+    // For lpgmc: filter to own company. For ewura: use all cylinders.
+    if (role === 'lpgmc') {
+      cyls = cyls.filter(c => c.company === Auth.session.company);
+      const ownIds = new Set(cyls.map(c => c.id));
+      events = events.filter(e => ownIds.has(e.cylinderId));
+    }
+    // ewura: no filter, sees all companies
 
     const inRefill       = cyls.filter(c => c.status === 'in-refill').length;
     const inCirculation  = cyls.filter(c => c.status === 'in-circulation').length;
@@ -2094,9 +2160,13 @@ async function renderReports() {
       else if (CIRC_EMPTY_EV.has(evType))  circEmpty++;
     });
 
-    const refillerCount = LPGMC_COMPANIES.length;
-    const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
-    const retailCount   = DEMO_NETWORK.filter(n => n.type === 'Retailer'    && n.status === 'active').length;
+    const refillerCount  = LPGMC_COMPANIES.length;
+    const distCount      = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
+    const retailCount    = DEMO_NETWORK.filter(n => n.type === 'Retailer'    && n.status === 'active').length;
+    const distTotal      = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
+    const retailTotal    = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
+    const distInactive   = distTotal - distCount;
+    const retailInactive = retailTotal - retailCount;
 
     // Refill Cycle Time: avg days from received-empty → next refilled
     const cylEventsMap = {};
@@ -2226,11 +2296,13 @@ async function renderReports() {
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--amber)">${distCount}</span>
-        <div class="report-card-label">${t('kpi.activeDistributors')}</div>
+        <div class="report-card-label">${t('kpi.distributors')}</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${distCount} ${t('status.active')} · ${distInactive} ${t('status.inactive')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${retailCount}</span>
-        <div class="report-card-label">${t('kpi.activeRetailers')}</div>
+        <div class="report-card-label">${t('kpi.retailers')}</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${retailCount} ${t('status.active')} · ${retailInactive} ${t('status.inactive')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--teal)">${avgRefillCycle}</span>
@@ -2243,8 +2315,108 @@ async function renderReports() {
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>`;
 
-    reportChart.innerHTML = '';
-    if (actSec) actSec.style.display = 'none';
+    // For ewura: show activity chart. For lpgmc: hide it.
+    if (role === 'lpgmc') {
+      reportChart.innerHTML = '';
+      if (actSec) actSec.style.display = 'none';
+    } else {
+      // ewura: show activity section
+      if (actSec) actSec.style.display = '';
+      const nowMs2 = Date.now();
+      const cutoff2 = nowMs2 - 30 * 24 * 60 * 60 * 1000;
+      const recentEvents2 = events.filter(e => new Date(e.timestamp).getTime() >= cutoff2);
+      const typeCounts2 = {};
+      recentEvents2.forEach(e => { typeCounts2[e.type] = (typeCounts2[e.type] || 0) + 1; });
+      const maxCount2 = Math.max(...Object.values(typeCounts2), 1);
+      reportChart.innerHTML = Object.entries(typeCounts2)
+        .sort((a, b) => b[1] - a[1])
+        .map(([type, count]) => {
+          const pct = Math.round((count / maxCount2) * 100);
+          return `<div class="chart-row">
+            <span class="chart-label">${escapeHtml(type)}</span>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
+            </div>
+          </div>`;
+        }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
+    }
+  } else if (role === 'distributor' || role === 'retailer') {
+    // Feature 4: Distributor/Retailer dashboard
+    if (actSec) actSec.style.display = '';
+    const partnerEntry = DEMO_NETWORK.find(n => n.name === Auth.session.company);
+    const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+    const CIRC_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
+    const lastEvByTypeP = {};
+    events.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvByTypeP[ev.cylinderId] = ev; });
+
+    let partnerTotal = 0, partnerFull = 0, partnerEmpty = 0;
+    if (partnerEntry) {
+      cyls.filter(c => c.status === 'in-circulation').forEach(c => {
+        const ev = lastEvByTypeP[c.id];
+        if (!ev) return;
+        const loc = ev.location || ev.company || '';
+        if (loc !== partnerEntry.name) return;
+        partnerTotal++;
+        if (CIRC_FULL_TYPES.has(ev.type))       partnerFull++;
+        else if (CIRC_EMPTY_TYPES.has(ev.type)) partnerEmpty++;
+      });
+    }
+
+    const total    = cyls.length;
+    const inRefill = cyls.filter(c => c.status === 'in-refill').length;
+    const inCirc   = cyls.filter(c => c.status === 'in-circulation').length;
+    const inUse    = cyls.filter(c => c.status === 'in-use').length;
+
+    reportsGrid.innerHTML = `
+      <div class="dashboard-section-title">${t('kpi.yourStock')}</div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--amber)">${partnerTotal}</span>
+        <div class="report-card-label">${t('kpi.cylAssigned')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--green)">${partnerFull}</span>
+        <div class="report-card-label">${t('kpi.full')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--muted)">${partnerEmpty}</span>
+        <div class="report-card-label">${t('kpi.empty')}</div>
+      </div>
+      <div class="dashboard-section-title">${t('kpi.total')}</div>
+      <div class="report-card">
+        <span class="report-card-value">${total}</span>
+        <div class="report-card-label">${t('kpi.total')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
+        <div class="report-card-label">${t('kpi.inrefill')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${inCirc}</span>
+        <div class="report-card-label">${t('kpi.incirc')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
+        <div class="report-card-label">${t('kpi.inuse')}</div>
+      </div>`;
+
+    const nowMs3 = Date.now();
+    const cutoff3 = nowMs3 - 30 * 24 * 60 * 60 * 1000;
+    const recentEvents3 = events.filter(e => new Date(e.timestamp).getTime() >= cutoff3);
+    const typeCounts3 = {};
+    recentEvents3.forEach(e => { typeCounts3[e.type] = (typeCounts3[e.type] || 0) + 1; });
+    const maxCount3 = Math.max(...Object.values(typeCounts3), 1);
+    reportChart.innerHTML = Object.entries(typeCounts3)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => {
+        const pct = Math.round((count / maxCount3) * 100);
+        return `<div class="chart-row">
+          <span class="chart-label">${escapeHtml(type)}</span>
+          <div class="chart-bar-track">
+            <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
+          </div>
+        </div>`;
+      }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
   } else {
     if (actSec) actSec.style.display = '';
 
@@ -2288,7 +2460,7 @@ async function renderReports() {
             <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
           </div>
         </div>`;
-      }).join('') || '<p style="padding:16px 0;color:var(--dim);font-size:13px">No activity in last 30 days.</p>';
+      }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
   }
 }
 
@@ -2657,6 +2829,53 @@ async function renderMgmtReports() {
       }).join('')
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
 
+  // 5. Inspections & Scans
+  const INSPECTION_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
+  const inspEvents = allEvents.filter(ev => INSPECTION_TYPES.has(ev.type) && inPeriod(ev.timestamp));
+  const compliantCount    = inspEvents.filter(ev => ev.compliant !== false).length;
+  const nonCompliantCount = inspEvents.filter(ev => ev.compliant === false).length;
+
+  // Monthly inspection bar chart (same axes logic as refills)
+  const inspMonths = [];
+  if (filterYear !== null && filterMonth !== null) {
+    inspMonths.push({ label: new Date(filterYear, filterMonth, 1).toLocaleString('default', { month: 'long' }) + ' ' + filterYear, year: filterYear, month: filterMonth, count: 0 });
+  } else if (filterYear !== null) {
+    for (let mo = 0; mo < 12; mo++) {
+      inspMonths.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
+    }
+  } else if (filterMonth !== null) {
+    const nowInsp = new Date();
+    for (let y = nowInsp.getFullYear() - 4; y <= nowInsp.getFullYear(); y++) {
+      inspMonths.push({ label: `${new Date(y, filterMonth, 1).toLocaleString('default', { month: 'short' })}'${String(y).slice(2)}`, year: y, month: filterMonth, count: 0 });
+    }
+  } else {
+    const yearSet2 = new Set();
+    allEvents.forEach(ev => { if (INSPECTION_TYPES.has(ev.type)) yearSet2.add(new Date(ev.timestamp).getFullYear()); });
+    [...yearSet2].sort().forEach(y => inspMonths.push({ label: String(y), year: y, month: -1, count: 0 }));
+    if (!inspMonths.length) {
+      const nowInsp2 = new Date();
+      inspMonths.push({ label: String(nowInsp2.getFullYear()), year: nowInsp2.getFullYear(), month: -1, count: 0 });
+    }
+  }
+  allEvents.forEach(ev => {
+    if (!INSPECTION_TYPES.has(ev.type)) return;
+    const d = new Date(ev.timestamp);
+    const m = inspMonths.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
+    if (m) m.count++;
+  });
+  const maxInsp = Math.max(...inspMonths.map(m => m.count), 1);
+  const inspBarsHtml = inspMonths.map(m => {
+    const pct = Math.round((m.count / maxInsp) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label">${m.label}</span>
+      <div class="mgmt-bar-track">
+        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--teal)">
+          <span>${m.count}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
   grid.innerHTML = `
     <div class="mgmt-card">
       <div class="mgmt-card-header">
@@ -2685,6 +2904,17 @@ async function renderMgmtReports() {
         <button class="mgmt-card-export-btn" data-export="regions" type="button">↓ CSV</button>
       </div>
       ${regionBarsHtml}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('mgmt.inspections')}</div>
+        <button class="mgmt-card-export-btn" data-export="inspections" type="button">↓ CSV</button>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <span style="background:var(--green);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">✓ ${compliantCount} ${t('mgmt.compliant')}</span>
+        <span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">✗ ${nonCompliantCount} ${t('mgmt.nonCompliant')}</span>
+      </div>
+      ${inspBarsHtml}
     </div>`;
 }
 
@@ -2732,6 +2962,12 @@ if (mgmtGrid) {
       csv = 'Region,Sales\n' + Object.entries(regMap).sort((a,b) => b[1]-a[1])
         .map(([r,c]) => `"${r}",${c}`).join('\n');
       downloadCSV(`lpg-regions-${date}.csv`, csv);
+    } else if (type === 'inspections') {
+      const INSP_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
+      csv = 'Timestamp,CylinderID,Type,Company,Compliant\n' +
+        allEvents.filter(ev => INSP_TYPES.has(ev.type) && inP(ev.timestamp))
+          .map(ev => `"${ev.timestamp}","${ev.cylinderId}","${ev.type}","${ev.company || ''}","${ev.compliant !== false ? 'true' : 'false'}"`).join('\n');
+      downloadCSV(`lpg-inspections-${date}.csv`, csv);
     }
   });
 }
@@ -2765,6 +3001,8 @@ function applyLicenseFilters() {
   data.forEach(lic => {
     const li = document.createElement('li');
     li.className = 'license-item';
+    li.dataset.licId = lic.id;
+    li.style.cursor = 'pointer';
     li.innerHTML = `
       <div class="license-body">
         <div class="license-company">${escapeHtml(lic.companyName)}</div>
@@ -2782,6 +3020,55 @@ function applyLicenseFilters() {
 licSearch.addEventListener('input',         applyLicenseFilters);
 licFilterType.addEventListener('change',    applyLicenseFilters);
 licFilterStatus.addEventListener('change',  applyLicenseFilters);
+
+licensesList.addEventListener('click', (e) => {
+  const item = e.target.closest('.license-item[data-lic-id]');
+  if (item) openLicenseDetailModal(item.dataset.licId);
+});
+
+async function openLicenseDetailModal(licId) {
+  const lic = _licensesData.find(l => l.id === licId);
+  if (!lic) return;
+
+  const netEntry = DEMO_NETWORK.find(n => n.name === lic.companyName);
+
+  const detailBody = $('license-detail-body');
+  if (!detailBody) return;
+
+  let locationHtml = '';
+  if (netEntry) {
+    locationHtml = `
+      <div class="passport-section-title" style="margin-top:16px">${t('license.location')}</div>
+      <div class="passport-row"><span class="passport-key">Region</span><span class="passport-value">${escapeHtml(netEntry.region)}</span></div>
+      <div class="passport-row"><span class="passport-key">City</span><span class="passport-value">${escapeHtml(netEntry.city)}</span></div>
+      <div class="passport-row"><span class="passport-key">Address</span><span class="passport-value">${escapeHtml(netEntry.address)}</span></div>
+      <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(netEntry.contact)}</span></div>
+      <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(netEntry.contactPerson || '—')}</span></div>
+      <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${netEntry.lat.toFixed(4)}, ${netEntry.lng.toFixed(4)}</span></div>
+      <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>`;
+  }
+
+  const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'expired' ? 'var(--red)' : 'var(--amber)';
+
+  detailBody.innerHTML = `
+    <div class="passport-section-title">${t('license.details')}</div>
+    <div class="passport-row"><span class="passport-key">${t('license.company')}</span><span class="passport-value">${escapeHtml(lic.companyName)}</span></div>
+    <div class="passport-row"><span class="passport-key">${t('license.number')}</span><span class="passport-value" style="font-family:var(--font-mono)">${escapeHtml(lic.licenseNumber)}</span></div>
+    <div class="passport-row"><span class="passport-key">Type</span><span class="passport-value">${escapeHtml(lic.companyType)}</span></div>
+    <div class="passport-row"><span class="passport-key">${t('license.issued')}</span><span class="passport-value">${formatDate(lic.issuedDate)}</span></div>
+    <div class="passport-row"><span class="passport-key">${t('license.expires')}</span><span class="passport-value">${formatDate(lic.expiryDate)}</span></div>
+    <div class="passport-row"><span class="passport-key">${t('license.status')}</span><span class="passport-value" style="color:${statusColor};font-weight:600">${escapeHtml(lic.status)}</span></div>
+    ${locationHtml}`;
+
+  openModal('modal-license-detail');
+
+  if (netEntry) {
+    requestAnimationFrame(() => {
+      const mapEl = $('license-detail-map');
+      if (mapEl) mapEl.innerHTML = buildOsmEmbed(netEntry.lat, netEntry.lng);
+    });
+  }
+}
 
 mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
 mgmtFilterMonth?.addEventListener('change', renderMgmtReports);

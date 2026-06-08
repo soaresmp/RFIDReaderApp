@@ -578,6 +578,22 @@
   <!-- Snackbar -->
   <div id="snackbar" role="status" aria-live="polite"></div>
 
+  <!-- License detail modal -->
+  <div id="modal-license-detail" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="License Details">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>License Details</h2>
+        <button class="modal-close" data-close="modal-license-detail" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="license-detail-body">
+        <!-- Injected by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-license-detail" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Partner detail modal -->
   <div id="modal-partner" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Partner Details">
     <div class="modal modal-wide">
