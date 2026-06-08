@@ -164,13 +164,13 @@
             <span class="nav-icon">🔔</span>
             <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
           </button>
-          <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
-            <span class="nav-icon">📈</span>
-            <span class="nav-label" data-i18n="nav.reports">Reports</span>
-          </button>
           <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
             <span class="nav-icon">📋</span>
             <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
+          </button>
+          <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
         </div>
       </nav>
@@ -312,8 +312,9 @@
             </div>
           </div>
           <div class="reports-grid" id="reports-grid"></div>
-          <div id="report-activity-section" class="section-header">
-            <span>Activity — Last 30 Days</span>
+          <div id="report-activity-section" class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+            <span id="report-activity-title">Activity — Last 30 Days</span>
+            <select id="report-sales-year" class="filter-select" style="display:none;font-size:11px;padding:2px 8px;height:auto"></select>
           </div>
           <div id="report-chart" class="report-chart"></div>
         </div><!-- /view-reports -->

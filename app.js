@@ -46,7 +46,8 @@ const TRANSLATIONS = {
     'ev.retSold':'Sold to Consumer','ev.retReturnedEmpty':'Returned Empty by Consumer',
     'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by EWURA',
     'ev.traVerified':'Refills Verified by TRA','ev.traRegistered':'Shipment Registered by TRA',
-    'dash.activityTitle':'Activity — Last 30 Days',
+    'dash.activityTitle':'Activity — Last 30 Days','dash.salesByMonth':'Sales by Month',
+    'kpi.cylsInStock':'Cylinders in Stock','kpi.assignedAlerts':'Alerts',
     'kpi.cylAssigned':'Cylinders Assigned',
     'kpi.yourStock':'Your Stock',
     'dash.noActivity':'No activity in last 30 days.',
@@ -99,7 +100,8 @@ const TRANSLATIONS = {
     'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na EWURA',
     'ev.traVerified':'Kujaza Kuthibitishwa na TRA','ev.traRegistered':'Mzigo Umesajiliwa na TRA',
     'dash.activityTitle':'Shughuli — Siku 30 Zilizopita',
-    'kpi.cylAssigned':'Mitungi Iliyokasimiwa',
+    'kpi.cylAssigned':'Mitungi Iliyokasimiwa','dash.salesByMonth':'Mauzo kwa Mwezi',
+    'kpi.cylsInStock':'Mitungi Kwenye Hifadhi','kpi.assignedAlerts':'Tahadhari',
     'kpi.yourStock':'Hifadhi Yako',
     'dash.noActivity':'Hakuna shughuli katika siku 30 zilizopita.',
     'license.company':'Kampuni',
@@ -324,8 +326,8 @@ const ROLE_TABS = {
   ewura:           ['reports', 'cylinders', 'alerts', 'licenses', 'mgmt-reports'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
-  distributor:     ['reports', 'scan', 'cylinders', 'alerts'],
-  retailer:        ['reports', 'scan', 'cylinders'],
+  distributor:     ['reports', 'cylinders', 'alerts'],
+  retailer:        ['reports', 'cylinders'],
 };
 
 const ROLE_LABELS = {
@@ -1972,8 +1974,21 @@ let _alertsData = [];
 
 async function renderAlerts() {
   let cyls = await txGetAll('cylinders');
-  if (Auth.session?.role === 'lpgmc') {
+  const alertRole = Auth.session?.role;
+  if (alertRole === 'lpgmc') {
     cyls = cyls.filter(c => c.company === Auth.session.company);
+  } else if (alertRole === 'distributor' || alertRole === 'retailer') {
+    // Only show alerts for cylinders currently assigned to this partner
+    const allEvForFilter = await txGetAll('events');
+    const lastEvMap = {};
+    allEvForFilter.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
+    const partnerName = Auth.session.company;
+    cyls = cyls.filter(c => {
+      const ev = lastEvMap[c.id];
+      if (!ev) return false;
+      return (ev.location || ev.company || '') === partnerName;
+    });
   }
 
   const now = new Date();
@@ -2114,6 +2129,35 @@ alertFilterType.addEventListener('change',     () => { _alertPage = 1; applyAler
 // REPORTS / DASHBOARD VIEW
 // ══════════════════════════════════════════════════════════════════════════════
 
+function renderPartnerSalesChart(events, partnerEntry, yearSel) {
+  const reportChart = $('report-chart');
+  if (!reportChart) return;
+  const year = yearSel ? parseInt(yearSel.value) : new Date().getFullYear();
+  const partnerName = partnerEntry ? partnerEntry.name : '';
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const counts = Array(12).fill(0);
+  events.filter(ev => {
+    if (ev.type !== 'ret-sold') return false;
+    if (partnerName && (ev.company || ev.location) !== partnerName) return false;
+    const d = new Date(ev.timestamp);
+    return d.getFullYear() === year;
+  }).forEach(ev => { counts[new Date(ev.timestamp).getMonth()]++; });
+  const maxC = Math.max(...counts, 1);
+  reportChart.innerHTML = `<div class="v-chart" style="height:120px;padding-bottom:20px">
+    ${counts.map((c, i) => {
+      const pct = Math.round((c / maxC) * 100);
+      return `<div class="v-chart-col">
+        <div class="v-chart-bar-wrap">
+          <div class="v-chart-bar" style="height:${pct}%;background:var(--blue)">
+            ${c ? `<span class="v-chart-val">${c}</span>` : ''}
+          </div>
+        </div>
+        <div class="v-chart-label">${MONTH_NAMES[i]}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 async function renderReports() {
   let cyls   = await txGetAll('cylinders');
   let events = await txGetAll('events');
@@ -2121,6 +2165,12 @@ async function renderReports() {
   const actSec = $('report-activity-section');
 
   if (role === 'lpgmc' || role === 'ewura') {
+    // Reset sales year selector (only used by dist/retailer)
+    const salesYearSelR = $('report-sales-year');
+    if (salesYearSelR) salesYearSelR.style.display = 'none';
+    const actTitleElR = $('report-activity-title');
+    if (actTitleElR) actTitleElR.textContent = t('dash.activityTitle');
+
     // For lpgmc: filter to own company. For ewura: use all cylinders.
     if (role === 'lpgmc') {
       cyls = cyls.filter(c => c.company === Auth.session.company);
@@ -2315,34 +2365,10 @@ async function renderReports() {
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>`;
 
-    // For ewura: show activity chart. For lpgmc: hide it.
-    if (role === 'lpgmc') {
-      reportChart.innerHTML = '';
-      if (actSec) actSec.style.display = 'none';
-    } else {
-      // ewura: show activity section
-      if (actSec) actSec.style.display = '';
-      const nowMs2 = Date.now();
-      const cutoff2 = nowMs2 - 30 * 24 * 60 * 60 * 1000;
-      const recentEvents2 = events.filter(e => new Date(e.timestamp).getTime() >= cutoff2);
-      const typeCounts2 = {};
-      recentEvents2.forEach(e => { typeCounts2[e.type] = (typeCounts2[e.type] || 0) + 1; });
-      const maxCount2 = Math.max(...Object.values(typeCounts2), 1);
-      reportChart.innerHTML = Object.entries(typeCounts2)
-        .sort((a, b) => b[1] - a[1])
-        .map(([type, count]) => {
-          const pct = Math.round((count / maxCount2) * 100);
-          return `<div class="chart-row">
-            <span class="chart-label">${escapeHtml(type)}</span>
-            <div class="chart-bar-track">
-              <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
-            </div>
-          </div>`;
-        }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
-    }
+    // Both lpgmc and ewura: hide activity section
+    reportChart.innerHTML = '';
+    if (actSec) actSec.style.display = 'none';
   } else if (role === 'distributor' || role === 'retailer') {
-    // Feature 4: Distributor/Retailer dashboard
-    if (actSec) actSec.style.display = '';
     const partnerEntry = DEMO_NETWORK.find(n => n.name === Auth.session.company);
     const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
     const CIRC_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
@@ -2351,6 +2377,7 @@ async function renderReports() {
       .forEach(ev => { lastEvByTypeP[ev.cylinderId] = ev; });
 
     let partnerTotal = 0, partnerFull = 0, partnerEmpty = 0;
+    const partnerCylIds = new Set();
     if (partnerEntry) {
       cyls.filter(c => c.status === 'in-circulation').forEach(c => {
         const ev = lastEvByTypeP[c.id];
@@ -2358,21 +2385,32 @@ async function renderReports() {
         const loc = ev.location || ev.company || '';
         if (loc !== partnerEntry.name) return;
         partnerTotal++;
+        partnerCylIds.add(c.id);
         if (CIRC_FULL_TYPES.has(ev.type))       partnerFull++;
         else if (CIRC_EMPTY_TYPES.has(ev.type)) partnerEmpty++;
       });
     }
 
-    const total    = cyls.length;
-    const inRefill = cyls.filter(c => c.status === 'in-refill').length;
-    const inCirc   = cyls.filter(c => c.status === 'in-circulation').length;
-    const inUse    = cyls.filter(c => c.status === 'in-use').length;
+    // Alerts for assigned cylinders only
+    const pNow = new Date();
+    let pAlertCrit = 0, pAlertWarn = 0;
+    cyls.filter(c => partnerCylIds.has(c.id)).forEach(cyl => {
+      const baseDate = cyl.lastRequalDate || cyl.manufactureDate;
+      if (baseDate) {
+        const due = new Date(baseDate + 'T00:00:00');
+        due.setFullYear(due.getFullYear() + 10);
+        const days = Math.floor((due - pNow) / 86400000);
+        if (days <= 0)    pAlertCrit++;
+        else if (days <= 365) pAlertWarn++;
+      }
+    });
+    const pAlertTotal = pAlertCrit + pAlertWarn;
 
     reportsGrid.innerHTML = `
-      <div class="dashboard-section-title">${t('kpi.yourStock')}</div>
+      <div class="dashboard-section-title">${t('kpi.cylsInStock')}</div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--amber)">${partnerTotal}</span>
-        <div class="report-card-label">${t('kpi.cylAssigned')}</div>
+        <div class="report-card-label">${t('kpi.total')}</div>
       </div>
       <div class="report-card">
         <span class="report-card-value" style="color:var(--green)">${partnerFull}</span>
@@ -2382,41 +2420,45 @@ async function renderReports() {
         <span class="report-card-value" style="color:var(--muted)">${partnerEmpty}</span>
         <div class="report-card-label">${t('kpi.empty')}</div>
       </div>
-      <div class="dashboard-section-title">${t('kpi.total')}</div>
-      <div class="report-card">
-        <span class="report-card-value">${total}</span>
-        <div class="report-card-label">${t('kpi.total')}</div>
+      <div class="dashboard-section-title">${t('dash.alerts')}</div>
+      <div class="report-card" style="border-color:${pAlertCrit > 0 ? 'var(--red)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${pAlertCrit > 0 ? 'var(--red)' : 'var(--green)'}">${pAlertCrit}</span>
+        <div class="report-card-label">${t('alert.requalOverdue')}</div>
       </div>
-      <div class="report-card">
-        <span class="report-card-value" style="color:var(--green)">${inRefill}</span>
-        <div class="report-card-label">${t('kpi.inrefill')}</div>
+      <div class="report-card" style="border-color:${pAlertWarn > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${pAlertWarn > 0 ? 'var(--amber)' : 'var(--green)'}">${pAlertWarn}</span>
+        <div class="report-card-label">${t('alert.requalSoon')}</div>
       </div>
-      <div class="report-card">
-        <span class="report-card-value" style="color:var(--blue)">${inCirc}</span>
-        <div class="report-card-label">${t('kpi.incirc')}</div>
-      </div>
-      <div class="report-card">
-        <span class="report-card-value" style="color:var(--purple)">${inUse}</span>
-        <div class="report-card-label">${t('kpi.inuse')}</div>
+      <div class="report-card" style="border-color:${pAlertTotal > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${pAlertTotal > 0 ? 'var(--amber)' : 'var(--green)'}">${pAlertTotal}</span>
+        <div class="report-card-label">${t('dash.totalAlerts')}</div>
       </div>`;
 
-    const nowMs3 = Date.now();
-    const cutoff3 = nowMs3 - 30 * 24 * 60 * 60 * 1000;
-    const recentEvents3 = events.filter(e => new Date(e.timestamp).getTime() >= cutoff3);
-    const typeCounts3 = {};
-    recentEvents3.forEach(e => { typeCounts3[e.type] = (typeCounts3[e.type] || 0) + 1; });
-    const maxCount3 = Math.max(...Object.values(typeCounts3), 1);
-    reportChart.innerHTML = Object.entries(typeCounts3)
-      .sort((a, b) => b[1] - a[1])
-      .map(([type, count]) => {
-        const pct = Math.round((count / maxCount3) * 100);
-        return `<div class="chart-row">
-          <span class="chart-label">${escapeHtml(type)}</span>
-          <div class="chart-bar-track">
-            <div class="chart-bar-fill" style="width:${pct}%"><span>${count}</span></div>
-          </div>
-        </div>`;
-      }).join('') || `<p style="padding:16px 0;color:var(--dim);font-size:13px">${t('dash.noActivity')}</p>`;
+    // Sales by Month chart with year filter
+    if (actSec) actSec.style.display = '';
+    const actTitleEl = $('report-activity-title');
+    if (actTitleEl) actTitleEl.textContent = t('dash.salesByMonth');
+
+    const salesYearSel = $('report-sales-year');
+    if (salesYearSel) {
+      salesYearSel.style.display = '';
+      const salesYears = new Set();
+      events.forEach(ev => { if (ev.type === 'ret-sold') salesYears.add(new Date(ev.timestamp).getFullYear()); });
+      const curYear = new Date().getFullYear();
+      salesYears.add(curYear);
+      if (salesYearSel.children.length === 0 || salesYearSel.dataset.role !== role) {
+        salesYearSel.innerHTML = '';
+        salesYearSel.dataset.role = role;
+        [...salesYears].sort((a, b) => b - a).forEach(y => {
+          const o = document.createElement('option');
+          o.value = y; o.textContent = y;
+          salesYearSel.appendChild(o);
+        });
+        salesYearSel.value = curYear;
+        salesYearSel.onchange = () => renderPartnerSalesChart(events, partnerEntry, salesYearSel);
+      }
+      renderPartnerSalesChart(events, partnerEntry, salesYearSel);
+    }
   } else {
     if (actSec) actSec.style.display = '';
 
@@ -2910,11 +2952,21 @@ async function renderMgmtReports() {
         <div class="mgmt-card-title">${t('mgmt.inspections')}</div>
         <button class="mgmt-card-export-btn" data-export="inspections" type="button">↓ CSV</button>
       </div>
-      <div style="display:flex;gap:12px;margin-bottom:12px">
-        <span style="background:var(--green);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">✓ ${compliantCount} ${t('mgmt.compliant')}</span>
-        <span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">✗ ${nonCompliantCount} ${t('mgmt.nonCompliant')}</span>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total inspections: <strong style="color:var(--text)">${inspEvents.length}</strong></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--green)">${compliantCount}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">✓ ${t('mgmt.compliant')}</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--red)">${nonCompliantCount}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">✗ ${t('mgmt.nonCompliant')}</div>
+        </div>
+        ${inspEvents.length > 0 ? `<div style="flex:1;min-width:120px;background:var(--surface2);border-radius:8px;padding:16px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--blue)">${Math.round(compliantCount / inspEvents.length * 100)}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Compliance Rate</div>
+        </div>` : ''}
       </div>
-      ${inspBarsHtml}
     </div>`;
 }
 
@@ -3031,9 +3083,35 @@ async function openLicenseDetailModal(licId) {
   if (!lic) return;
 
   const netEntry = DEMO_NETWORK.find(n => n.name === lic.companyName);
-
   const detailBody = $('license-detail-body');
   if (!detailBody) return;
+
+  // Compute cylinder stock for network partners
+  let stockHtml = '';
+  if (netEntry) {
+    const [allCylsL, allEvsL] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+    const LFULL  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+    const LEMPTY = new Set(['ret-returned-empty', 'dist-returned-empty']);
+    const lastEvL = {};
+    allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvL[ev.cylinderId] = ev; });
+    let lTotal = 0, lFull = 0, lEmpty = 0;
+    allCylsL.filter(c => c.status === 'in-circulation').forEach(c => {
+      const ev = lastEvL[c.id];
+      if (!ev) return;
+      if ((ev.location || ev.company || '') !== netEntry.name) return;
+      lTotal++;
+      if (LFULL.has(ev.type))       lFull++;
+      else if (LEMPTY.has(ev.type)) lEmpty++;
+    });
+    stockHtml = `
+      <div class="passport-section-title" style="margin-top:16px">Cylinder Stock</div>
+      <div class="partner-stats-row" style="margin:8px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--amber)">${lTotal}</span><div class="partner-stat-label">Total</div></div>
+        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--green)">${lFull}</span><div class="partner-stat-label">${t('kpi.full')}</div></div>
+        <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--muted)">${lEmpty}</span><div class="partner-stat-label">${t('kpi.empty')}</div></div>
+      </div>`;
+  }
 
   let locationHtml = '';
   if (netEntry) {
@@ -3045,6 +3123,7 @@ async function openLicenseDetailModal(licId) {
       <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(netEntry.contact)}</span></div>
       <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(netEntry.contactPerson || '—')}</span></div>
       <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${netEntry.lat.toFixed(4)}, ${netEntry.lng.toFixed(4)}</span></div>
+      ${stockHtml}
       <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>`;
   }
 
