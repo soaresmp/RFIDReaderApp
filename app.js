@@ -1880,13 +1880,15 @@ async function openPassportModal(cylId) {
         <span class="passport-key">Status</span>
         <span class="passport-value">${escapeHtml(cyl.status)}</span>
       </div>
-      ${(() => {
-        if (cyl.status === 'in-use') return '';
-        const lastEv = events[0];
-        const filledTypes = new Set(['refilled','shipped','dist-received','ret-received','dist-sent-retail']);
-        const level = lastEv && filledTypes.has(lastEv.type) ? 'Filled' : 'Empty';
-        return `<div class="passport-row"><span class="passport-key">Level</span><span class="passport-value">${level}</span></div>`;
-      })()}
+      <div class="passport-row">
+        <span class="passport-key">Level</span>
+        <span class="passport-value">${(() => {
+          if (cyl.status === 'in-use') return 'Unknown';
+          const lastEv = events[0];
+          const filledTypes = new Set(['refilled','shipped','dist-received','ret-received','dist-sent-retail']);
+          return lastEv && filledTypes.has(lastEv.type) ? 'Filled' : 'Empty';
+        })()}</span>
+      </div>
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Specifications</div>
@@ -2037,7 +2039,7 @@ async function renderAlerts() {
         _alertsData.push({ severity:'critical', type:'requalification-overdue', cylinder:cyl,
           title: `${cyl.serial} — Requalification Overdue`,
           desc: `Due ${Math.abs(daysUntilDue)} days ago. Last: ${baseDate}.` });
-      } else if (daysUntilDue <= 365) {
+      } else if (daysUntilDue <= 180) {
         _alertsData.push({ severity:'warning', type:'requalification-due', cylinder:cyl,
           title: `${cyl.serial} — Requalification Due Soon`,
           desc: `Due in ${daysUntilDue} days (${dueDate.toISOString().slice(0,10)}).` });
@@ -2074,7 +2076,7 @@ async function renderAlerts() {
       const lastEv = cylEvents[0];
       if (lastEv) {
         const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
-        if (days > 45) {
+        if (days > 90) {
           _alertsData.push({ severity:'warning', type:'stuck-in-circulation', cylinder:cyl,
             title: `${cyl.serial} — Stuck in Circulation (${days}d)`,
             desc: `Cylinder has been in circulation for ${days} days without returning to refill.` });
@@ -2275,14 +2277,15 @@ async function renderReports() {
     const activeCyls = inUse + (circFull + circEmpty);
     const utilisationRate = total > 0 ? Math.round((activeCyls / total) * 100) : 0;
 
-    const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
+    const sixMonths = 180 * 24 * 60 * 60 * 1000;
     const requalSoon = cyls.filter(c => {
       const baseDate = c.lastRequalDate || c.manufactureDate;
       if (!baseDate) return false;
       const base = new Date(baseDate + 'T00:00:00');
       const dueDate = new Date(base);
       dueDate.setFullYear(dueDate.getFullYear() + 10);
-      return (dueDate - new Date()) <= twoYears;
+      const remaining = dueDate - new Date();
+      return remaining > 0 && remaining <= sixMonths;
     }).length;
 
     // Alerts — compute inline per type
@@ -2300,7 +2303,7 @@ async function renderReports() {
           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         if (cylEvs.length) {
           const days = Math.floor((now - new Date(cylEvs[0].timestamp)) / 86400000);
-          if (days > 45) alertStuck++;
+          if (days > 90) alertStuck++;
         }
       }
     });
@@ -2394,6 +2397,17 @@ async function renderReports() {
         <div class="report-card-label">${t('dash.utilisationRate')}</div>
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>
+      ${(() => {
+        const INSP_TYPES_D = new Set(['inspected','ewura-monitored']);
+        const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
+        const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
+        const inspRateD = inspEvsD.length ? Math.round(inspCompD / inspEvsD.length * 100) : 0;
+        return `<div class="report-card">
+          <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
+          <div class="report-card-label">${t('dash.marketCompliance')}</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')} · ${inspEvsD.length} inspections</div>
+        </div>`;
+      })()}
       `;
 
     // Both lpgmc and ewura: hide activity section
@@ -2465,8 +2479,8 @@ async function renderReports() {
         <div class="report-card-label">${t('dash.totalAlerts')}</div>
       </div>`;
 
-    // Sales by Month chart with year filter
-    if (actSec) actSec.style.display = '';
+    // Sales by Month chart hidden
+    if (actSec) actSec.style.display = 'none';
     const actTitleEl = $('report-activity-title');
     if (actTitleEl) actTitleEl.textContent = t('dash.salesByMonth');
 
@@ -2491,7 +2505,7 @@ async function renderReports() {
       renderPartnerSalesChart(events, partnerEntry, salesYearSel);
     }
   } else {
-    if (actSec) actSec.style.display = '';
+    if (actSec) actSec.style.display = 'none';
 
     const total    = cyls.length;
     const inRefill = cyls.filter(c => c.status === 'in-refill').length;
@@ -2844,39 +2858,33 @@ async function renderMgmtReports() {
     </div>`;
   }).join('');
 
-  // 3. Top 10 partners — by sales count when filtered, else by cylinder stock
-  let top5, partnerCardTitle;
-  if (filterYear !== null || filterMonth !== null) {
-    partnerCardTitle = t('mgmt.topPartners');
-    const salesByPartner = {};
-    allEvents.forEach(ev => {
-      if (ev.type !== 'ret-sold' || !ev.company) return;
-      if (!inPeriod(ev.timestamp)) return;
-      salesByPartner[ev.company] = (salesByPartner[ev.company] || 0) + 1;
-    });
-    top5 = Object.entries(salesByPartner)
-      .sort((a, b) => b[1] - a[1]).slice(0, 10)
-      .map(([name, count]) => {
-        const net = DEMO_NETWORK.find(n => n.name === name);
-        return { name, cylinders: count, type: net?.type || 'Retailer' };
-      });
-  } else {
-    partnerCardTitle = t('mgmt.topPartnersAll');
-    top5 = [...DEMO_NETWORK].sort((a, b) => b.cylinders - a.cylinders).slice(0, 10);
-  }
-  const maxPartnerCyls = top5.length ? Math.max(...top5.map(p => p.cylinders), 1) : 1;
-  const partnerBarsHtml = top5.length ? top5.map(p => {
-    const pct = Math.round((p.cylinders / maxPartnerCyls) * 100);
-    const color = p.type === 'Distributor' ? 'var(--blue)' : 'var(--green)';
-    return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label" title="${p.name}">${p.name.length > 16 ? p.name.slice(0,14) + '…' : p.name}</span>
-      <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:${color}">
-          <span>${p.cylinders}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('') : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data for this period.</p>';
+  // 3. Field Inspection by Region
+  const inspByRegion = {};
+  allEvents.forEach(ev => {
+    if (!['inspected','ewura-monitored'].includes(ev.type)) return;
+    if (!inPeriod(ev.timestamp)) return;
+    const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || 'Unknown';
+    if (!inspByRegion[reg]) inspByRegion[reg] = { total: 0, compliant: 0 };
+    inspByRegion[reg].total++;
+    if (ev.compliant !== false) inspByRegion[reg].compliant++;
+  });
+  const inspRegEntries = Object.entries(inspByRegion).sort((a, b) => b[1].total - a[1].total);
+  const maxInspReg = Math.max(...inspRegEntries.map(([,v]) => v.total), 1);
+  const inspRegBarsHtml = inspRegEntries.length
+    ? inspRegEntries.map(([region, data]) => {
+        const pct  = Math.round((data.total / maxInspReg) * 100);
+        const rate = data.total ? Math.round(data.compliant / data.total * 100) : 0;
+        return `<div class="mgmt-bar-row">
+          <span class="mgmt-bar-label">${escapeHtml(region)}</span>
+          <div class="mgmt-bar-track">
+            <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--teal)">
+              <span>${data.total}</span>
+            </div>
+          </div>
+          <span style="font-size:11px;color:var(--muted);min-width:40px;text-align:right">${rate}%</span>
+        </div>`;
+      }).join('')
+    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No inspection data yet.</p>';
 
   // 5. Sales by region (filtered by period)
   const regionSales = {};
@@ -2956,13 +2964,6 @@ async function renderMgmtReports() {
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
-        <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
-        <button class="mgmt-card-export-btn" data-export="partners" type="button">↓ CSV</button>
-      </div>
-      ${partnerBarsHtml}
-    </div>
-    <div class="mgmt-card">
-      <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
         <button class="mgmt-card-export-btn" data-export="regions" type="button">↓ CSV</button>
       </div>
@@ -2996,6 +2997,14 @@ async function renderMgmtReports() {
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${t('mgmt.complianceRate')}</div>
         </div>` : ''}
       </div>
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">Field Inspection by Region</div>
+        <button class="mgmt-card-export-btn" data-export="insp-region" type="button">↓ CSV</button>
+      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Inspections: <strong style="color:var(--text)">${inspRegEntries.reduce((s,[,v])=>s+v.total,0)}</strong></div>
+      ${inspRegBarsHtml}
     </div>`;
 }
 
@@ -3043,6 +3052,18 @@ if (mgmtGrid) {
       csv = 'Region,Sales\n' + Object.entries(regMap).sort((a,b) => b[1]-a[1])
         .map(([r,c]) => `"${r}",${c}`).join('\n');
       downloadCSV(`lpg-regions-${date}.csv`, csv);
+    } else if (type === 'insp-region') {
+      const regMap = {};
+      allEvents.filter(ev => ['inspected','ewura-monitored'].includes(ev.type) && inP(ev.timestamp)).forEach(ev => {
+        const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || 'Unknown';
+        if (!regMap[reg]) regMap[reg] = { total: 0, compliant: 0 };
+        regMap[reg].total++;
+        if (ev.compliant !== false) regMap[reg].compliant++;
+      });
+      csv = 'Region,Total,Compliant,ComplianceRate\n' +
+        Object.entries(regMap).sort((a,b)=>b[1].total-a[1].total)
+          .map(([r,d]) => `"${r}",${d.total},${d.compliant},${d.total?Math.round(d.compliant/d.total*100):0}%`).join('\n');
+      downloadCSV(`lpg-insp-by-region-${date}.csv`, csv);
     } else if (type === 'inspections' || type === 'field-inspection') {
       const INSP_TYPES = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
       csv = 'Timestamp,CylinderID,Type,Company,Compliant\n' +
@@ -3132,14 +3153,15 @@ async function openLicenseDetailModal(licId) {
 
   const [allCylsL, allEvsL] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
 
-  // Compute cylinder stock
+  // Compute cylinder stock for any company type
   let lTotal = 0, lFull = 0, lEmpty = 0;
+  const sortedEvsL = allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const lastEvL = {};
+  sortedEvsL.forEach(ev => { lastEvL[ev.cylinderId] = ev; });
+
   if (netEntry) {
     const LFULL  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
     const LEMPTY = new Set(['ret-returned-empty', 'dist-returned-empty']);
-    const lastEvL = {};
-    allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      .forEach(ev => { lastEvL[ev.cylinderId] = ev; });
     allCylsL.filter(c => c.status === 'in-circulation').forEach(c => {
       const ev = lastEvL[c.id];
       if (!ev || (ev.location || ev.company || '') !== netEntry.name) return;
@@ -3147,12 +3169,9 @@ async function openLicenseDetailModal(licId) {
       if (LFULL.has(ev.type))       lFull++;
       else if (LEMPTY.has(ev.type)) lEmpty++;
     });
-  } else if (lpgmcInfo) {
-    const FILL_EV  = new Set(['refilled']);
-    const EMPTY_EV = new Set(['received-empty', 'registered']);
-    const lastEvL  = {};
-    allEvsL.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      .forEach(ev => { lastEvL[ev.cylinderId] = ev; });
+  } else {
+    const FILL_EV  = new Set(['refilled', 'shipped', 'dist-received', 'ret-received', 'dist-sent-retail']);
+    const EMPTY_EV = new Set(['received-empty', 'registered', 'sent-revalidation', 'reval-received']);
     allCylsL.filter(c => c.company === lic.companyName).forEach(c => {
       lTotal++;
       const evType = (lastEvL[c.id] || {}).type;
@@ -3161,13 +3180,19 @@ async function openLicenseDetailModal(licId) {
     });
   }
 
-  const stockHtml = infoEntry ? `
+  // Last inspection for this company's cylinders
+  const companyCylIds = new Set(allCylsL.filter(c => c.company === lic.companyName || (netEntry && (lastEvL[c.id]?.company || '') === netEntry.name)).map(c => c.id));
+  const inspEventsL = allEvsL.filter(e => e.type === 'inspected' && companyCylIds.has(e.cylinderId));
+  const lastInspEv  = inspEventsL.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+  const lastInspDate = lastInspEv ? formatDate(lastInspEv.timestamp) : 'N/A';
+
+  const stockHtml = `
     <div class="passport-section-title" style="margin-top:16px">Cylinder Stock</div>
     <div class="partner-stats-row" style="margin:8px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
       <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--amber)">${lTotal}</span><div class="partner-stat-label">Total</div></div>
       <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--green)">${lFull}</span><div class="partner-stat-label">${t('kpi.full')}</div></div>
       <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--muted)">${lEmpty}</span><div class="partner-stat-label">${t('kpi.empty')}</div></div>
-    </div>` : '';
+    </div>`;
 
   const locationHtml = infoEntry ? `
     <div class="passport-section-title" style="margin-top:16px">${t('license.location')}</div>
@@ -3177,7 +3202,6 @@ async function openLicenseDetailModal(licId) {
     <div class="passport-row"><span class="passport-key">Contact</span><span class="passport-value">${escapeHtml(infoEntry.contact)}</span></div>
     <div class="passport-row"><span class="passport-key">Contact Person</span><span class="passport-value">${escapeHtml(infoEntry.contactPerson || '—')}</span></div>
     <div class="passport-row"><span class="passport-key">Coordinates</span><span class="passport-value" style="font-family:var(--font-mono);font-size:12px">${infoEntry.lat.toFixed(4)}, ${infoEntry.lng.toFixed(4)}</span></div>
-    ${stockHtml}
     <div id="license-detail-map" style="height:260px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:12px"></div>` : '';
 
   // License history timeline
@@ -3206,10 +3230,12 @@ async function openLicenseDetailModal(licId) {
     <div class="passport-row"><span class="passport-key">${t('license.company')}</span><span class="passport-value">${escapeHtml(lic.companyName)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.number')}</span><span class="passport-value" style="font-family:var(--font-mono)">${escapeHtml(lic.licenseNumber)}</span></div>
     <div class="passport-row"><span class="passport-key">Type</span><span class="passport-value">${escapeHtml(lic.companyType)}</span></div>
-    <div class="passport-row"><span class="passport-key">${t('license.issued')}</span><span class="passport-value">${formatDate(lic.issuedDate)}</span></div>
+    <div class="passport-row"><span class="passport-key">Issued / Renewed</span><span class="passport-value">${formatDate(lic.issuedDate)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.expires')}</span><span class="passport-value">${formatDate(lic.expiryDate)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.status')}</span><span class="passport-value" style="color:${statusColor};font-weight:600">${escapeHtml(lic.status)}</span></div>
+    <div class="passport-row"><span class="passport-key">Last Inspection</span><span class="passport-value">${lastInspDate}</span></div>
     ${locationHtml}
+    ${stockHtml}
     ${historyHtml}`;
 
   // Show/hide revoke & renew buttons for EWURA
