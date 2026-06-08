@@ -951,6 +951,26 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   border-radius: var(--radius);
   padding: 20px;
 }
+.mgmt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mgmt-card-header .mgmt-card-title { margin-bottom: 0; }
+.mgmt-card-export-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mgmt-card-export-btn:hover { background: var(--surface2); color: var(--text); }
+
 .mgmt-card-title {
   font-size: 13px;
   font-weight: 700;
@@ -1365,47 +1385,36 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 .login-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg);
-  z-index: 500;
+  background: #f0f4f8;
+  z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+  flex-direction: column;
   overflow-y: auto;
-  transition: opacity 0.25s ease;
 }
-.login-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+.login-overlay.hidden { display: none; }
 
 .login-container {
+  max-width: 560px;
   width: 100%;
-  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 28px 40px;
+  background: #fff;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 4px 32px rgba(0,47,122,0.10);
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 32px;
+  padding: 20px 24px 16px;
+  background: linear-gradient(90deg, #002f7a 0%, #0044b3 100%);
+  border-bottom: 3px solid var(--amber);
+  width: 100%;
+  flex-shrink: 0;
 }
 
-.login-logo {
-  font-size: 48px;
-  margin-bottom: 12px;
-  line-height: 1;
-}
-
-.login-title {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.login-subtitle {
-  font-size: 14px;
-  color: var(--muted);
-}
+.login-logo { font-size: 36px; line-height: 1; }
+.login-title { color: #fff; font-size: 22px; font-weight: 700; margin: 4px 0 2px; }
+.login-subtitle { color: #b3c8e8; font-size: 13px; }
 
 /* Role cards */
 .role-cards {
@@ -1417,47 +1426,36 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 .role-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #c8d9ef;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  transition: border-color 0.15s, background 0.15s;
   user-select: none;
   -webkit-user-select: none;
+  background: #fff;
+  color: #1a2f4a;
+  margin-bottom: 0;
   outline: none;
 }
-.role-card:hover { border-color: var(--blue); background: var(--surface2); }
+.role-card:hover { border-color: var(--blue); background: #f0f6ff; }
 .role-card:active { transform: scale(0.98); }
-.role-card.selected { border-color: var(--blue); background: rgba(59,130,246,0.08); }
+.role-card.selected { border-color: var(--blue); background: #e8f0ff; }
 
 .role-card-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
 .role-card-body { flex: 1; min-width: 0; }
-.role-card-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 3px;
-}
-.role-card-desc {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.role-card-chevron {
-  font-size: 22px;
-  color: var(--dim);
-  flex-shrink: 0;
-}
+.role-card-title { font-size: 14px; font-weight: 600; color: #1a2f4a; }
+.role-card-desc  { font-size: 11px; color: #4a6f9a; margin-top: 2px; }
+.role-card-chevron { color: #4a6f9a; font-size: 18px; flex-shrink: 0; }
 
 /* Login sub-form */
 .login-form-wrapper {
-  margin-top: 20px;
-  padding: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  margin-top: 12px;
+  padding: 16px;
+  background: #f0f6ff;
+  border-radius: var(--radius-sm);
+  border: 1px solid #c8d9ef;
   animation: slide-in 0.18s ease;
 }
 
@@ -1470,15 +1468,13 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 
 .login-back-btn {
   background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 5px 12px;
-  border-radius: 999px;
+  border: none;
+  color: #2563eb;
   font-size: 13px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  padding: 0;
 }
-.login-back-btn:hover { color: var(--text); border-color: var(--dim); }
+.login-back-btn:hover { text-decoration: underline; }
 
 .login-form-role-label {
   font-size: 14px;

@@ -21,12 +21,12 @@
   <!-- LOGIN OVERLAY                                                           -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="login-overlay" class="login-overlay" aria-modal="true" role="dialog" aria-label="Login">
+    <div class="login-header">
+      <div class="login-logo">⛽</div>
+      <h1 class="login-title">LPG Tracer</h1>
+      <p class="login-subtitle" data-i18n="login.subtitle">Select your role to continue</p>
+    </div>
     <div class="login-container">
-      <div class="login-header">
-        <div class="login-logo">⛽</div>
-        <h1 class="login-title">LPG Tracer</h1>
-        <p class="login-subtitle" data-i18n="login.subtitle">Select your role to continue</p>
-      </div>
 
       <!-- Role cards -->
       <div class="role-cards" id="role-cards">
@@ -372,8 +372,7 @@
               </select>
             </div>
             <div class="filter-row" style="margin-top:8px">
-              <button id="mgmt-export-csv-btn" class="btn btn-sm btn-outline" type="button" data-i18n="btn.exportCsv">↓ Export CSV</button>
-              <button id="mgmt-export-pdf-btn" class="btn btn-sm btn-outline" type="button" data-i18n="btn.exportPdf">↓ Print / PDF</button>
+              <button id="mgmt-export-pdf-btn" class="btn btn-sm btn-outline" type="button">🖨 Print All</button>
             </div>
           </div>
           <div class="mgmt-grid" id="mgmt-reports-grid">

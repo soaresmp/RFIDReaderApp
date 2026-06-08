@@ -27,6 +27,10 @@ const TRANSLATIONS = {
     'alert.requalOverdue':'Requalification Overdue','alert.requalSoon':'Requalification Due (2yr)',
     'alert.stuck':'Stuck in Circulation','alert.misplaced':'Misplaced',
     'status.active':'active','status.inactive':'inactive',
+    'status.inRefill':'In Refill','status.inCirc':'In Circulation','status.inReval':'In Revalidation','status.inUse':'In Use',
+    'status.registered':'Registered','status.refilled':'Refilled','status.shipped':'Shipped','status.distReceived':'Dist. Received',
+    'status.distSentRetail':'Sent to Retailer','status.retReceived':'Retailer Received','status.retSold':'Sold',
+    'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -45,6 +49,10 @@ const TRANSLATIONS = {
     'alert.requalOverdue':'Uhakiki Upya Umechelewa','alert.requalSoon':'Uhakiki Upya (Miaka 2)',
     'alert.stuck':'Imekwama kwenye Mzunguko','alert.misplaced':'Imepotea',
     'status.active':'hai','status.inactive':'haifanyi kazi',
+    'status.inRefill':'Kwenye Kujaza','status.inCirc':'Kwenye Mzunguko','status.inReval':'Kwenye Uhakiki Upya','status.inUse':'Inatumika',
+    'status.registered':'Imesajiliwa','status.refilled':'Imejazwa','status.shipped':'Imetumwa','status.distReceived':'Imepokelewa (Msambazaji)',
+    'status.distSentRetail':'Imetumwa kwa Muuzaji','status.retReceived':'Imepokelewa (Muuzaji)','status.retSold':'Imeuzwa',
+    'status.retReturnedEmpty':'Imerudishwa Tupu (Muuzaji)','status.distReturnedEmpty':'Imerudishwa Tupu (Msambazaji)','status.receivedEmpty':'Imepokelewa Tupu',
   },
 };
 
@@ -320,6 +328,8 @@ const PAGE_SIZE_ALERTS  = 10;
 let _cylPage  = 1;
 let _netPage  = 1;
 let _alertPage = 1;
+let _passportEvPage = 1;
+const PAGE_SIZE_PASSPORT_EVTS = 10;
 
 function renderPagination(containerId, total, page, pageSize, onPageChange) {
   const el = $(containerId);
@@ -336,6 +346,26 @@ function renderPagination(containerId, total, page, pageSize, onPageChange) {
     </div>`;
   el.querySelectorAll('.pg-btn').forEach(btn => {
     btn.addEventListener('click', () => onPageChange(page + parseInt(btn.dataset.dir)));
+  });
+}
+
+function renderPassportEvents(eventsChronological) {
+  const listEl = $('passport-ev-list');
+  const pagEl  = $('passport-ev-pagination');
+  if (!listEl) return;
+  const start = (_passportEvPage - 1) * PAGE_SIZE_PASSPORT_EVTS;
+  const pageEvts = eventsChronological.slice(start, start + PAGE_SIZE_PASSPORT_EVTS);
+  listEl.innerHTML = pageEvts.length
+    ? pageEvts.map((ev, idx) => `
+        <li>
+          <span class="ph-step">${start + idx + 1}</span>
+          <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
+          <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
+        </li>`).join('')
+    : '<li><span class="ph-desc">No events.</span></li>';
+  if (pagEl) renderPagination('passport-ev-pagination', eventsChronological.length, _passportEvPage, PAGE_SIZE_PASSPORT_EVTS, (p) => {
+    _passportEvPage = p;
+    renderPassportEvents(eventsChronological);
   });
 }
 
@@ -1747,14 +1777,8 @@ async function openPassportModal(cylId) {
     </div>
     <div class="passport-section">
       <div class="passport-section-title">Event History (${events.length})</div>
-      <ul class="passport-history">
-        ${events.length ? events.slice().reverse().map((ev, idx) => `
-          <li>
-            <span class="ph-step">${idx + 1}</span>
-            <span class="ph-time">${formatDateTime(ev.timestamp)}</span>
-            <span class="ph-desc">${escapeHtml(EVENT_LABELS[ev.type] || ev.type)}${ev.company ? ' · ' + escapeHtml(ev.company) : ''}${ev.region ? ' (' + escapeHtml(ev.region) + ')' : ''}${ev.destinedFor ? ' → ' + escapeHtml(ev.destinedFor) : ''}</span>
-          </li>`).join('') : '<li><span class="ph-desc">No events.</span></li>'}
-      </ul>
+      <ul class="passport-history" id="passport-ev-list"></ul>
+      <div id="passport-ev-pagination"></div>
     </div>
     ${passportMapPartner ? `
     <div class="passport-section">
@@ -1764,6 +1788,10 @@ async function openPassportModal(cylId) {
     </div>` : ''}`;
 
   openModal('modal-passport');
+
+  _passportEvPage = 1;
+  const _passportEventsChronological = events.slice().reverse();
+  renderPassportEvents(_passportEventsChronological);
 
   if (passportMapPartner) {
     requestAnimationFrame(() => {
@@ -1913,8 +1941,8 @@ function applyAlertFilters() {
   const pageAlerts = data.slice((_alertPage - 1) * PAGE_SIZE_ALERTS, _alertPage * PAGE_SIZE_ALERTS);
 
   const statLabelMap = {
-    'in-refill': 'In Refill', 'in-circulation': 'In Circulation',
-    'revalidation': 'In Revalidation', 'in-use': 'In Use',
+    'in-refill': t('status.inRefill'), 'in-circulation': t('status.inCirc'),
+    'revalidation': t('status.inReval'), 'in-use': t('status.inUse'),
   };
   pageAlerts.forEach(al => {
     const cyl = al.cylinder;
@@ -2001,6 +2029,33 @@ async function renderReports() {
     const distCount     = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
     const retailCount   = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
 
+    // Refill Cycle Time: avg days from received-empty → next refilled
+    const cylEventsMap = {};
+    events.forEach(ev => {
+      if (!cylEventsMap[ev.cylinderId]) cylEventsMap[ev.cylinderId] = [];
+      cylEventsMap[ev.cylinderId].push(ev);
+    });
+    const refillCycleDays = [];
+    Object.values(cylEventsMap).forEach(evs => {
+      const sorted = evs.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      sorted.forEach((ev, i) => {
+        if (ev.type === 'received-empty') {
+          const nextRefill = sorted.slice(i + 1).find(e => e.type === 'refilled');
+          if (nextRefill) {
+            const days = (new Date(nextRefill.timestamp) - new Date(ev.timestamp)) / 86400000;
+            if (days > 0 && days < 365) refillCycleDays.push(days);
+          }
+        }
+      });
+    });
+    const avgRefillCycle = refillCycleDays.length
+      ? Math.round(refillCycleDays.reduce((a, b) => a + b, 0) / refillCycleDays.length)
+      : 0;
+
+    // Utilisation: (in-use + in-circulation) / total
+    const activeCyls = inUse + (circFull + circEmpty);
+    const utilisationRate = total > 0 ? Math.round((activeCyls / total) * 100) : 0;
+
     const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
     const requalSoon = cyls.filter(c => {
       const baseDate = c.lastRequalDate || c.manufactureDate;
@@ -2039,6 +2094,9 @@ async function renderReports() {
       if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) alertMisplaced++;
     });
 
+    const requalSoonOnly = requalSoon - alertRequalOverdue;
+    const totalAlerts = requalSoonOnly + alertRequalOverdue + alertStuck + alertMisplaced;
+
     reportsGrid.innerHTML = `
       <div class="dashboard-section-title">${t('dash.lifecycle')}</div>
       <div class="report-card">
@@ -2072,8 +2130,8 @@ async function renderReports() {
         <div class="report-card-label">${t('kpi.total')}</div>
       </div>
       <div class="dashboard-section-title">${t('dash.alerts')}</div>
-      <div class="report-card" style="border-color:${requalSoon > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${requalSoon > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoon}</span>
+      <div class="report-card" style="border-color:${requalSoonOnly > 5 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${requalSoonOnly > 5 ? 'var(--amber)' : 'var(--green)'}">${requalSoonOnly}</span>
         <div class="report-card-label">${t('alert.requalSoon')}</div>
       </div>
       <div class="report-card" style="border-color:${alertRequalOverdue > 0 ? 'var(--red)' : 'var(--surface-3)'}">
@@ -2088,8 +2146,8 @@ async function renderReports() {
         <span class="report-card-value" style="color:${alertMisplaced > 0 ? 'var(--red)' : 'var(--green)'}">${alertMisplaced}</span>
         <div class="report-card-label">${t('alert.misplaced')}</div>
       </div>
-      <div class="report-card" style="border-color:${(alertRequalOverdue + alertStuck + alertMisplaced) > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
-        <span class="report-card-value" style="color:${(alertRequalOverdue + alertStuck + alertMisplaced) > 0 ? 'var(--amber)' : 'var(--green)'}">${alertRequalOverdue + alertStuck + alertMisplaced}</span>
+      <div class="report-card" style="border-color:${totalAlerts > 0 ? 'var(--amber)' : 'var(--surface-3)'}">
+        <span class="report-card-value" style="color:${totalAlerts > 0 ? 'var(--amber)' : 'var(--green)'}">${totalAlerts}</span>
         <div class="report-card-label">Total Alerts</div>
       </div>
       <div class="dashboard-section-title">${t('dash.supplychain')}</div>
@@ -2104,6 +2162,16 @@ async function renderReports() {
       <div class="report-card">
         <span class="report-card-value" style="color:var(--purple)">${retailCount}</span>
         <div class="report-card-label">${t('kpi.retailers')}</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--teal)">${avgRefillCycle}</span>
+        <div class="report-card-label">Avg Refill Cycle</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days received→refilled</div>
+      </div>
+      <div class="report-card">
+        <span class="report-card-value" style="color:var(--blue)">${utilisationRate}%</span>
+        <div class="report-card-label">Utilisation Rate</div>
+        <div class="report-card-sub" style="font-size:11px;color:var(--muted)">in-use + in-circ / total</div>
       </div>`;
 
     reportChart.innerHTML = '';
@@ -2399,10 +2467,10 @@ async function renderMgmtReports() {
     'in-use':         'var(--purple)',
   };
   const statusLabels = {
-    'in-refill':      'In Refill',
-    'in-circulation': 'In Circulation',
-    'revalidation':   'Revalidation',
-    'in-use':         'In Use',
+    'in-refill':      t('status.inRefill'),
+    'in-circulation': t('status.inCirc'),
+    'revalidation':   t('status.inReval'),
+    'in-use':         t('status.inUse'),
   };
   const maxStatusCount = Math.max(...Object.values(statusCounts), 1);
   const statusBarsHtml = Object.entries(statusCounts).map(([k, v]) => {
@@ -2522,21 +2590,81 @@ async function renderMgmtReports() {
 
   grid.innerHTML = `
     <div class="mgmt-card">
-      <div class="mgmt-card-title">${t('mgmt.status')}</div>
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('mgmt.status')}</div>
+        <button class="mgmt-card-export-btn" data-export="status" type="button">↓ CSV</button>
+      </div>
       ${statusBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">${t('mgmt.refills')}</div>
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('mgmt.refills')}</div>
+        <button class="mgmt-card-export-btn" data-export="refills" type="button">↓ CSV</button>
+      </div>
       ${fillBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${escapeHtml(partnerCardTitle)}</div>
+        <button class="mgmt-card-export-btn" data-export="partners" type="button">↓ CSV</button>
+      </div>
       ${partnerBarsHtml}
     </div>
     <div class="mgmt-card">
-      <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">${t('mgmt.salesRegion')}</div>
+        <button class="mgmt-card-export-btn" data-export="regions" type="button">↓ CSV</button>
+      </div>
       ${regionBarsHtml}
     </div>`;
+}
+
+// Per-card CSV export buttons
+const mgmtGrid = $('mgmt-reports-grid');
+if (mgmtGrid) {
+  mgmtGrid.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.mgmt-card-export-btn');
+    if (!btn) return;
+    const type = btn.dataset.export;
+    const allCyls   = await txGetAll('cylinders');
+    const allEvents = await txGetAll('events');
+    const yearSel   = $('mgmt-filter-year');
+    const monthSel  = $('mgmt-filter-month');
+    const fy = yearSel?.value ? parseInt(yearSel.value) : null;
+    const fm = monthSel?.value !== '' ? parseInt(monthSel.value) : null;
+    function inP(ts) {
+      const d = new Date(ts);
+      if (fy !== null && d.getFullYear() !== fy) return false;
+      if (fm !== null && d.getMonth() !== fm) return false;
+      return true;
+    }
+    const date = new Date().toISOString().slice(0,10);
+    let csv = '';
+    if (type === 'status') {
+      csv = 'Status,Count\n' + ['in-refill','in-circulation','revalidation','in-use']
+        .map(s => `"${s}",${allCyls.filter(c => c.status === s).length}`).join('\n');
+      downloadCSV(`lpg-status-${date}.csv`, csv);
+    } else if (type === 'refills') {
+      csv = 'Timestamp,CylinderID,Company\n' +
+        allEvents.filter(ev => ev.type === 'refilled' && inP(ev.timestamp))
+          .map(ev => `"${ev.timestamp}","${ev.cylinderId}","${ev.company || ''}"`).join('\n');
+      downloadCSV(`lpg-refills-${date}.csv`, csv);
+    } else if (type === 'partners') {
+      const salesMap = {};
+      allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp))
+        .forEach(ev => { salesMap[ev.company] = (salesMap[ev.company] || 0) + 1; });
+      csv = 'Partner,Sales\n' + Object.entries(salesMap).sort((a,b) => b[1]-a[1])
+        .map(([n,c]) => `"${n}",${c}`).join('\n');
+      downloadCSV(`lpg-partners-${date}.csv`, csv);
+    } else if (type === 'regions') {
+      const regMap = {};
+      allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp))
+        .forEach(ev => { const r = ev.region || ev.company || 'Unknown'; regMap[r] = (regMap[r] || 0) + 1; });
+      csv = 'Region,Sales\n' + Object.entries(regMap).sort((a,b) => b[1]-a[1])
+        .map(([r,c]) => `"${r}",${c}`).join('\n');
+      downloadCSV(`lpg-regions-${date}.csv`, csv);
+    }
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2588,54 +2716,6 @@ licFilterStatus.addEventListener('change',  applyLicenseFilters);
 
 mgmtFilterYear?.addEventListener('change',  renderMgmtReports);
 mgmtFilterMonth?.addEventListener('change', renderMgmtReports);
-
-const mgmtExportCsvBtn = $('mgmt-export-csv-btn');
-if (mgmtExportCsvBtn) {
-  mgmtExportCsvBtn.addEventListener('click', async () => {
-    const allCyls   = await txGetAll('cylinders');
-    const allEvents = await txGetAll('events');
-    const yearSel   = $('mgmt-filter-year');
-    const monthSel  = $('mgmt-filter-month');
-    const fy = yearSel?.value ? parseInt(yearSel.value) : null;
-    const fm = monthSel?.value !== '' ? parseInt(monthSel.value) : null;
-    function inP(ts) {
-      const d = new Date(ts);
-      if (fy !== null && d.getFullYear() !== fy) return false;
-      if (fm !== null && d.getMonth() !== fm) return false;
-      return true;
-    }
-    const date = new Date().toISOString().slice(0,10);
-    // Cylinders by status
-    const statusRows = ['Status,Count'];
-    ['in-refill','in-circulation','revalidation','in-use'].forEach(s => {
-      statusRows.push(`"${s}",${allCyls.filter(c => c.status === s).length}`);
-    });
-    // Refills by period
-    const refillEvs = allEvents.filter(ev => ev.type === 'refilled' && inP(ev.timestamp));
-    const refillRows = ['Timestamp,CylinderID,Company'];
-    refillEvs.forEach(ev => refillRows.push(`"${ev.timestamp}","${ev.cylinderId}","${ev.company || ''}"`));
-    // Sales by partner
-    const salesMap = {};
-    allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp))
-      .forEach(ev => { salesMap[ev.company] = (salesMap[ev.company] || 0) + 1; });
-    const partnerRows = ['Partner,Sales'];
-    Object.entries(salesMap).sort((a,b) => b[1]-a[1]).forEach(([n,c]) => partnerRows.push(`"${n}",${c}`));
-    const csv = [
-      'LPG Tracer - Management Report Export',
-      `Period,${fy ? fy : 'All Years'}${fm !== null ? ' ' + fm : ''}`,
-      '',
-      'CYLINDERS BY STATUS',
-      ...statusRows,
-      '',
-      'REFILLS',
-      ...refillRows,
-      '',
-      'SALES BY PARTNER',
-      ...partnerRows,
-    ].join('\n');
-    downloadCSV(`lpg-mgmt-report-${date}.csv`, csv);
-  });
-}
 
 const mgmtExportPdfBtn = $('mgmt-export-pdf-btn');
 if (mgmtExportPdfBtn) {
