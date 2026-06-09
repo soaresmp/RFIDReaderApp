@@ -1870,34 +1870,10 @@ async function openPassportModal(cylId) {
     }
   }
 
-  // Compute cylinder-specific alerts
-  const _cylAlerts = [];
-  const _nowP = new Date();
-  const _baseDateP = cyl.lastRequalDate || cyl.manufactureDate;
-  if (_baseDateP) {
-    const _dueDateP = new Date(_baseDateP + 'T00:00:00');
-    _dueDateP.setFullYear(_dueDateP.getFullYear() + 10);
-    const _daysP = Math.floor((_dueDateP - _nowP) / 86400000);
-    if (_daysP <= 0) {
-      _cylAlerts.push({ sev:'critical', msg:`Requalification overdue by ${Math.abs(_daysP)} days (due: ${_dueDateP.toISOString().slice(0,10)})` });
-    } else if (_daysP <= 365) {
-      _cylAlerts.push({ sev:'warning', msg:`Requalification due in ${_daysP} days (${_dueDateP.toISOString().slice(0,10)})` });
-    }
-  }
-  if (cyl.status === 'in-circulation' && events.length) {
-    const _stuckDays = Math.floor((_nowP - new Date(events[0].timestamp)) / 86400000);
-    if (_stuckDays > 45) _cylAlerts.push({ sev:'warning', msg:`Stuck in circulation for ${_stuckDays} days` });
-  }
-  for (let _i = events.length - 1; _i >= 0; _i--) {
-    const _ev = events[_i];
-    if (_ev.type === 'shipped' && _ev.destinedFor) {
-      const _recvEv = events.slice(0, _i).find(e => e.type === 'dist-received' || e.type === 'ret-received');
-      if (_recvEv && _recvEv.company && _recvEv.company !== _ev.destinedFor) {
-        _cylAlerts.push({ sev:'critical', msg:`Misplaced: shipped to "${_ev.destinedFor}" but received by "${_recvEv.company}"` });
-      }
-      break;
-    }
-  }
+  // Show alerts only if this cylinder appears in the global _alertsData list
+  const _cylAlerts = _alertsData
+    .filter(a => a.cylinder?.id === cyl.id)
+    .map(a => ({ sev: a.severity, msg: a.title + (a.desc ? ' — ' + a.desc : '') }));
 
   passportBody.innerHTML = `
     ${_cylAlerts.length ? `<div class="passport-section" style="background:rgba(239,68,68,0.06);border-left:3px solid var(--amber);padding:12px 14px">
@@ -2992,27 +2968,38 @@ async function renderMgmtReports() {
     </div>
     ${role === 'lpgmc' ? (() => {
       const cylIds = new Set(cyls.map(c => c.id));
-      const soldEvsByMonth = {};
+      // Build months axis using same logic as fillBarsHtml so all months show for selected year
+      const smMonths = [];
+      if (filterYear !== null && filterMonth !== null) {
+        smMonths.push({ label: new Date(filterYear, filterMonth, 1).toLocaleString('default', { month: 'long' }) + ' ' + filterYear, year: filterYear, month: filterMonth, count: 0 });
+      } else if (filterYear !== null) {
+        for (let mo = 0; mo < 12; mo++) {
+          smMonths.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
+        }
+      } else if (filterMonth !== null) {
+        for (let y = now.getFullYear() - 4; y <= now.getFullYear(); y++) {
+          smMonths.push({ label: new Date(y, filterMonth, 1).toLocaleString('default', { month: 'short' }) + "'" + String(y).slice(2), year: y, month: filterMonth, count: 0 });
+        }
+      } else {
+        const smYearSet = new Set();
+        allEvents.forEach(ev => { if (ev.type === 'ret-sold' && cylIds.has(ev.cylinderId)) smYearSet.add(new Date(ev.timestamp).getFullYear()); });
+        if (!smYearSet.size) smYearSet.add(now.getFullYear());
+        [...smYearSet].sort().forEach(y => smMonths.push({ label: String(y), year: y, month: -1, count: 0 }));
+      }
       allEvents.forEach(ev => {
-        if (ev.type !== 'ret-sold' || !inPeriod(ev.timestamp)) return;
-        if (!cylIds.has(ev.cylinderId)) return;
+        if (ev.type !== 'ret-sold' || !cylIds.has(ev.cylinderId)) return;
         const d = new Date(ev.timestamp);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        const label = d.toLocaleString('default',{month:'short'}) + ' ' + d.getFullYear();
-        if (!soldEvsByMonth[key]) soldEvsByMonth[key] = { label, count:0 };
-        soldEvsByMonth[key].count++;
+        const m = smMonths.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
+        if (m) m.count++;
       });
-      const smEntries = Object.entries(soldEvsByMonth).sort((a,b) => a[0].localeCompare(b[0])).slice(-12);
-      const maxSM = Math.max(...smEntries.map(([,v]) => v.count), 1);
-      const salesMonthBarsHtml = smEntries.length
-        ? smEntries.map(([,v]) => {
-            const pct = Math.round((v.count/maxSM)*100);
-            return `<div class="mgmt-bar-row">
-              <span class="mgmt-bar-label">${v.label}</span>
-              <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--green)"><span>${v.count}</span></div></div>
-            </div>`;
-          }).join('')
-        : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
+      const maxSM = Math.max(...smMonths.map(m => m.count), 1);
+      const salesMonthBarsHtml = smMonths.map(m => {
+        const pct = Math.round((m.count / maxSM) * 100);
+        return `<div class="mgmt-bar-row">
+          <span class="mgmt-bar-label">${m.label}</span>
+          <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--green)"><span>${m.count}</span></div></div>
+        </div>`;
+      }).join('');
       const netSalesMap = {};
       allEvents.forEach(ev => {
         if (ev.type !== 'ret-sold' || !ev.company || !inPeriod(ev.timestamp)) return;
@@ -3449,12 +3436,25 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
 // SHIPMENT MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _shipmentScannedIds = [];
+let _shipmentScannedCyls = []; // [{ id, cyl }]
 
 function openShipmentModal() {
   const role = Auth.session?.role;
   if (!role) return;
-  _shipmentScannedIds = [];
+  _shipmentScannedCyls = [];
+
+  // Reset form fields
+  const notesEl = $('shipment-notes'); if (notesEl) notesEl.value = '';
+  const invoiceEl = $('shipment-invoice'); if (invoiceEl) invoiceEl.value = '';
+  const consumerChk = $('shipment-consumer-sale-chk'); if (consumerChk) consumerChk.checked = false;
+  const consumerIdEl = $('shipment-consumer-id'); if (consumerIdEl) consumerIdEl.value = '';
+  const consumerSection = $('shipment-consumer-section');
+  const consumerIdWrap = $('shipment-consumer-id-wrap');
+  if (consumerSection) consumerSection.style.display = role === 'retailer' ? '' : 'none';
+  if (consumerIdWrap) consumerIdWrap.style.display = 'none';
+  if (consumerChk) consumerChk.addEventListener('change', () => {
+    if (consumerIdWrap) consumerIdWrap.style.display = consumerChk.checked ? '' : 'none';
+  }, { once: true });
   const shipmentScanIn  = $('shipment-scan-input');
   const shipmentList    = $('shipment-cylinder-list');
   const shipmentDest    = $('shipment-dest');
@@ -3488,18 +3488,24 @@ function openShipmentModal() {
 function renderShipmentList() {
   const shipmentList = $('shipment-cylinder-list');
   if (!shipmentList) return;
-  if (!_shipmentScannedIds.length) {
+  if (!_shipmentScannedCyls.length) {
     shipmentList.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders scanned yet.</p>';
     return;
   }
-  shipmentList.innerHTML = _shipmentScannedIds.map((id, idx) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
-      <span style="font-size:12px;font-family:var(--font-mono);flex:1;color:var(--text)">${escapeHtml(id)}</span>
+  const statusLabels = { 'in-stock':'In Stock','in-refill':'In Refill','in-circulation':'In Circulation','revalidation':'Revalidation','in-use':'In Use','retired':'Retired' };
+  shipmentList.innerHTML = _shipmentScannedCyls.map(({id, cyl}, idx) => {
+    const statusLabel = statusLabels[cyl?.status] || cyl?.status || '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-family:var(--font-mono);color:var(--text)">${escapeHtml(id)}</div>
+        ${cyl ? `<div style="font-size:11px;color:var(--dim);margin-top:2px">${escapeHtml(cyl.serial || '—')} · ${escapeHtml(cyl.ownerCompany || cyl.company || '—')} · <span style="color:var(--text-secondary)">${escapeHtml(statusLabel)}</span></div>` : ''}
+      </div>
       <button class="btn btn-sm" style="background:none;color:var(--red);padding:2px 8px;min-width:0" data-remove-idx="${idx}">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   shipmentList.querySelectorAll('[data-remove-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
-      _shipmentScannedIds.splice(parseInt(btn.dataset.removeIdx), 1);
+      _shipmentScannedCyls.splice(parseInt(btn.dataset.removeIdx), 1);
       renderShipmentList();
     });
   });
@@ -3507,10 +3513,10 @@ function renderShipmentList() {
 
 async function addToShipment(tagId) {
   if (!tagId) return;
-  if (_shipmentScannedIds.includes(tagId)) { showSnackbar('Already in shipment list.', 'warning'); return; }
+  if (_shipmentScannedCyls.some(c => c.id === tagId)) { showSnackbar('Already in shipment list.', 'warning'); return; }
   const cyl = await txGet('cylinders', tagId);
   if (!cyl) { showSnackbar(`Tag "${tagId}" not found.`, 'error'); return; }
-  _shipmentScannedIds.push(tagId);
+  _shipmentScannedCyls.push({ id: tagId, cyl });
   renderShipmentList();
   const inp = $('shipment-scan-input');
   if (inp) { inp.value = ''; inp.focus(); }
@@ -3534,23 +3540,32 @@ const _shipmentConfirmBtn = $('shipment-confirm-btn');
 if (_shipmentConfirmBtn) _shipmentConfirmBtn.addEventListener('click', async () => {
   const dest = $('shipment-dest')?.value?.trim();
   if (!dest) { showSnackbar('Please select a destination.', 'error'); return; }
-  if (!_shipmentScannedIds.length) { showSnackbar('No cylinders scanned.', 'error'); return; }
+  if (!_shipmentScannedCyls.length) { showSnackbar('No cylinders scanned.', 'error'); return; }
   const destOpt = $('shipment-dest')?.querySelector(`option[value="${CSS.escape(dest)}"]`);
   const destRegion = destOpt?.dataset.region || '';
   const ts = new Date().toISOString();
   const company = Auth.session?.company || '';
-  for (const tagId of _shipmentScannedIds) {
+  const notes = $('shipment-notes')?.value?.trim() || '';
+  const isConsumerSale = $('shipment-consumer-sale-chk')?.checked || false;
+  const consumerId = $('shipment-consumer-id')?.value?.trim() || '';
+  for (const { id: tagId } of _shipmentScannedCyls) {
     const cyl = await txGet('cylinders', tagId);
     if (!cyl) continue;
-    await txPut('events', {
-      cylinderId:tagId, type:'shipped', timestamp:ts,
+    const evType = isConsumerSale ? 'ret-sold' : 'shipped';
+    const evRecord = {
+      id: crypto.randomUUID(), cylinderId: tagId, type: evType, timestamp: ts,
       operatorId: Auth.session?.operatorId || 'SYSTEM',
-      company, location:company, destinedFor:dest, destinedRegion:destRegion,
-    });
-    cyl.status = 'in-circulation';
+      company, location: company, destinedFor: dest, destinedRegion: destRegion,
+    };
+    if (notes) evRecord.notes = notes;
+    if (isConsumerSale && consumerId) evRecord.consumerId = consumerId;
+    await txPut('events', evRecord);
+    cyl.status = isConsumerSale ? 'in-use' : 'in-circulation';
     await txPut('cylinders', cyl);
   }
-  showSnackbar(`Shipment of ${_shipmentScannedIds.length} cylinder(s) to ${dest} confirmed.`, 'success');
+  const count = _shipmentScannedCyls.length;
+  const label = isConsumerSale ? `Consumer sale of ${count} cylinder(s) to ${dest} confirmed.` : `Shipment of ${count} cylinder(s) to ${dest} confirmed.`;
+  showSnackbar(label, 'success');
   closeModal('modal-shipment');
   renderCylinders();
 });
