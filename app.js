@@ -22,7 +22,7 @@ const TRANSLATIONS = {
     'kpi.total':'Total','kpi.distributors':'Distributors','kpi.retailers':'Retailers',
     'filter.allTypes':'All Types','filter.allStatuses':'All statuses','filter.allYears':'All years','filter.allMonths':'All months',
     'btn.exportCsv':'↓ Export CSV','btn.exportPdf':'↓ Print / PDF',
-    'mgmt.status':'Cylinders by Status','mgmt.refills':'Refills','mgmt.salesRegion':'Sales by Region',
+    'mgmt.status':'Cylinders by Status','mgmt.refills':'Refills by Month','mgmt.salesRegion':'Sales by Region',
     'mgmt.topPartners':'Top 10 Partners by Sales','mgmt.topPartnersAll':'Top 10 Partners by Cylinder Count',
     'alert.requalOverdue':'Requalification Overdue','alert.requalSoon':'Requalification Due (2yr)',
     'alert.stuck':'Stuck in Circulation','alert.misplaced':'Misplaced',
@@ -78,7 +78,7 @@ const TRANSLATIONS = {
     'kpi.total':'Jumla','kpi.distributors':'Wasambazaji','kpi.retailers':'Wauzaji',
     'filter.allTypes':'Aina Zote','filter.allStatuses':'Hali Zote','filter.allYears':'Miaka Yote','filter.allMonths':'Miezi Yote',
     'btn.exportCsv':'↓ Hamisha CSV','btn.exportPdf':'↓ Chapisha / PDF',
-    'mgmt.status':'Mitungi kwa Hali','mgmt.refills':'Kujaza','mgmt.salesRegion':'Mauzo kwa Mkoa',
+    'mgmt.status':'Mitungi kwa Hali','mgmt.refills':'Kujaza kwa Mwezi','mgmt.salesRegion':'Mauzo kwa Mkoa',
     'mgmt.topPartners':'Washirika 10 Bora kwa Mauzo','mgmt.topPartnersAll':'Washirika 10 Bora kwa Idadi ya Mitungi',
     'alert.requalOverdue':'Uhakiki Upya Umechelewa','alert.requalSoon':'Uhakiki Upya (Miaka 2)',
     'alert.stuck':'Imekwama kwenye Mzunguko','alert.misplaced':'Imepotea',
@@ -332,8 +332,8 @@ const ROLE_TABS = {
   ewura:           ['reports', 'cylinders', 'alerts', 'licenses', 'mgmt-reports'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
-  distributor:     ['reports', 'cylinders', 'alerts'],
-  retailer:        ['reports', 'cylinders'],
+  distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
+  retailer:        ['reports', 'cylinders', 'mgmt-reports'],
 };
 
 const ROLE_LABELS = {
@@ -1178,8 +1178,9 @@ function applySession() {
   if (registerCylBtn) {
     registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   }
+  // Shipment button: LPGMC, distributor, retailer
   const _shipBtn = $('shipment-btn');
-  if (_shipBtn) _shipBtn.style.display = ['lpgmc','distributor','retailer'].includes(s.role) ? '' : 'none';
+  if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
 
   // Navigate to dashboard (reset)
   showView('reports');
@@ -2766,9 +2767,90 @@ async function renderMgmtReports() {
   const allEvents = await txGetAll('events');
   const role = Auth.session ? Auth.session.role : null;
 
+  // Read year/month filter values early (needed by distributor/retailer early-return path too)
+  const yearSel_pre = $('mgmt-filter-year');
+  const filterYear  = yearSel_pre?.value ? parseInt(yearSel_pre.value) : null;
+  const monthSel_pre = $('mgmt-filter-month');
+  const filterMonth = monthSel_pre?.value !== '' ? parseInt(monthSel_pre.value) : null;
+
   let cyls = allCyls;
   if (role === 'lpgmc' && Auth.session) {
     cyls = cyls.filter(c => c.company === Auth.session.company);
+  }
+
+  // For distributor/retailer: show their own simplified reports and return early
+  if (role === 'distributor' || role === 'retailer') {
+    const company = Auth.session?.company || '';
+    // Find cylinders currently at this company (last event company matches)
+    const lastEvByCyl = {};
+    allEvents.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(e => { lastEvByCyl[e.cylinderId] = e; });
+    const myCyls = allCyls.filter(c => {
+      const last = lastEvByCyl[c.id];
+      return last && last.company === company;
+    });
+    const FILLED_EV = new Set(['dist-received', 'dist-sent-retail', 'ret-received', 'shipped']);
+    const EMPTY_EV  = new Set(['ret-returned-empty', 'dist-returned-empty', 'ret-sold']);
+    const myFilled  = myCyls.filter(c => FILLED_EV.has(lastEvByCyl[c.id]?.type)).length;
+    const myEmpty   = myCyls.filter(c => EMPTY_EV.has(lastEvByCyl[c.id]?.type)).length;
+    const myTotal   = myCyls.length;
+
+    // Sales by Month — distributor uses dist-sent-retail, retailer uses ret-sold
+    const salesEvType = role === 'retailer' ? 'ret-sold' : 'dist-sent-retail';
+    const smMonths2 = [];
+    if (filterYear !== null) {
+      for (let mo = 0; mo < 12; mo++) {
+        smMonths2.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, count: 0 });
+      }
+    } else {
+      const smYearSet2 = new Set();
+      allEvents.forEach(ev => { if (ev.type === salesEvType && ev.company === company) smYearSet2.add(new Date(ev.timestamp).getFullYear()); });
+      if (!smYearSet2.size) smYearSet2.add(new Date().getFullYear());
+      [...smYearSet2].sort().forEach(y => smMonths2.push({ label: String(y), year: y, month: -1, count: 0 }));
+    }
+    allEvents.forEach(ev => {
+      if (ev.type !== salesEvType || ev.company !== company) return;
+      const d = new Date(ev.timestamp);
+      const m = smMonths2.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
+      if (m) m.count++;
+    });
+    const maxSM2 = Math.max(...smMonths2.map(m => m.count), 1);
+    const salesLabel = role === 'retailer' ? 'Sales by Month' : 'Dispatches by Month';
+    const salesMonthBars2 = smMonths2.map(m => {
+      const pct = Math.round((m.count / maxSM2) * 100);
+      return `<div class="mgmt-bar-row">
+        <span class="mgmt-bar-label">${m.label}</span>
+        <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--green)"><span>${m.count}</span></div></div>
+      </div>`;
+    }).join('');
+
+    grid.innerHTML = `
+      <div class="mgmt-card">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">Current Stock</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px">
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--amber)">${myTotal}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Total</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--green)">${myFilled}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Filled</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--muted)">${myEmpty}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Empty</div>
+          </div>
+        </div>
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">${salesLabel}</div>
+        </div>
+        ${salesMonthBars2 || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No data for this period.</p>'}
+      </div>`;
+    return;
   }
 
   // Populate year filter from event data (first call only)
@@ -2818,15 +2900,36 @@ async function renderMgmtReports() {
     'revalidation':   t('status.inReval'),
     'in-use':         t('status.inUse'),
   };
+  // Compute filled/empty sub-counts for in-refill and in-circulation
+  const _lastEvByStat = {};
+  allEvents.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(e => { _lastEvByStat[e.cylinderId] = e; });
+  const STAT_FILL_EV  = new Set(['refilled', 'shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
+  const STAT_EMPTY_EV = new Set(['received-empty', 'ret-returned-empty', 'dist-returned-empty', 'registered']);
+  function cylFillSplit(status) {
+    return cyls.filter(c => c.status === status).reduce((acc, c) => {
+      const ev = _lastEvByStat[c.id];
+      if (ev && STAT_FILL_EV.has(ev.type))  acc.filled++;
+      else if (ev && STAT_EMPTY_EV.has(ev.type)) acc.empty++;
+      else acc.other++;
+      return acc;
+    }, { filled: 0, empty: 0, other: 0 });
+  }
+  const inRefillSplit = cylFillSplit('in-refill');
+  const inCircSplit   = cylFillSplit('in-circulation');
+
   const maxStatusCount = Math.max(...Object.values(statusCounts), 1);
   const statusBarsHtml = Object.entries(statusCounts).map(([k, v]) => {
     const pct = Math.round((v / maxStatusCount) * 100);
+    const hasSplit = k === 'in-refill' || k === 'in-circulation';
+    const split = k === 'in-refill' ? inRefillSplit : k === 'in-circulation' ? inCircSplit : null;
     return `<div class="mgmt-bar-row">
       <span class="mgmt-bar-label">${statusLabels[k]}</span>
-      <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:${statusColors[k]}">
-          <span>${v}</span>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+        <div class="mgmt-bar-track">
+          <div class="mgmt-bar-fill" style="width:${pct}%;background:${statusColors[k]}"><span>${v}</span></div>
         </div>
+        ${hasSplit && split ? `<div style="font-size:10px;color:var(--dim);padding-left:2px">${split.filled} filled · ${split.empty} empty${split.other > 0 ? ` · ${split.other} other` : ''}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3359,6 +3462,14 @@ async function openLicenseDetailModal(licId) {
       }).join('')}
     </div>` : '';
 
+  // Compute last inspection date for this company
+  const _licInspEvs = allEvsL.filter(ev =>
+    (ev.type === 'inspected' || ev.type === 'ewura-monitored') && ev.company === lic.companyName
+  );
+  const _licLastInspDate = _licInspEvs.length
+    ? _licInspEvs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0].timestamp.slice(0, 10)
+    : null;
+
   const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'revoked' ? 'var(--red)' : lic.status === 'expired' ? 'var(--amber)' : 'var(--muted)';
 
   detailBody.innerHTML = `
@@ -3368,6 +3479,7 @@ async function openLicenseDetailModal(licId) {
     <div class="passport-row"><span class="passport-key">Type</span><span class="passport-value">${escapeHtml(lic.companyType)}</span></div>
     <div class="passport-row"><span class="passport-key">Issued / Renewed</span><span class="passport-value">${formatDate(lic.issuedDate)}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.expires')}</span><span class="passport-value">${formatDate(lic.expiryDate)}</span></div>
+    <div class="passport-row"><span class="passport-key">Last Inspection</span><span class="passport-value">${_licLastInspDate ? formatDate(_licLastInspDate) : '—'}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.status')}</span><span class="passport-value" style="color:${statusColor};font-weight:600">${escapeHtml(lic.status)}</span></div>
     <div class="passport-row"><span class="passport-key">Last Inspection</span><span class="passport-value">${lastInspDate}</span></div>
     ${locationHtml}
@@ -3684,6 +3796,161 @@ function downloadCSV(filename, content) {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SHIPMENT MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _shipmentScannedCyls = []; // [{ id, cyl }]
+
+function openShipmentModal() {
+  const role = Auth.session?.role;
+  if (!role) return;
+  _shipmentScannedCyls = [];
+
+  // Reset form fields
+  const notesEl = $('shipment-notes'); if (notesEl) notesEl.value = '';
+  const invoiceEl = $('shipment-invoice'); if (invoiceEl) invoiceEl.value = '';
+  const consumerChk = $('shipment-consumer-sale-chk');
+  if (consumerChk) consumerChk.checked = false;
+  const consumerIdEl = $('shipment-consumer-id'); if (consumerIdEl) consumerIdEl.value = '';
+  const consumerSection = $('shipment-consumer-section');
+  const consumerIdWrap = $('shipment-consumer-id-wrap');
+  const destLabel = $('shipment-dest-label');
+
+  if (consumerSection) consumerSection.style.display = role === 'retailer' ? '' : 'none';
+  if (consumerIdWrap) consumerIdWrap.style.display = 'none';
+  if (destLabel) destLabel.textContent = 'Destination';
+
+  if (consumerChk) {
+    const _onConsumerChange = () => {
+      const isCS = consumerChk.checked;
+      if (consumerIdWrap) consumerIdWrap.style.display = isCS ? '' : 'none';
+      if (destLabel) destLabel.innerHTML = isCS
+        ? 'Destination <span style="font-size:11px;color:var(--dim)">(optional for consumer sales)</span>'
+        : 'Destination';
+    };
+    consumerChk.removeEventListener('change', consumerChk._csHandler);
+    consumerChk._csHandler = _onConsumerChange;
+    consumerChk.addEventListener('change', _onConsumerChange);
+  }
+
+  const shipmentScanIn = $('shipment-scan-input');
+  const shipmentList   = $('shipment-cylinder-list');
+  const shipmentDest   = $('shipment-dest');
+  if (shipmentList)   renderShipmentList();
+  if (shipmentScanIn) shipmentScanIn.value = '';
+
+  const opts = [];
+  if (role === 'lpgmc') {
+    DEMO_NETWORK.filter(n => (n.type === 'Distributor' || n.type === 'Retailer') && n.status === 'active')
+      .forEach(n => opts.push({ name: n.name, type: n.type, region: n.region }));
+    (_licensesData || []).filter(l => l.companyType === 'Revalidator' && l.status === 'active')
+      .forEach(l => opts.push({ name: l.companyName, type: 'Revalidator', region: '' }));
+  } else if (role === 'distributor') {
+    LPGMC_COMPANIES.forEach(c => opts.push({ name: c, type: 'LPGMC', region: '' }));
+    DEMO_NETWORK.filter(n => n.type === 'Retailer' && n.status === 'active')
+      .forEach(n => opts.push({ name: n.name, type: n.type, region: n.region }));
+  } else if (role === 'retailer') {
+    LPGMC_COMPANIES.forEach(c => opts.push({ name: c, type: 'LPGMC', region: '' }));
+    DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active')
+      .forEach(n => opts.push({ name: n.name, type: n.type, region: n.region }));
+  }
+
+  if (shipmentDest) {
+    shipmentDest.innerHTML = '<option value="">— Select destination —</option>' +
+      opts.map(o => `<option value="${escapeHtml(o.name)}" data-type="${escapeHtml(o.type)}" data-region="${escapeHtml(o.region)}">${escapeHtml(o.name)} (${escapeHtml(o.type)}${o.region ? ' · ' + o.region : ''})</option>`).join('');
+  }
+  openModal('modal-shipment');
+  if (shipmentScanIn) setTimeout(() => shipmentScanIn.focus(), 100);
+}
+
+function renderShipmentList() {
+  const shipmentList = $('shipment-cylinder-list');
+  if (!shipmentList) return;
+  if (!_shipmentScannedCyls.length) {
+    shipmentList.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>';
+    return;
+  }
+  const statusLabels = { 'in-stock': 'In Stock', 'in-refill': 'In Refill', 'in-circulation': 'In Circulation', 'revalidation': 'Revalidation', 'in-use': 'In Use', 'retired': 'Retired' };
+  shipmentList.innerHTML = _shipmentScannedCyls.map(({ id, cyl }, idx) => {
+    const statusLabel = statusLabels[cyl?.status] || cyl?.status || '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-family:var(--font-mono);color:var(--text)">${escapeHtml(id)}</div>
+        ${cyl ? `<div style="font-size:11px;color:var(--dim);margin-top:2px">${escapeHtml(cyl.serial || '—')} · ${escapeHtml(cyl.ownerCompany || cyl.company || '—')} · ${escapeHtml(statusLabel)}</div>` : ''}
+      </div>
+      <button class="btn btn-sm" style="background:none;color:var(--red);padding:2px 8px;min-width:0" data-remove-idx="${idx}">✕</button>
+    </div>`;
+  }).join('');
+  shipmentList.querySelectorAll('[data-remove-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _shipmentScannedCyls.splice(parseInt(btn.dataset.removeIdx), 1);
+      renderShipmentList();
+    });
+  });
+}
+
+async function addToShipment(tagId) {
+  if (!tagId) return;
+  if (_shipmentScannedCyls.some(c => c.id === tagId)) { showSnackbar('Already in shipment list.', 'warning'); return; }
+  const cyl = await txGet('cylinders', tagId);
+  if (!cyl) { showSnackbar(`Tag "${tagId}" not found.`, 'error'); return; }
+  _shipmentScannedCyls.push({ id: tagId, cyl });
+  renderShipmentList();
+  const inp = $('shipment-scan-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+const _shipmentBtnEl = $('shipment-btn');
+if (_shipmentBtnEl) _shipmentBtnEl.addEventListener('click', openShipmentModal);
+
+const _shipmentAddBtn = $('shipment-add-btn');
+if (_shipmentAddBtn) _shipmentAddBtn.addEventListener('click', () => {
+  const inp = $('shipment-scan-input');
+  if (inp) addToShipment(inp.value.trim());
+});
+
+const _shipmentScanInput = $('shipment-scan-input');
+if (_shipmentScanInput) _shipmentScanInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addToShipment(_shipmentScanInput.value.trim()); }
+});
+
+const _shipmentConfirmBtn = $('shipment-confirm-btn');
+if (_shipmentConfirmBtn) _shipmentConfirmBtn.addEventListener('click', async () => {
+  const dest = $('shipment-dest')?.value?.trim();
+  const isConsumerSale = $('shipment-consumer-sale-chk')?.checked || false;
+  if (!dest && !isConsumerSale) { showSnackbar('Please select a destination.', 'error'); return; }
+  if (!_shipmentScannedCyls.length) { showSnackbar('No cylinders scanned.', 'error'); return; }
+  const destOpt = dest ? $('shipment-dest')?.querySelector(`option[value="${CSS.escape(dest)}"]`) : null;
+  const destRegion = destOpt?.dataset.region || '';
+  const ts = new Date().toISOString();
+  const company = Auth.session?.company || '';
+  const notes = $('shipment-notes')?.value?.trim() || '';
+  const consumerId = $('shipment-consumer-id')?.value?.trim() || '';
+  for (const { id: tagId } of _shipmentScannedCyls) {
+    const cyl = await txGet('cylinders', tagId);
+    if (!cyl) continue;
+    const evType = isConsumerSale ? 'ret-sold' : 'shipped';
+    const evRecord = {
+      id: crypto.randomUUID(), cylinderId: tagId, type: evType, timestamp: ts,
+      operatorId: Auth.session?.operatorId || 'SYSTEM',
+      company, location: company, destinedFor: dest || '', destinedRegion: destRegion,
+    };
+    if (notes) evRecord.notes = notes;
+    if (isConsumerSale && consumerId) evRecord.consumerId = consumerId;
+    await txPut('events', evRecord);
+    cyl.status = isConsumerSale ? 'in-use' : 'in-circulation';
+    await txPut('cylinders', cyl);
+  }
+  const count = _shipmentScannedCyls.length;
+  const label = isConsumerSale
+    ? `Consumer sale of ${count} cylinder(s)${dest ? ' to ' + dest : ''} confirmed.`
+    : `Shipment of ${count} cylinder(s) to ${dest} confirmed.`;
+  showSnackbar(label, 'success');
+  closeModal('modal-shipment');
+  renderCylinders();
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER
