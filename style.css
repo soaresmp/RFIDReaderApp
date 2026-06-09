@@ -251,6 +251,14 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-title-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
 }
 .page-actions {
   display: flex;
