@@ -355,6 +355,13 @@ const DEMO_LPGMC_INFO = {
   'Lake Gas':       { region:'Mwanza',        city:'Mwanza',        address:'Isamilo Road, Mwanza',                  contact:'+255 28 254 0404', contactPerson:'Catherine Masebo', lat:-2.5200, lng:32.9100 },
 };
 
+const DEMO_LICENSE_EXTRA_INFO = {
+  'ABC Distributors': { region:'Dar es Salaam', city:'Dar es Salaam', address:'Pugu Road Industrial Area, Ilala',    contact:'+255 22 218 0441', contactPerson:'Henry Msomi'    },
+  'QuickGas Retail':  { region:'Dar es Salaam', city:'Dar es Salaam', address:'Changanyikeni, Kinondoni District',  contact:'+255 22 211 0552', contactPerson:'Rose Kimaro'     },
+  'ProRevalid Ltd':   { region:'Dar es Salaam', city:'Dar es Salaam', address:'Nyerere Road Industrial Zone',       contact:'+255 22 286 0663', contactPerson:'Daniel Odero'    },
+  'CityGas Direct':   { region:'Dar es Salaam', city:'Dar es Salaam', address:'Msongola, Ilala District',          contact:'+255 22 213 0774', contactPerson:'Stella Mwamba'   },
+};
+
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH MODULE
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1171,6 +1178,8 @@ function applySession() {
   if (registerCylBtn) {
     registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   }
+  const _shipBtn = $('shipment-btn');
+  if (_shipBtn) _shipBtn.style.display = ['lpgmc','distributor','retailer'].includes(s.role) ? '' : 'none';
 
   // Navigate to dashboard (reset)
   showView('reports');
@@ -1861,7 +1870,40 @@ async function openPassportModal(cylId) {
     }
   }
 
+  // Compute cylinder-specific alerts
+  const _cylAlerts = [];
+  const _nowP = new Date();
+  const _baseDateP = cyl.lastRequalDate || cyl.manufactureDate;
+  if (_baseDateP) {
+    const _dueDateP = new Date(_baseDateP + 'T00:00:00');
+    _dueDateP.setFullYear(_dueDateP.getFullYear() + 10);
+    const _daysP = Math.floor((_dueDateP - _nowP) / 86400000);
+    if (_daysP <= 0) {
+      _cylAlerts.push({ sev:'critical', msg:`Requalification overdue by ${Math.abs(_daysP)} days (due: ${_dueDateP.toISOString().slice(0,10)})` });
+    } else if (_daysP <= 365) {
+      _cylAlerts.push({ sev:'warning', msg:`Requalification due in ${_daysP} days (${_dueDateP.toISOString().slice(0,10)})` });
+    }
+  }
+  if (cyl.status === 'in-circulation' && events.length) {
+    const _stuckDays = Math.floor((_nowP - new Date(events[0].timestamp)) / 86400000);
+    if (_stuckDays > 45) _cylAlerts.push({ sev:'warning', msg:`Stuck in circulation for ${_stuckDays} days` });
+  }
+  for (let _i = events.length - 1; _i >= 0; _i--) {
+    const _ev = events[_i];
+    if (_ev.type === 'shipped' && _ev.destinedFor) {
+      const _recvEv = events.slice(0, _i).find(e => e.type === 'dist-received' || e.type === 'ret-received');
+      if (_recvEv && _recvEv.company && _recvEv.company !== _ev.destinedFor) {
+        _cylAlerts.push({ sev:'critical', msg:`Misplaced: shipped to "${_ev.destinedFor}" but received by "${_recvEv.company}"` });
+      }
+      break;
+    }
+  }
+
   passportBody.innerHTML = `
+    ${_cylAlerts.length ? `<div class="passport-section" style="background:rgba(239,68,68,0.06);border-left:3px solid var(--amber);padding:12px 14px">
+      <div class="passport-section-title" style="color:var(--amber);margin-bottom:6px">⚠ Alerts</div>
+      ${_cylAlerts.map(a => `<div style="font-size:12px;color:${a.sev === 'critical' ? 'var(--red)' : 'var(--amber)'};padding:2px 0">● ${escapeHtml(a.msg)}</div>`).join('')}
+    </div>` : ''}
     <div class="passport-section">
       <div class="passport-section-title">Identity</div>
       <div class="passport-row">
@@ -2316,7 +2358,7 @@ async function renderReports() {
       if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) alertMisplaced++;
     });
 
-    const requalSoonOnly = requalSoon - alertRequalOverdue;
+    const requalSoonOnly = Math.max(0, requalSoon - alertRequalOverdue);
     const totalAlerts = requalSoonOnly + alertRequalOverdue + alertStuck + alertMisplaced;
 
     reportsGrid.innerHTML = `
@@ -2917,35 +2959,7 @@ async function renderMgmtReports() {
       }).join('')
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
 
-  // Sales by SKU (Net Weight) - filtered to profile's cylinders
-  const cylMapM = {};
-  cyls.forEach(c => { cylMapM[c.id] = c; });
-  const soldEvsM = allEvents.filter(ev => ev.type === 'ret-sold' && inPeriod(ev.timestamp) && cylMapM[ev.cylinderId]);
-  const weightGroups = [6, 12, 38];
-  const weightCounts = {};
-  weightGroups.forEach(w => { weightCounts[w] = 0; });
-  soldEvsM.forEach(ev => {
-    const cyl = cylMapM[ev.cylinderId];
-    const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
-    const bucket = weightGroups.includes(w) ? w : 12;
-    weightCounts[bucket] = (weightCounts[bucket] || 0) + 1;
-  });
-  const maxWC = Math.max(...weightGroups.map(w => weightCounts[w] || 0), 1);
-  const totalSoldW = weightGroups.reduce((s, w) => s + (weightCounts[w] || 0), 0);
-  const weightBarsHtml = weightGroups.map(w => {
-    const c = weightCounts[w] || 0;
-    const pct = Math.round((c / maxWC) * 100);
-    const share = totalSoldW > 0 ? Math.round((c / totalSoldW) * 100) : 0;
-    return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label">${w} kg</span>
-      <div class="mgmt-bar-track">
-        <div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)">
-          <span>${c}</span>
-        </div>
-      </div>
-      <span style="font-size:11px;color:var(--muted);min-width:36px;text-align:right">${share}%</span>
-    </div>`;
-  }).join('');
+  // Sales by SKU removed
 
   // Field Inspection compliance
   const INSP_TYPES_M = new Set(['inspected', 'ewura-monitored', 'tra-verified']);
@@ -2976,15 +2990,63 @@ async function renderMgmtReports() {
       </div>
       ${regionBarsHtml}
     </div>
-    <div class="mgmt-card">
-      <div class="mgmt-card-header">
-        <div class="mgmt-card-title">${t('mgmt.salesByWeight')}</div>
-        <button class="mgmt-card-export-btn" data-export="sales-weight" type="button">↓ CSV</button>
-      </div>
-      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total sold: <strong style="color:var(--text)">${totalSoldW}</strong></div>
-      ${weightBarsHtml || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>'}
-    </div>
-    ${role !== 'lpgmc' ? `
+    ${role === 'lpgmc' ? (() => {
+      const cylIds = new Set(cyls.map(c => c.id));
+      const soldEvsByMonth = {};
+      allEvents.forEach(ev => {
+        if (ev.type !== 'ret-sold' || !inPeriod(ev.timestamp)) return;
+        if (!cylIds.has(ev.cylinderId)) return;
+        const d = new Date(ev.timestamp);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const label = d.toLocaleString('default',{month:'short'}) + ' ' + d.getFullYear();
+        if (!soldEvsByMonth[key]) soldEvsByMonth[key] = { label, count:0 };
+        soldEvsByMonth[key].count++;
+      });
+      const smEntries = Object.entries(soldEvsByMonth).sort((a,b) => a[0].localeCompare(b[0])).slice(-12);
+      const maxSM = Math.max(...smEntries.map(([,v]) => v.count), 1);
+      const salesMonthBarsHtml = smEntries.length
+        ? smEntries.map(([,v]) => {
+            const pct = Math.round((v.count/maxSM)*100);
+            return `<div class="mgmt-bar-row">
+              <span class="mgmt-bar-label">${v.label}</span>
+              <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--green)"><span>${v.count}</span></div></div>
+            </div>`;
+          }).join('')
+        : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
+      const netSalesMap = {};
+      allEvents.forEach(ev => {
+        if (ev.type !== 'ret-sold' || !ev.company || !inPeriod(ev.timestamp)) return;
+        if (!cylIds.has(ev.cylinderId)) return;
+        netSalesMap[ev.company] = (netSalesMap[ev.company] || 0) + 1;
+      });
+      const netTop = Object.entries(netSalesMap).sort((a,b) => b[1]-a[1]).slice(0,10);
+      const maxNet = netTop.length ? Math.max(...netTop.map(([,v]) => v), 1) : 1;
+      const netSalesBarsHtml = netTop.length
+        ? netTop.map(([name,count]) => {
+            const pct = Math.round((count/maxNet)*100);
+            const short = name.length > 20 ? name.slice(0,18)+'…' : name;
+            return `<div class="mgmt-bar-row">
+              <span class="mgmt-bar-label" title="${escapeHtml(name)}">${escapeHtml(short)}</span>
+              <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--purple)"><span>${count}</span></div></div>
+            </div>`;
+          }).join('')
+        : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data for this period.</p>';
+      return `
+        <div class="mgmt-card">
+          <div class="mgmt-card-header">
+            <div class="mgmt-card-title">Sales by Month</div>
+            <button class="mgmt-card-export-btn" data-export="sales-month" type="button">↓ CSV</button>
+          </div>
+          ${salesMonthBarsHtml}
+        </div>
+        <div class="mgmt-card">
+          <div class="mgmt-card-header">
+            <div class="mgmt-card-title">Network Sales — Top 10 Partners</div>
+            <button class="mgmt-card-export-btn" data-export="network-sales" type="button">↓ CSV</button>
+          </div>
+          ${netSalesBarsHtml}
+        </div>`;
+    })() : ''}
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('dash.marketCompliance')}</div>
@@ -3080,14 +3142,23 @@ if (mgmtGrid) {
         allEvents.filter(ev => INSP_TYPES.has(ev.type) && inP(ev.timestamp))
           .map(ev => `"${ev.timestamp}","${ev.cylinderId}","${ev.type}","${ev.company || ''}","${ev.compliant !== false ? 'true' : 'false'}"`).join('\n');
       downloadCSV(`lpg-field-inspection-${date}.csv`, csv);
-    } else if (type === 'sales-weight') {
-      csv = 'Timestamp,CylinderID,NetWeight_kg,Company\n' +
-        allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp)).map(ev => {
-          const cyl = allCyls.find(c => c.id === ev.cylinderId);
-          const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
-          return `"${ev.timestamp}","${ev.cylinderId}",${w},"${ev.company || ''}"`;
-        }).join('\n');
-      downloadCSV(`lpg-sales-by-sku-${date}.csv`, csv);
+    } else if (type === 'sales-month') {
+      const rolE = Auth.session?.role;
+      const cE = rolE === 'lpgmc' ? allCyls.filter(c => c.company === (Auth.session?.company || '')) : allCyls;
+      const cIds = new Set(cE.map(c => c.id));
+      const smMap = {};
+      allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp) && cIds.has(ev.cylinderId)).forEach(ev => {
+        const d = new Date(ev.timestamp);
+        const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        smMap[k] = (smMap[k] || 0) + 1;
+      });
+      csv = 'Month,Sales\n' + Object.entries(smMap).sort((a,b) => a[0].localeCompare(b[0])).map(([k,v]) => `"${k}",${v}`).join('\n');
+      downloadCSV(`lpg-sales-by-month-${date}.csv`, csv);
+    } else if (type === 'network-sales') {
+      const nsMap = {};
+      allEvents.filter(ev => ev.type === 'ret-sold' && ev.company && inP(ev.timestamp)).forEach(ev => { nsMap[ev.company] = (nsMap[ev.company] || 0) + 1; });
+      csv = 'Partner,Sales\n' + Object.entries(nsMap).sort((a,b) => b[1]-a[1]).map(([n,c]) => `"${n}",${c}`).join('\n');
+      downloadCSV(`lpg-network-sales-${date}.csv`, csv);
     }
   });
 }
@@ -3157,9 +3228,10 @@ async function openLicenseDetailModal(licId) {
   if (!detailBody) return;
 
   // Look up location info from DEMO_NETWORK (dist/retailer) or DEMO_LPGMC_INFO (LPGMC)
-  const netEntry  = DEMO_NETWORK.find(n => n.name === lic.companyName);
-  const lpgmcInfo = DEMO_LPGMC_INFO[lic.companyName];
-  const infoEntry = netEntry || lpgmcInfo || null;
+  const netEntry   = DEMO_NETWORK.find(n => n.name === lic.companyName);
+  const lpgmcInfo  = DEMO_LPGMC_INFO[lic.companyName];
+  const extraInfo  = DEMO_LICENSE_EXTRA_INFO[lic.companyName];
+  const infoEntry  = netEntry || lpgmcInfo || extraInfo || null;
 
   const [allCylsL, allEvsL] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
 
@@ -3371,6 +3443,116 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
       }
     }
   });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SHIPMENT MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _shipmentScannedIds = [];
+
+function openShipmentModal() {
+  const role = Auth.session?.role;
+  if (!role) return;
+  _shipmentScannedIds = [];
+  const shipmentScanIn  = $('shipment-scan-input');
+  const shipmentList    = $('shipment-cylinder-list');
+  const shipmentDest    = $('shipment-dest');
+  if (shipmentList)   shipmentList.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders scanned yet.</p>';
+  if (shipmentScanIn) shipmentScanIn.value = '';
+
+  const opts = [];
+  if (role === 'lpgmc') {
+    DEMO_NETWORK.filter(n => (n.type === 'Distributor' || n.type === 'Retailer') && n.status === 'active')
+      .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
+    (_licensesData || []).filter(l => l.companyType === 'Revalidator' && l.status === 'active')
+      .forEach(l => opts.push({ name:l.companyName, type:'Revalidator', region:'' }));
+  } else if (role === 'distributor') {
+    LPGMC_COMPANIES.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
+    DEMO_NETWORK.filter(n => n.type === 'Retailer' && n.status === 'active')
+      .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
+  } else if (role === 'retailer') {
+    LPGMC_COMPANIES.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
+    DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active')
+      .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
+  }
+
+  if (shipmentDest) {
+    shipmentDest.innerHTML = '<option value="">— Select destination —</option>' +
+      opts.map(o => `<option value="${escapeHtml(o.name)}" data-type="${escapeHtml(o.type)}" data-region="${escapeHtml(o.region)}">${escapeHtml(o.name)} (${escapeHtml(o.type)}${o.region ? ' · '+o.region : ''})</option>`).join('');
+  }
+  openModal('modal-shipment');
+  if (shipmentScanIn) setTimeout(() => shipmentScanIn.focus(), 100);
+}
+
+function renderShipmentList() {
+  const shipmentList = $('shipment-cylinder-list');
+  if (!shipmentList) return;
+  if (!_shipmentScannedIds.length) {
+    shipmentList.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders scanned yet.</p>';
+    return;
+  }
+  shipmentList.innerHTML = _shipmentScannedIds.map((id, idx) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
+      <span style="font-size:12px;font-family:var(--font-mono);flex:1;color:var(--text)">${escapeHtml(id)}</span>
+      <button class="btn btn-sm" style="background:none;color:var(--red);padding:2px 8px;min-width:0" data-remove-idx="${idx}">✕</button>
+    </div>`).join('');
+  shipmentList.querySelectorAll('[data-remove-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _shipmentScannedIds.splice(parseInt(btn.dataset.removeIdx), 1);
+      renderShipmentList();
+    });
+  });
+}
+
+async function addToShipment(tagId) {
+  if (!tagId) return;
+  if (_shipmentScannedIds.includes(tagId)) { showSnackbar('Already in shipment list.', 'warning'); return; }
+  const cyl = await txGet('cylinders', tagId);
+  if (!cyl) { showSnackbar(`Tag "${tagId}" not found.`, 'error'); return; }
+  _shipmentScannedIds.push(tagId);
+  renderShipmentList();
+  const inp = $('shipment-scan-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+const _shipmentBtnEl = $('shipment-btn');
+if (_shipmentBtnEl) _shipmentBtnEl.addEventListener('click', openShipmentModal);
+
+const _shipmentAddBtn = $('shipment-add-btn');
+if (_shipmentAddBtn) _shipmentAddBtn.addEventListener('click', () => {
+  const inp = $('shipment-scan-input');
+  if (inp) addToShipment(inp.value.trim());
+});
+
+const _shipmentScanInput = $('shipment-scan-input');
+if (_shipmentScanInput) _shipmentScanInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addToShipment(_shipmentScanInput.value.trim()); }
+});
+
+const _shipmentConfirmBtn = $('shipment-confirm-btn');
+if (_shipmentConfirmBtn) _shipmentConfirmBtn.addEventListener('click', async () => {
+  const dest = $('shipment-dest')?.value?.trim();
+  if (!dest) { showSnackbar('Please select a destination.', 'error'); return; }
+  if (!_shipmentScannedIds.length) { showSnackbar('No cylinders scanned.', 'error'); return; }
+  const destOpt = $('shipment-dest')?.querySelector(`option[value="${CSS.escape(dest)}"]`);
+  const destRegion = destOpt?.dataset.region || '';
+  const ts = new Date().toISOString();
+  const company = Auth.session?.company || '';
+  for (const tagId of _shipmentScannedIds) {
+    const cyl = await txGet('cylinders', tagId);
+    if (!cyl) continue;
+    await txPut('events', {
+      cylinderId:tagId, type:'shipped', timestamp:ts,
+      operatorId: Auth.session?.operatorId || 'SYSTEM',
+      company, location:company, destinedFor:dest, destinedRegion:destRegion,
+    });
+    cyl.status = 'in-circulation';
+    await txPut('cylinders', cyl);
+  }
+  showSnackbar(`Shipment of ${_shipmentScannedIds.length} cylinder(s) to ${dest} confirmed.`, 'success');
+  closeModal('modal-shipment');
+  renderCylinders();
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

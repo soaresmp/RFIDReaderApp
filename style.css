@@ -1469,20 +1469,18 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   gap: 14px;
 }
 .login-brand-features li {
-  color: rgba(255,255,255,0.82);
-  font-size: 13px;
+  color: rgba(255,255,255,0.88);
+  font-size: 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   line-height: 1.4;
 }
 .login-brand-feature-icon {
-  width: 7px;
-  height: 7px;
-  background: rgba(96,165,250,0.9);
-  border-radius: 50%;
+  font-size: 18px;
+  color: rgba(96,165,250,0.9);
   flex-shrink: 0;
-  display: inline-block;
+  line-height: 1;
 }
 .login-brand-footer {
   position: relative;
