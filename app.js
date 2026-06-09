@@ -3612,11 +3612,20 @@ function openShipmentModal() {
   const consumerIdEl = $('shipment-consumer-id'); if (consumerIdEl) consumerIdEl.value = '';
   const consumerSection = $('shipment-consumer-section');
   const consumerIdWrap = $('shipment-consumer-id-wrap');
+  const destGroup = $('shipment-dest-group');
   if (consumerSection) consumerSection.style.display = role === 'retailer' ? '' : 'none';
   if (consumerIdWrap) consumerIdWrap.style.display = 'none';
-  if (consumerChk) consumerChk.addEventListener('change', () => {
-    if (consumerIdWrap) consumerIdWrap.style.display = consumerChk.checked ? '' : 'none';
-  }, { once: true });
+  if (destGroup) destGroup.style.display = '';
+  if (consumerChk) {
+    const _onCS = () => {
+      const checked = consumerChk.checked;
+      if (consumerIdWrap) consumerIdWrap.style.display = checked ? '' : 'none';
+      if (destGroup && role === 'retailer') destGroup.style.display = checked ? 'none' : '';
+    };
+    consumerChk.removeEventListener('change', consumerChk._csHandler);
+    consumerChk._csHandler = _onCS;
+    consumerChk.addEventListener('change', _onCS);
+  }
   const shipmentScanIn  = $('shipment-scan-input');
   const shipmentList    = $('shipment-cylinder-list');
   const shipmentDest    = $('shipment-dest');

@@ -1501,10 +1501,10 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 }
 .login-brand-cylinders {
   position: absolute;
-  bottom: -20px;
-  right: -24px;
-  width: 220px;
-  height: 280px;
+  bottom: -32px;
+  right: -36px;
+  width: 300px;
+  height: 380px;
   z-index: 0;
   pointer-events: none;
   opacity: 0.85;
