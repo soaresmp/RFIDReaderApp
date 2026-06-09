@@ -224,6 +224,50 @@
             <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
           </button>
           <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
+            <span class="nav-icon">
+              <svg viewBox="0 0 100 100" width="20" height="20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <!-- Dashed spokes -->
+                <line x1="50" y1="27" x2="50" y2="13" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="66" y1="34" x2="77" y2="23" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="73" y1="50" x2="87" y2="50" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="66" y1="66" x2="77" y2="77" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="50" y1="73" x2="50" y2="87" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="34" y1="66" x2="23" y2="77" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="27" y1="50" x2="13" y2="50" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <line x1="34" y1="34" x2="23" y2="23" stroke="#c8d8ec" stroke-width="3" stroke-dasharray="3.5,3" stroke-linecap="round"/>
+                <!-- Node circles -->
+                <circle cx="50" cy="7"  r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="81" cy="19" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="93" cy="50" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="81" cy="81" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="50" cy="93" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="19" cy="81" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="7"  cy="50" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <circle cx="19" cy="19" r="6" fill="#dce8f5" stroke="#5b7fa6" stroke-width="2"/>
+                <!-- Hub ring -->
+                <circle cx="50" cy="50" r="23" fill="#c8d8ec" stroke="#5b7fa6" stroke-width="2.5"/>
+                <circle cx="50" cy="50" r="18" fill="#eef4fb" stroke="#5b7fa6" stroke-width="1.5"/>
+                <!-- Globe fill -->
+                <circle cx="50" cy="50" r="17" fill="#5ba4e5"/>
+                <!-- Globe grid lines clipped -->
+                <clipPath id="network-globe-clip">
+                  <circle cx="50" cy="50" r="16.5"/>
+                </clipPath>
+                <g clip-path="url(#network-globe-clip)" stroke="#1c3f6e" stroke-width="1.8" fill="none" opacity="0.75">
+                  <line x1="33" y1="39" x2="67" y2="39"/>
+                  <line x1="33" y1="45" x2="67" y2="45"/>
+                  <line x1="33" y1="55" x2="67" y2="55"/>
+                  <line x1="33" y1="61" x2="67" y2="61"/>
+                  <line x1="50" y1="33" x2="50" y2="67"/>
+                  <line x1="42" y1="33" x2="42" y2="67"/>
+                  <line x1="58" y1="33" x2="58" y2="67"/>
+                </g>
+                <!-- Globe outline -->
+                <circle cx="50" cy="50" r="17" fill="none" stroke="#1c3f6e" stroke-width="2"/>
+                <!-- Subtle highlight -->
+                <ellipse cx="43" cy="44" rx="5" ry="7" fill="rgba(255,255,255,0.18)"/>
+              </svg>
+            </span>
             <span class="nav-label" data-i18n="nav.network">Network</span>
           </button>
           <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
