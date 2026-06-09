@@ -621,12 +621,20 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 
 .cylinder-item {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  align-items: stretch;
+  gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.1s;
+}
+.cyl-side-bar {
+  width: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--amber);
+  align-self: stretch;
+  min-height: 36px;
 }
 .cylinder-item:last-child { border-bottom: none; }
 .cylinder-item:hover { background: rgba(255,255,255,0.02); }
@@ -637,6 +645,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 5px;
+  align-self: flex-start;
 }
 .dot-in-refill      { background: var(--green); }
 .dot-in-circulation { background: var(--blue); }
@@ -1044,12 +1053,21 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 
 .license-item {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  align-items: stretch;
+  gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid var(--border);
   animation: slide-in 0.18s ease;
 }
+.lic-side-bar {
+  width: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 36px;
+}
+.bar-green { background: var(--green); }
+.bar-red   { background: var(--red); }
 .license-item:last-child { border-bottom: none; }
 
 .license-body { flex: 1; min-width: 0; }

@@ -65,6 +65,22 @@ const TRANSLATIONS = {
     'mgmt.salesByWeight':'Sales by SKU',
     'mgmt.weightKg':'kg cylinders',
     'kpi.totalInactive':'total',
+    'login.brandTitle':'LPG Traceability Platform',
+    'login.feat1':'LPG cylinder lifecycle management',
+    'login.feat2':'Real-time supply chain visibility',
+    'login.feat3':'Multi-stakeholder regulatory compliance',
+    'login.feat4':'Field inspection alerts',
+    'login.feat5':'Consumer engagement',
+    'login.brandFooter':'EWURA · Tanzania · LPG Sector',
+    'login.panelTitle':'Select your profile',
+    'login.panelSubtitle':'Choose the role that matches your organisation to continue',
+    'login.ewuraDesc':'Regulatory Authority · Grant & Revoke Licences · Monitor Supply Chain',
+    'login.lpgmcDesc':'LPG Marketing Company · Register · Refill · Ship · Receive · Send Revalidation',
+    'login.distTitle':'Distributor','login.distDesc':'Distribution Company · Receive · Supply to Retailers · Return Empty',
+    'login.retailerTitle':'Retailer','login.retailerDesc':'Retail Outlet · Receive Cylinders · Sell · Return Empty',
+    'login.revalTitle':'Revalidator','login.revalDesc':'Cylinders Revalidator · Receive · Revalidate & Update · Return to LPGMC',
+    'login.auditorTitle':'Field Auditor','login.auditorDesc':'Field Inspection Unit · Inspect Products · View All Cylinders',
+    'login.traDesc':'Tanzania Revenue Authority · Cross-check Refills · Register Shipments',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -121,6 +137,22 @@ const TRANSLATIONS = {
     'mgmt.salesByWeight':'Mauzo kwa SKU',
     'mgmt.weightKg':'kg mitungi',
     'kpi.totalInactive':'jumla',
+    'login.brandTitle':'Jukwaa la Ufuatiliaji wa LPG',
+    'login.feat1':'Usimamizi wa mzunguko wa maisha wa mitungi ya LPG',
+    'login.feat2':'Mwonekano wa mnyororo wa ugavi kwa wakati halisi',
+    'login.feat3':'Kuzingatia kanuni kwa wadau wengi',
+    'login.feat4':'Tahadhari za ukaguzi wa uwanjani',
+    'login.feat5':'Ushirikiano wa watumiaji',
+    'login.brandFooter':'EWURA · Tanzania · Sekta ya LPG',
+    'login.panelTitle':'Chagua wasifu wako',
+    'login.panelSubtitle':'Chagua jukumu linalolingana na shirika lako kuendelea',
+    'login.ewuraDesc':'Mamlaka ya Udhibiti · Kutoa na Kufuta Leseni · Kufuatilia Mnyororo wa Ugavi',
+    'login.lpgmcDesc':'Kampuni ya Uuzaji wa LPG · Sajili · Jaza · Tuma · Pokea · Tuma Uthibitishaji Upya',
+    'login.distTitle':'Msambazaji','login.distDesc':'Kampuni ya Usambazaji · Pokea · Saidia Wauzaji · Rudisha Tupu',
+    'login.retailerTitle':'Muuzaji','login.retailerDesc':'Duka la Rejareja · Pokea Mitungi · Uza · Rudisha Tupu',
+    'login.revalTitle':'Mthibitishaji','login.revalDesc':'Mthibitishaji wa Mitungi · Pokea · Thibitisha Upya · Rudisha kwa LPGMC',
+    'login.auditorTitle':'Mkaguzi wa Uwanjani','login.auditorDesc':'Kitengo cha Ukaguzi wa Uwanjani · Kagua Bidhaa · Tazama Mitungi Yote',
+    'login.traDesc':'Mamlaka ya Mapato Tanzania · Kagua Kujaza · Sajili Mizigo',
   },
 };
 
@@ -1782,6 +1814,7 @@ function applyCylFilters() {
       : '';
 
     li.innerHTML = `
+      <span class="cyl-side-bar"></span>
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
       <div class="cylinder-body">
         <div class="cylinder-serial">${escapeHtml(cyl.serial)}</div>
@@ -3336,6 +3369,7 @@ function applyLicenseFilters() {
     li.dataset.licId = lic.id;
     li.style.cursor = 'pointer';
     li.innerHTML = `
+      <span class="lic-side-bar ${lic.status === 'active' ? 'bar-green' : 'bar-red'}"></span>
       <div class="license-body">
         <div class="license-company">${escapeHtml(lic.companyName)}</div>
         <div class="license-number">${escapeHtml(lic.licenseNumber)}</div>
