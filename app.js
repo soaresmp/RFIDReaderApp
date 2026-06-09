@@ -1178,6 +1178,9 @@ function applySession() {
   if (registerCylBtn) {
     registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   }
+  // Reception button: LPGMC, distributor, retailer
+  const _recBtn = $('reception-btn');
+  if (_recBtn) _recBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
   // Shipment button: LPGMC, distributor, retailer
   const _shipBtn = $('shipment-btn');
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
@@ -1574,10 +1577,8 @@ function openRegisterModal(tagId) {
   regManufDate.value      = today;
   regRequalDate.value     = '';
   regRequalPlant.value    = '';
-  regWaterCapacity.value  = '26.1';
   regTare.value           = '14.5';
   regNetWeight.value      = '12';
-  regGrossWeight.value    = '26.5';
   regPressureTest.value   = '';
   regHydrotest.value      = today;
   regNotes.value          = '';
@@ -3789,6 +3790,99 @@ function downloadCSV(filename, content) {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RECEPTION MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _receptionScannedCyls = []; // [{ id, cyl }]
+
+function openReceptionModal() {
+  if (!Auth.session?.role) return;
+  _receptionScannedCyls = [];
+  const notesEl = $('reception-notes'); if (notesEl) notesEl.value = '';
+  const scanIn  = $('reception-scan-input'); if (scanIn) scanIn.value = '';
+  renderReceptionList();
+  openModal('modal-reception');
+  if (scanIn) setTimeout(() => scanIn.focus(), 100);
+}
+
+function renderReceptionList() {
+  const list = $('reception-cylinder-list');
+  if (!list) return;
+  if (!_receptionScannedCyls.length) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>';
+    return;
+  }
+  const statusLabels = { 'in-stock':'In Stock','in-refill':'In Refill','in-circulation':'In Circulation','revalidation':'Revalidation','in-use':'In Use','retired':'Retired' };
+  list.innerHTML = _receptionScannedCyls.map(({ id, cyl }, idx) => {
+    const sl = statusLabels[cyl?.status] || cyl?.status || '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-family:var(--font-mono);color:var(--text)">${escapeHtml(id)}</div>
+        ${cyl ? `<div style="font-size:11px;color:var(--dim);margin-top:2px">${escapeHtml(cyl.serial||'—')} · ${escapeHtml(cyl.ownerCompany||cyl.company||'—')} · ${escapeHtml(sl)}</div>` : ''}
+      </div>
+      <button class="btn btn-sm" style="background:none;color:var(--red);padding:2px 8px;min-width:0" data-rec-remove="${idx}">✕</button>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-rec-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _receptionScannedCyls.splice(parseInt(btn.dataset.recRemove), 1);
+      renderReceptionList();
+    });
+  });
+}
+
+async function addToReception(tagId) {
+  if (!tagId) return;
+  if (_receptionScannedCyls.some(c => c.id === tagId)) { showSnackbar('Already in reception list.', 'warning'); return; }
+  const cyl = await txGet('cylinders', tagId);
+  if (!cyl) { showSnackbar(`Tag "${tagId}" not found.`, 'error'); return; }
+  _receptionScannedCyls.push({ id: tagId, cyl });
+  renderReceptionList();
+  const inp = $('reception-scan-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+const _recBtnEl = $('reception-btn');
+if (_recBtnEl) _recBtnEl.addEventListener('click', openReceptionModal);
+
+const _recAddBtn = $('reception-add-btn');
+if (_recAddBtn) _recAddBtn.addEventListener('click', () => {
+  const inp = $('reception-scan-input');
+  if (inp) addToReception(inp.value.trim());
+});
+
+const _recScanInput = $('reception-scan-input');
+if (_recScanInput) _recScanInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addToReception(_recScanInput.value.trim()); }
+});
+
+const _recConfirmBtn = $('reception-confirm-btn');
+if (_recConfirmBtn) _recConfirmBtn.addEventListener('click', async () => {
+  if (!_receptionScannedCyls.length) { showSnackbar('No cylinders scanned.', 'error'); return; }
+  const role    = Auth.session?.role;
+  const company = Auth.session?.company || '';
+  const notes   = $('reception-notes')?.value?.trim() || '';
+  const ts      = new Date().toISOString();
+  const evType  = role === 'retailer' ? 'ret-received' : role === 'distributor' ? 'dist-received' : 'received-empty';
+  for (const { id: tagId } of _receptionScannedCyls) {
+    const cyl = await txGet('cylinders', tagId);
+    if (!cyl) continue;
+    const ev = {
+      id: crypto.randomUUID(), cylinderId: tagId, type: evType, timestamp: ts,
+      operatorId: Auth.session?.operatorId || 'SYSTEM',
+      company, location: company,
+    };
+    if (notes) ev.notes = notes;
+    await txPut('events', ev);
+    cyl.status = 'in-stock';
+    await txPut('cylinders', cyl);
+  }
+  showSnackbar(`Reception of ${_receptionScannedCyls.length} cylinder(s) confirmed.`, 'success');
+  closeModal('modal-reception');
+  renderCylinders();
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER

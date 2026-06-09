@@ -379,6 +379,7 @@
             <h2 class="page-title">🔥 Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">Register</button>
+              <button id="reception-btn" class="btn btn-primary" type="button" style="display:none">Reception</button>
               <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none">Shipment</button>
             </div>
           </div>
@@ -797,6 +798,36 @@
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-shipment" type="button">Cancel</button>
         <button id="shipment-confirm-btn" class="btn btn-primary" type="button">Confirm Shipment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reception modal -->
+  <div id="modal-reception" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Reception">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Reception</h2>
+        <button class="modal-close" data-close="modal-reception" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1">
+            <label>Scan or enter cylinder tag</label>
+            <input id="reception-scan-input" type="text" class="form-control" autocomplete="off" placeholder="Scan RFID / barcode or type tag ID…" />
+          </div>
+          <button id="reception-add-btn" class="btn btn-primary" type="button" style="flex-shrink:0">Add</button>
+        </div>
+        <div id="reception-cylinder-list" style="margin-top:4px;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;min-height:52px">
+          <p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+          <textarea id="reception-notes" class="form-control" rows="2" placeholder="e.g. delivery reference, condition remarks…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-reception" type="button">Cancel</button>
+        <button id="reception-confirm-btn" class="btn btn-primary" type="button">Confirm Reception</button>
       </div>
     </div>
   </div>
