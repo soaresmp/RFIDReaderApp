@@ -1813,8 +1813,10 @@ function applyCylFilters() {
       ? `<span class="cylinder-meta-item">📍 ${[locData.region, locData.location].filter(Boolean).map(escapeHtml).join(' · ')}</span>`
       : '';
 
+    const hasAlert = _alertsData.some(a => a.cylinder?.id === cyl.id);
+
     li.innerHTML = `
-      <span class="cyl-side-bar"></span>
+      ${hasAlert ? '<span class="cyl-side-bar"></span>' : '<span class="cyl-side-bar-empty"></span>'}
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
       <div class="cylinder-body">
         <div class="cylinder-serial">${escapeHtml(cyl.serial)}</div>

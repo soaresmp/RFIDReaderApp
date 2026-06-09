@@ -628,14 +628,15 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   cursor: pointer;
   transition: background 0.1s;
 }
-.cyl-side-bar {
+.cyl-side-bar, .cyl-side-bar-empty {
   width: 3px;
   border-radius: 2px;
   flex-shrink: 0;
-  background: var(--amber);
   align-self: stretch;
   min-height: 36px;
 }
+.cyl-side-bar { background: var(--amber); }
+.cyl-side-bar-empty { background: transparent; }
 .cylinder-item:last-child { border-bottom: none; }
 .cylinder-item:hover { background: rgba(255,255,255,0.02); }
 
