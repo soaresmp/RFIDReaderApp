@@ -3047,7 +3047,7 @@ async function renderMgmtReports() {
           ${netSalesBarsHtml}
         </div>`;
     })() : ''}
-    <div class="mgmt-card">
+    ${role !== 'lpgmc' ? `<div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('dash.marketCompliance')}</div>
         <button class="mgmt-card-export-btn" data-export="field-inspection" type="button">↓ CSV</button>
