@@ -2944,6 +2944,43 @@ async function renderMgmtReports() {
   const inspNonM     = inspEventsM.filter(ev => ev.compliant === false).length;
   const inspRateM    = inspEventsM.length ? Math.round(inspCompM / inspEventsM.length * 100) : 0;
 
+  // Alerts by Region — derive each alerted cylinder's last known region from events
+  const _cylLastRegionM = {};
+  allEvents
+    .filter(e => e.region)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(e => { _cylLastRegionM[e.cylinderId] = e.region; });
+  const _alertsByRegion = {};
+  _alertsData.forEach(al => {
+    const cyl = al.cylinder;
+    if (!cyl) return;
+    const region = _cylLastRegionM[cyl.id]
+      || DEMO_NETWORK.find(n => n.name === cyl.company)?.region
+      || 'Unknown';
+    if (!_alertsByRegion[region]) _alertsByRegion[region] = { critical: new Set(), warning: new Set() };
+    (al.severity === 'critical' ? _alertsByRegion[region].critical : _alertsByRegion[region].warning).add(cyl.id);
+  });
+  const alertRegionEntries = Object.entries(_alertsByRegion)
+    .map(([region, sets]) => ({ region, critical: sets.critical.size, warning: sets.warning.size, total: sets.critical.size + sets.warning.size }))
+    .sort((a, b) => b.total - a.total);
+  const maxAlertRegion = Math.max(...alertRegionEntries.map(e => e.total), 1);
+  const alertRegionBarsHtml = alertRegionEntries.length
+    ? alertRegionEntries.map(({ region, critical, warning, total }) => {
+        const pct = Math.round((total / maxAlertRegion) * 100);
+        const barColor = critical > 0 ? 'var(--red)' : 'var(--amber)';
+        const detail = [critical > 0 ? `${critical} critical` : '', warning > 0 ? `${warning} warning` : ''].filter(Boolean).join(' · ');
+        return `<div class="mgmt-bar-row">
+          <span class="mgmt-bar-label">${escapeHtml(region)}</span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+            <div class="mgmt-bar-track">
+              <div class="mgmt-bar-fill" style="width:${pct}%;background:${barColor}"><span>${total}</span></div>
+            </div>
+            <div style="font-size:10px;color:var(--dim);padding-left:2px">${escapeHtml(detail)}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No active alerts.</p>';
+
   grid.innerHTML = `
     <div class="mgmt-card">
       <div class="mgmt-card-header">
@@ -3062,7 +3099,17 @@ async function renderMgmtReports() {
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Inspections: <strong style="color:var(--text)">${inspRegEntries.reduce((s,[,v])=>s+v.total,0)}</strong></div>
       ${inspRegBarsHtml}
-    </div>` : ''}`;
+    </div>` : ''}
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">Cylinder Alerts by Region</div>
+        <button class="mgmt-card-export-btn" data-export="alerts-region" type="button">↓ CSV</button>
+      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">
+        Total cylinders with alerts: <strong style="color:var(--text)">${_alertsData.length ? new Set(_alertsData.map(a => a.cylinder?.id).filter(Boolean)).size : 0}</strong>
+      </div>
+      ${alertRegionBarsHtml}
+    </div>`;
 }
 
 // Per-card CSV export buttons
@@ -3146,6 +3193,25 @@ if (mgmtGrid) {
       allEvents.filter(ev => ev.type === 'ret-sold' && ev.company && inP(ev.timestamp)).forEach(ev => { nsMap[ev.company] = (nsMap[ev.company] || 0) + 1; });
       csv = 'Partner,Sales\n' + Object.entries(nsMap).sort((a,b) => b[1]-a[1]).map(([n,c]) => `"${n}",${c}`).join('\n');
       downloadCSV(`lpg-network-sales-${date}.csv`, csv);
+    } else if (type === 'sales-weight') {
+      csv = 'Timestamp,CylinderID,NetWeight_kg,Company\n' +
+        allEvents.filter(ev => ev.type === 'ret-sold' && inP(ev.timestamp)).map(ev => {
+          const cyl = allCyls.find(c => c.id === ev.cylinderId);
+          const w = cyl ? (cyl.netWeight || cyl.capacity || 12) : 12;
+          return `"${ev.timestamp}","${ev.cylinderId}",${w},"${ev.company || ''}"`;
+        }).join('\n');
+      downloadCSV(`lpg-sales-by-sku-${date}.csv`, csv);
+    } else if (type === 'alerts-region') {
+      const cylLastReg = {};
+      allEvents.filter(e => e.region).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        .forEach(e => { cylLastReg[e.cylinderId] = e.region; });
+      const rows = _alertsData.map(al => {
+        const cyl = al.cylinder;
+        const region = cyl ? (cylLastReg[cyl.id] || DEMO_NETWORK.find(n => n.name === cyl?.company)?.region || 'Unknown') : 'Unknown';
+        return `"${region}","${al.severity}","${al.type}","${cyl?.serial || ''}","${cyl?.id || ''}","${al.title.replace(/"/g, '""')}"`;
+      });
+      csv = 'Region,Severity,Type,Serial,CylinderID,Title\n' + rows.join('\n');
+      downloadCSV(`lpg-alerts-by-region-${date}.csv`, csv);
     }
   });
 }
