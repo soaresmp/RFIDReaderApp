@@ -1499,6 +1499,16 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   border-top: 1px solid rgba(255,255,255,0.12);
   padding-top: 16px;
 }
+.login-brand-cylinders {
+  position: absolute;
+  bottom: -20px;
+  right: -24px;
+  width: 220px;
+  height: 280px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
 
 /* Right login panel */
 .login-panel {
