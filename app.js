@@ -1193,6 +1193,7 @@ function applySession() {
   headerOpPill.hidden      = false;
 
   logoutBtn.hidden = false;
+  if (_hamburger) _hamburger.hidden = false;
 
   // Nav tabs
   const allowed = ROLE_TABS[s.role] || [];
@@ -3791,6 +3792,17 @@ if (langToggleBtn) {
   });
 }
 
+// ── Mobile nav drawer ──────────────────────────────────────────────────────
+const _hamburger = $('nav-hamburger');
+const _navBackdrop = $('nav-backdrop');
+function _openNav()  { document.body.classList.add('nav-open'); }
+function _closeNav() { document.body.classList.remove('nav-open'); }
+if (_hamburger) _hamburger.addEventListener('click', () =>
+  document.body.classList.toggle('nav-open'));
+if (_navBackdrop) _navBackdrop.addEventListener('click', _closeNav);
+document.querySelectorAll('.nav-tab').forEach(tab =>
+  tab.addEventListener('click', _closeNav));
+
 logoutBtn.addEventListener('click', () => {
   // Reset UI
   State.focused = false;
@@ -3803,6 +3815,8 @@ logoutBtn.addEventListener('click', () => {
   headerRoleBadge.hidden = true;
   headerOpPill.hidden    = true;
   logoutBtn.hidden       = true;
+  if (_hamburger) _hamburger.hidden = true;
+  _closeNav();
   eventsList.innerHTML   = '';
   eventsEmpty.style.display = '';
   lastScanCard.hidden    = true;
