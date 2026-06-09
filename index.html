@@ -269,7 +269,7 @@
             <h2 class="page-title">🔥 Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">+ Register</button>
-              <button id="shipment-btn" class="btn btn-secondary" type="button" style="display:none">📦 Shipment</button>
+              <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none">Shipment</button>
             </div>
           </div>
 
@@ -624,14 +624,32 @@
           <select id="shipment-dest" class="form-control"></select>
         </div>
         <div class="form-group">
-          <label>Scan Cylinders (RFID)</label>
+          <label>Batch Scan Cylinders (RFID) <span style="font-size:11px;color:var(--dim)">— scan or type each tag, press Enter</span></label>
           <div style="display:flex;gap:8px">
-            <input id="shipment-scan-input" type="text" class="form-control font-mono" placeholder="Scan or type RFID tag…" autocomplete="off" />
+            <input id="shipment-scan-input" type="text" class="form-control font-mono" placeholder="Scan RFID tag…" autocomplete="off" />
             <button id="shipment-add-btn" class="btn btn-primary" type="button">Add</button>
           </div>
         </div>
-        <div id="shipment-cylinder-list" style="margin-top:4px;max-height:240px;overflow-y:auto">
+        <div id="shipment-cylinder-list" style="margin-top:4px;max-height:220px;overflow-y:auto">
           <p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders scanned yet.</p>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+          <textarea id="shipment-notes" class="form-control" rows="2" placeholder="Add shipment notes…" style="resize:vertical"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Invoice <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+          <input id="shipment-invoice" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
+        <div id="shipment-consumer-section" style="display:none;margin-top:4px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
+            <input id="shipment-consumer-sale-chk" type="checkbox" />
+            Flag as Consumer Sales
+          </label>
+          <div id="shipment-consumer-id-wrap" style="display:none;margin-top:10px">
+            <label style="font-size:13px">Consumer ID <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+            <input id="shipment-consumer-id" type="text" class="form-control" style="margin-top:4px" placeholder="National ID, phone, or account number…" />
+          </div>
         </div>
       </div>
       <div class="modal-footer">
