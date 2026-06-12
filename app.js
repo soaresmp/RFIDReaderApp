@@ -1831,6 +1831,8 @@ function applyCylFilters() {
 
     const hasAlert = _alertsData.some(a => a.cylinder?.id === cyl.id);
 
+    const isLpgmc = Auth.session?.role === 'lpgmc';
+
     li.innerHTML = `
       ${hasAlert ? '<span class="cyl-side-bar"></span>' : '<span class="cyl-side-bar-empty"></span>'}
       <span class="cylinder-status-dot ${escapeHtml(dotClass)}"></span>
@@ -1846,9 +1848,13 @@ function applyCylFilters() {
       </div>
       <div class="cylinder-badges">
         <span class="status-badge ${escapeHtml(statClass)}">${escapeHtml(statLabel)}</span>
+        ${isLpgmc ? `<button class="cyl-delete-btn" data-id="${escapeHtml(cyl.id)}" title="Remove cylinder" type="button">🗑</button>` : ''}
       </div>`;
 
-    li.addEventListener('click', () => openPassportModal(cyl.id));
+    li.addEventListener('click', e => {
+      if (e.target.closest('.cyl-delete-btn')) return;
+      openPassportModal(cyl.id);
+    });
     cylindersList.appendChild(li);
   });
 
@@ -1861,6 +1867,25 @@ function applyCylFilters() {
 cylSearch.addEventListener('input',         () => { _cylPage = 1; applyCylFilters(); });
 cylFilterStatus.addEventListener('change',  () => { _cylPage = 1; applyCylFilters(); });
 cylFilterCompany.addEventListener('change', () => { _cylPage = 1; applyCylFilters(); });
+
+// Delete cylinder (LPGMC only) — delegated on the list
+cylindersList.addEventListener('click', async e => {
+  const btn = e.target.closest('.cyl-delete-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const cylId = btn.dataset.id;
+  if (!cylId) return;
+  const cyl = _cylAllData.find(c => c.id === cylId);
+  const label = cyl ? cyl.serial : cylId;
+  if (!confirm(`Remove cylinder "${label}" and all its history?\nThis cannot be undone.`)) return;
+  await txDelete('cylinders', cylId);
+  const allEvs = await txGetAll('events');
+  for (const ev of allEvs.filter(e => e.cylinderId === cylId)) {
+    await txDelete('events', ev.id);
+  }
+  showSnackbar(`Cylinder ${label} removed.`, 'success');
+  renderCylinders();
+});
 
 // Export cylinders CSV
 if (exportDashboardBtn) {
