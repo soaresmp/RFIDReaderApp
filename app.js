@@ -2591,6 +2591,100 @@ function initInteractiveMap(mapId, markers) {
 
 let _alertLeafletMap = null;
 
+// ── Lightweight OSM tile map (no CDN dependency) ──────────────────────────
+// Fetches tiles directly from tile.openstreetmap.org, renders markers + route
+// lines with absolute-positioned HTML/SVG overlays.
+function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = [] } = {}) {
+  const el = $(mapId);
+  if (!el) return;
+  const TS = 256, Z = zoom, N = 1 << Z;
+  const w = el.offsetWidth || 640, h = height;
+
+  if (!center) {
+    center = markers.length
+      ? { lat: markers.reduce((s, m) => s + m.lat, 0) / markers.length,
+          lng: markers.reduce((s, m) => s + m.lng, 0) / markers.length }
+      : { lat: -6.5, lng: 35.5 };
+  }
+
+  // Web Mercator: lat/lng → fractional tile XY at zoom Z
+  function merc(lat, lng) {
+    const sin = Math.sin(lat * Math.PI / 180);
+    return {
+      tx: (lng + 180) / 360 * N,
+      ty: (1 - Math.log((1 + sin) / (1 - sin)) / (2 * Math.PI)) / 2 * N,
+    };
+  }
+  const C = merc(center.lat, center.lng);
+  function pxOf(lat, lng) {
+    const p = merc(lat, lng);
+    return { x: (p.tx - C.tx) * TS + w / 2, y: (p.ty - C.ty) * TS + h / 2 };
+  }
+
+  const cx = Math.floor(C.tx), cy = Math.floor(C.ty);
+  const hw = Math.ceil(w / 2 / TS) + 1, hh = Math.ceil(h / 2 / TS) + 1;
+
+  el.style.cssText = `position:relative;overflow:hidden;height:${h}px;border:1px solid var(--border);border-radius:8px;background:#d4d0cb`;
+
+  // Tile grid
+  let tiles = '';
+  for (let dy = -hh; dy <= hh; dy++) {
+    for (let dx = -hw; dx <= hw; dx++) {
+      const tx = ((cx + dx) % N + N) % N, ty = cy + dy;
+      if (ty < 0 || ty >= N) continue;
+      const sub = ['a', 'b', 'c'][(tx + ty) % 3];
+      const { x, y } = { x: (cx + dx - C.tx) * TS + w / 2, y: (cy + dy - C.ty) * TS + h / 2 };
+      tiles += `<img src="https://${sub}.tile.openstreetmap.org/${Z}/${tx}/${ty}.png" style="position:absolute;left:${x}px;top:${y}px;width:${TS}px;height:${TS}px" loading="eager">`;
+    }
+  }
+
+  // SVG route lines
+  const svgLines = lines.length ? `<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none">${
+    lines.map(({ from, to, color = '#3b82f6', dash = '7 5' }) => {
+      const a = pxOf(from.lat, from.lng), b = pxOf(to.lat, to.lng);
+      return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.55" stroke-dasharray="${dash}"/>`;
+    }).join('')
+  }</svg>` : '';
+
+  // Marker dots
+  const mkrsHtml = markers.map((m, i) => {
+    const { x, y } = pxOf(m.lat, m.lng);
+    const sz = m.big ? 30 : 18, fs = m.big ? 13 : 9, col = m.color || '#3b82f6';
+    const pulse = m.pulse ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:${col};opacity:0.22;animation:imap-pulse 1.4s ease-out infinite;pointer-events:none"></div>` : '';
+    return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big ? 10 : 5};cursor:default">
+      ${pulse}<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${fs}px;color:#fff;font-weight:700;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4)">${escapeHtml(m.symbol || '')}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="position:absolute;inset:0;z-index:1">${tiles}</div>
+    ${svgLines}
+    <div style="position:absolute;inset:0;z-index:3">${mkrsHtml}</div>
+    <div id="${mapId}-tm-tip" style="position:absolute;background:#1e293b;color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:50;display:none;max-width:260px;line-height:1.4"></div>
+    <div style="position:absolute;bottom:0;right:0;background:rgba(255,255,255,0.72);font-size:10px;padding:2px 5px;z-index:20">© <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#0077bb">OpenStreetMap</a></div>`;
+
+  const tip = el.querySelector(`#${mapId}-tm-tip`);
+  el.addEventListener('mousemove', e => {
+    const mk = e.target.closest('[data-tmi]');
+    if (!tip) return;
+    if (mk) {
+      const m = markers[+mk.dataset.tmi];
+      if (!m) return;
+      tip.textContent = m.label || '';
+      tip.style.display = 'block';
+      const r = el.getBoundingClientRect();
+      let lx = e.clientX - r.left + 12, ly = e.clientY - r.top - 36;
+      if (lx + 270 > w) lx = e.clientX - r.left - 270;
+      if (ly < 0) ly = e.clientY - r.top + 14;
+      tip.style.left = lx + 'px';
+      tip.style.top  = ly + 'px';
+    } else {
+      tip.style.display = 'none';
+    }
+  });
+  el.addEventListener('mouseleave', () => { if (tip) tip.style.display = 'none'; });
+}
+
 function _resolveAlertLatLng(al) {
   const cyl = al.cylinder;
   let lat = -6.5, lng = 35.5;
@@ -2612,38 +2706,19 @@ function _resolveAlertLatLng(al) {
 }
 
 function renderAlertsMap() {
-  const mapEl = $('alert-map');
-  if (!mapEl) return;
-
-  if (!_alertsData.length) {
-    mapEl.style.height = 'auto';
-    mapEl.style.border = 'none';
-    mapEl.innerHTML = `<p style="color:var(--muted);padding:16px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
-    return;
-  }
-
-  const cards = _alertsData.map(al => {
+  const markers = _alertsData.map(al => {
     const [lat, lng] = _resolveAlertLatLng(al);
     const isCrit = al.severity === 'critical';
-    const color  = isCrit ? '#dc2626' : '#f59e0b';
-    const cyl    = al.cylinder;
-    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-      <div style="background:${color};padding:6px 10px">
-        <span style="font-size:11px;font-weight:600;color:#fff">${isCrit ? '🚨' : '⚠️'} ${escapeHtml(al.title)}</span>
-      </div>
-      <div style="height:160px">${buildOsmEmbed(lat, lng)}</div>
-      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
-        ${escapeHtml(al.desc || '')}
-        ${cyl ? `<br><span style="color:var(--text)">Cyl <b>${escapeHtml(cyl.serial || '')}</b></span> · ${escapeHtml(cyl.company || '')}` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  mapEl.style.height = 'auto';
-  mapEl.style.border = 'none';
-  mapEl.style.borderRadius = '0';
-  mapEl.style.overflow = 'visible';
-  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px">${cards}</div>`;
+    const cyl = al.cylinder;
+    return {
+      lat, lng,
+      color:  isCrit ? '#dc2626' : '#f59e0b',
+      symbol: isCrit ? '!' : '▲',
+      pulse:  isCrit,
+      label:  al.title + (cyl ? ' · ' + (cyl.serial || '') + ' · ' + (cyl.company || '') : ''),
+    };
+  });
+  buildTileMap('alert-map', markers, { height: 480, zoom: 6, center: { lat: -6.5, lng: 35.5 } });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4576,43 +4651,25 @@ async function renderBulkMonitor() {
       </div>
     </li>`).join('');
 
-  const mapEl = $('bulk-map');
-  if (!mapEl) return;
-
   const TERMINAL = { lat:-6.7924, lng:39.2083 };
 
-  const termCard = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-    <div style="background:#f59e0b;padding:6px 10px">
-      <span style="font-size:11px;font-weight:600;color:#000">🏭 Dar es Salaam Import Terminal</span>
-    </div>
-    <div style="height:180px">${buildOsmEmbed(TERMINAL.lat, TERMINAL.lng)}</div>
-    <div style="padding:6px 10px;font-size:11px;color:var(--muted)">Main LPG import &amp; loading facility — bulk supply origin for Tanzania</div>
-  </div>`;
+  const allMarkers = [
+    { lat: TERMINAL.lat, lng: TERMINAL.lng, color: '#f59e0b', symbol: 'T', big: true,
+      label: 'Dar es Salaam Import Terminal' },
+    ...DEMO_BULK_TANKERS.map(tk => ({
+      lat: tk.lat, lng: tk.lng,
+      color:  tankerHexColor[tk.status] || '#64748b',
+      symbol: tankerSym[tk.status] || '●',
+      pulse:  tk.status === 'in-transit',
+      label:  `${tk.plate} — ${tk.operator} (${statusLbl(tk.status)})${tk.routePct > 0 && tk.routePct < 100 ? ' · ' + tk.routePct + '% complete' : ''}`,
+    })),
+  ];
 
-  const tankerCards = DEMO_BULK_TANKERS.map(tk => {
-    const col = tankerHexColor[tk.status] || '#64748b';
-    const progressHtml = tk.routePct > 0 && tk.routePct < 100
-      ? `<div style="background:#e2e8f0;border-radius:3px;height:4px;margin-top:4px"><div style="width:${tk.routePct}%;height:100%;border-radius:3px;background:${col}"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${tk.routePct}% route complete</div>`
-      : '';
-    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-      <div style="background:${col};padding:6px 10px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:12px;font-weight:600;color:#fff">🚛 ${escapeHtml(tk.plate)}</span>
-        <span style="font-size:11px;color:rgba(255,255,255,0.85)">${statusLbl(tk.status)}</span>
-      </div>
-      <div style="height:180px">${buildOsmEmbed(tk.lat, tk.lng)}</div>
-      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
-        <strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}<br>
-        📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}<br>
-        ${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}
-        ${progressHtml}
-      </div>
-    </div>`;
-  }).join('');
+  const lines = DEMO_BULK_TANKERS
+    .filter(tk => tk.status === 'in-transit')
+    .map(tk => ({ from: TERMINAL, to: { lat: tk.lat, lng: tk.lng }, color: tankerHexColor['in-transit'] }));
 
-  mapEl.style.height = 'auto';
-  mapEl.style.border = 'none';
-  mapEl.style.borderRadius = '0';
-  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:16px">${termCard}${tankerCards}</div>`;
+  buildTileMap('bulk-map', allMarkers, { height: 420, zoom: 6, center: { lat: -5.5, lng: 35.5 }, lines });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
