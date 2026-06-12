@@ -2591,98 +2591,176 @@ function initInteractiveMap(mapId, markers) {
 
 let _alertLeafletMap = null;
 
-// ── Lightweight OSM tile map (no CDN dependency) ──────────────────────────
-// Fetches tiles directly from tile.openstreetmap.org, renders markers + route
-// lines with absolute-positioned HTML/SVG overlays.
+// ── Lightweight OSM tile map — zoom, pan, hover tooltip ───────────────────
 function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = [] } = {}) {
   const el = $(mapId);
   if (!el) return;
-  const TS = 256, Z = zoom, N = 1 << Z;
-  const w = el.offsetWidth || 640, h = height;
 
-  if (!center) {
-    center = markers.length
-      ? { lat: markers.reduce((s, m) => s + m.lat, 0) / markers.length,
-          lng: markers.reduce((s, m) => s + m.lng, 0) / markers.length }
+  const TS = 256;
+  let Z = zoom;
+  let C = center ? { ...center }
+    : markers.length
+      ? { lat: markers.reduce((s,m) => s+m.lat, 0) / markers.length,
+          lng: markers.reduce((s,m) => s+m.lng, 0) / markers.length }
       : { lat: -6.5, lng: 35.5 };
-  }
 
-  // Web Mercator: lat/lng → fractional tile XY at zoom Z
+  // Abort previous interaction listeners if map is rebuilt in-place
+  if (el._tmAC) el._tmAC.abort();
+  const ac = new AbortController();
+  el._tmAC = ac;
+  const sig = ac.signal;
+
+  el.style.cssText = `position:relative;overflow:hidden;height:${height}px;border:1px solid var(--border);border-radius:8px;background:#d4d0cb;cursor:grab;user-select:none`;
+
+  // Web Mercator helpers
   function merc(lat, lng) {
-    const sin = Math.sin(lat * Math.PI / 180);
-    return {
-      tx: (lng + 180) / 360 * N,
-      ty: (1 - Math.log((1 + sin) / (1 - sin)) / (2 * Math.PI)) / 2 * N,
-    };
+    const N = 1 << Z, sin = Math.sin(lat * Math.PI / 180);
+    return { tx: (lng + 180) / 360 * N,
+             ty: (1 - Math.log((1+sin)/(1-sin)) / (2*Math.PI)) / 2 * N };
   }
-  const C = merc(center.lat, center.lng);
-  function pxOf(lat, lng) {
-    const p = merc(lat, lng);
-    return { x: (p.tx - C.tx) * TS + w / 2, y: (p.ty - C.ty) * TS + h / 2 };
+  function tileToLatLng(tx, ty) {
+    const N = 1 << Z;
+    const n = Math.PI - 2 * Math.PI * ty / N;
+    return { lat: 180/Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n))),
+             lng: tx / N * 360 - 180 };
   }
 
-  const cx = Math.floor(C.tx), cy = Math.floor(C.ty);
-  const hw = Math.ceil(w / 2 / TS) + 1, hh = Math.ceil(h / 2 / TS) + 1;
+  const btnSt = 'width:28px;height:28px;background:#fff;border:1px solid rgba(0,0,0,0.25);border-radius:4px;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.2);color:#333;padding:0;font-weight:300';
 
-  el.style.cssText = `position:relative;overflow:hidden;height:${h}px;border:1px solid var(--border);border-radius:8px;background:#d4d0cb`;
+  function render() {
+    const N = 1 << Z, w = el.offsetWidth || 640, h = height;
+    const Cp = merc(C.lat, C.lng);
+    const cx = Math.floor(Cp.tx), cy = Math.floor(Cp.ty);
+    const hw = Math.ceil(w/2/TS)+1, hh = Math.ceil(h/2/TS)+1;
 
-  // Tile grid
-  let tiles = '';
-  for (let dy = -hh; dy <= hh; dy++) {
-    for (let dx = -hw; dx <= hw; dx++) {
-      const tx = ((cx + dx) % N + N) % N, ty = cy + dy;
+    function pxOf(lat, lng) {
+      const p = merc(lat, lng);
+      return { x: (p.tx-Cp.tx)*TS + w/2, y: (p.ty-Cp.ty)*TS + h/2 };
+    }
+
+    // Tile grid
+    let tiles = '';
+    for (let dy = -hh; dy <= hh; dy++) for (let dx = -hw; dx <= hw; dx++) {
+      const tx = ((cx+dx)%N+N)%N, ty = cy+dy;
       if (ty < 0 || ty >= N) continue;
-      const sub = ['a', 'b', 'c'][(tx + ty) % 3];
-      const { x, y } = { x: (cx + dx - C.tx) * TS + w / 2, y: (cy + dy - C.ty) * TS + h / 2 };
+      const sub = ['a','b','c'][(tx+ty)%3];
+      const x = (cx+dx - Cp.tx)*TS + w/2, y = (cy+dy - Cp.ty)*TS + h/2;
       tiles += `<img src="https://${sub}.tile.openstreetmap.org/${Z}/${tx}/${ty}.png" style="position:absolute;left:${x}px;top:${y}px;width:${TS}px;height:${TS}px" loading="eager">`;
     }
+
+    // Route lines (SVG)
+    const svgLines = lines.length ? `<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${
+      lines.map(({from,to,color='#3b82f6',dash='7 5'}) => {
+        const a = pxOf(from.lat,from.lng), b = pxOf(to.lat,to.lng);
+        return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.55" stroke-dasharray="${dash}"/>`;
+      }).join('')
+    }</svg>` : '';
+
+    // Markers
+    const mkrs = markers.map((m,i) => {
+      const {x,y} = pxOf(m.lat, m.lng);
+      const sz = m.big ? 30 : 18, fs = m.big ? 13 : 9, col = m.color || '#3b82f6';
+      const pulse = m.pulse ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:${col};opacity:0.22;animation:imap-pulse 1.4s ease-out infinite;pointer-events:none"></div>` : '';
+      return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big?10:5};cursor:default">
+        ${pulse}<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${fs}px;color:#fff;font-weight:700;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4)">${escapeHtml(m.symbol||'')}</div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div data-tml style="position:absolute;inset:0;z-index:1">${tiles}</div>
+      <div data-tml style="position:absolute;inset:0;z-index:2;pointer-events:none">${svgLines}</div>
+      <div data-tml style="position:absolute;inset:0;z-index:3">${mkrs}</div>
+      <div style="position:absolute;top:10px;left:10px;z-index:20;display:flex;flex-direction:column;gap:3px">
+        <button data-tmz="1"  style="${btnSt}" title="Zoom in">+</button>
+        <button data-tmz="-1" style="${btnSt}" title="Zoom out">−</button>
+      </div>
+      <div id="${mapId}-tmtip" style="position:absolute;background:#1e293b;color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:50;display:none;max-width:260px;line-height:1.4"></div>
+      <div style="position:absolute;bottom:0;right:0;background:rgba(255,255,255,0.72);font-size:10px;padding:2px 5px;z-index:20">© <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#0077bb">OpenStreetMap</a></div>`;
   }
 
-  // SVG route lines
-  const svgLines = lines.length ? `<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none">${
-    lines.map(({ from, to, color = '#3b82f6', dash = '7 5' }) => {
-      const a = pxOf(from.lat, from.lng), b = pxOf(to.lat, to.lng);
-      return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.55" stroke-dasharray="${dash}"/>`;
-    }).join('')
-  }</svg>` : '';
+  render();
 
-  // Marker dots
-  const mkrsHtml = markers.map((m, i) => {
-    const { x, y } = pxOf(m.lat, m.lng);
-    const sz = m.big ? 30 : 18, fs = m.big ? 13 : 9, col = m.color || '#3b82f6';
-    const pulse = m.pulse ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:${col};opacity:0.22;animation:imap-pulse 1.4s ease-out infinite;pointer-events:none"></div>` : '';
-    return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big ? 10 : 5};cursor:default">
-      ${pulse}<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${fs}px;color:#fff;font-weight:700;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4)">${escapeHtml(m.symbol || '')}</div>
-    </div>`;
-  }).join('');
+  // ── Zoom buttons ──────────────────────────────────────────────────────────
+  el.addEventListener('click', e => {
+    const btn = e.target.closest('[data-tmz]');
+    if (!btn) return;
+    Z = Math.max(2, Math.min(18, Z + +btn.dataset.tmz));
+    render();
+  }, { signal: sig });
 
-  el.innerHTML = `
-    <div style="position:absolute;inset:0;z-index:1">${tiles}</div>
-    ${svgLines}
-    <div style="position:absolute;inset:0;z-index:3">${mkrsHtml}</div>
-    <div id="${mapId}-tm-tip" style="position:absolute;background:#1e293b;color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:50;display:none;max-width:260px;line-height:1.4"></div>
-    <div style="position:absolute;bottom:0;right:0;background:rgba(255,255,255,0.72);font-size:10px;padding:2px 5px;z-index:20">© <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#0077bb">OpenStreetMap</a></div>`;
+  // ── Mouse-wheel zoom ──────────────────────────────────────────────────────
+  el.addEventListener('wheel', e => {
+    e.preventDefault();
+    // Zoom toward cursor position
+    const N = 1 << Z, w = el.offsetWidth || 640, h = height;
+    const r  = el.getBoundingClientRect();
+    const mx = e.clientX - r.left - w/2, my = e.clientY - r.top - h/2;
+    const Cp = merc(C.lat, C.lng);
+    // Point under cursor in tile coords
+    const ptx = Cp.tx + mx/TS, pty = Cp.ty + my/TS;
+    const delta = e.deltaY < 0 ? 1 : -1;
+    const newZ = Math.max(2, Math.min(18, Z + delta));
+    if (newZ === Z) return;
+    Z = newZ;
+    const scale = (1 << Z) / N;
+    // Recompute center so the point under cursor stays fixed
+    C = tileToLatLng(ptx*scale - mx/TS, pty*scale - my/TS);
+    render();
+  }, { passive: false, signal: sig });
 
-  const tip = el.querySelector(`#${mapId}-tm-tip`);
+  // ── Drag to pan ───────────────────────────────────────────────────────────
+  let pd = null;
+  el.addEventListener('mousedown', e => {
+    if (e.target.closest('[data-tmz]') || e.target.closest('a')) return;
+    e.preventDefault();
+    el.style.cursor = 'grabbing';
+    pd = { sx: e.clientX, sy: e.clientY, lat: C.lat, lng: C.lng };
+  }, { signal: sig });
+
+  window.addEventListener('mousemove', e => {
+    if (!pd || sig.aborted) return;
+    const dx = e.clientX - pd.sx, dy = e.clientY - pd.sy;
+    el.querySelectorAll('[data-tml]').forEach(d => d.style.transform = `translate(${dx}px,${dy}px)`);
+  }, { signal: sig });
+
+  window.addEventListener('mouseup', e => {
+    if (!pd || sig.aborted) return;
+    const N = 1 << Z;
+    const dx = e.clientX - pd.sx, dy = e.clientY - pd.sy;
+    const sin = Math.sin(pd.lat * Math.PI / 180);
+    const tx  = (pd.lng + 180) / 360 * N - dx / TS;
+    const ty  = (1 - Math.log((1+sin)/(1-sin)) / (2*Math.PI)) / 2 * N - dy / TS;
+    C = tileToLatLng(tx, ty);
+    pd = null;
+    el.style.cursor = 'grab';
+    render();
+  }, { signal: sig });
+
+  // ── Hover tooltip ─────────────────────────────────────────────────────────
   el.addEventListener('mousemove', e => {
-    const mk = e.target.closest('[data-tmi]');
+    if (sig.aborted) return;
+    const tip = el.querySelector(`#${mapId}-tmtip`);
     if (!tip) return;
-    if (mk) {
+    const mk = e.target.closest('[data-tmi]');
+    if (mk && !pd) {
       const m = markers[+mk.dataset.tmi];
       if (!m) return;
       tip.textContent = m.label || '';
       tip.style.display = 'block';
-      const r = el.getBoundingClientRect();
+      const r = el.getBoundingClientRect(), w = el.offsetWidth;
       let lx = e.clientX - r.left + 12, ly = e.clientY - r.top - 36;
       if (lx + 270 > w) lx = e.clientX - r.left - 270;
       if (ly < 0) ly = e.clientY - r.top + 14;
-      tip.style.left = lx + 'px';
-      tip.style.top  = ly + 'px';
+      tip.style.left = lx + 'px'; tip.style.top = ly + 'px';
     } else {
       tip.style.display = 'none';
     }
-  });
-  el.addEventListener('mouseleave', () => { if (tip) tip.style.display = 'none'; });
+  }, { signal: sig });
+
+  el.addEventListener('mouseleave', () => {
+    const tip = el.querySelector(`#${mapId}-tmtip`);
+    if (tip) tip.style.display = 'none';
+  }, { signal: sig });
 }
 
 function _resolveAlertLatLng(al) {
