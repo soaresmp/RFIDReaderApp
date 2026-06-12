@@ -1770,6 +1770,7 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   flex-shrink: 0;
 }
 .lang-toggle-btn:hover { background: var(--surface); }
+.login-lang-btn { font-size: 13px; }
 
 /* ── Print / PDF styles ───────────────────────────────────────────────────── */
 /* ── Hamburger button (hidden on desktop) ─────────────────────────────────── */
