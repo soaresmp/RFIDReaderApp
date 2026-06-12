@@ -4426,14 +4426,13 @@ if (_shipmentConfirmBtn) _shipmentConfirmBtn.addEventListener('click', async () 
 // LOGOUT
 // ══════════════════════════════════════════════════════════════════════════════
 
-const langToggleBtn = $('lang-toggle');
-if (langToggleBtn) {
-  langToggleBtn.addEventListener('click', () => {
+document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
     _lang = _lang === 'en' ? 'sw' : 'en';
     localStorage.setItem('lpg-lang', _lang);
     applyLang();
   });
-}
+});
 
 // ── Mobile nav drawer ──────────────────────────────────────────────────────
 const _hamburger = $('nav-hamburger');
