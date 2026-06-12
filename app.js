@@ -1631,6 +1631,10 @@ function openRegisterModal(tagId) {
   regHydrotest.value      = today;
   regNotes.value          = '';
   openModal('modal-register');
+  // Focus RFID tag input on open; if tag already supplied, go straight to serial
+  setTimeout(() => {
+    if (tagId) { regSerial.focus(); } else { regTag.focus(); }
+  }, 80);
 }
 
 // "+ Register" button in cylinders view header (LPGMC only)
@@ -1639,6 +1643,23 @@ if (registerCylBtn) {
     openRegisterModal('');
   });
 }
+
+// Auto-advance: RFID tag → serial number on Enter or when scanner fills the field
+regTag.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && regTag.value.trim()) {
+    e.preventDefault();
+    regSerial.focus();
+  }
+});
+// RFID scanners emit the value instantly then fire an 'input' event; detect by
+// checking that the field gained content without the user being in the middle of
+// typing (scanner input arrives fast and is followed by Enter, but we also handle
+// the case where the scanner sends no Enter by advancing on blur when filled).
+regTag.addEventListener('blur', () => {
+  if (regTag.value.trim() && !regSerial.value.trim()) {
+    regSerial.focus();
+  }
+});
 
 regSubmitBtn.addEventListener('click', async () => {
   const tagId  = regTag.value.trim();
