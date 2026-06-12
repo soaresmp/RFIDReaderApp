@@ -3358,16 +3358,18 @@ async function renderMgmtReports() {
       }).join('')
     : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No active alerts.</p>';
 
-  // Operator Compliance Ranking
+  // Operator Compliance Ranking — EWURA only
   const opCompliance = {};
-  allEvents.forEach(ev => {
-    if (!['inspected','ewura-monitored','tra-verified'].includes(ev.type)) return;
-    if (!inPeriod(ev.timestamp)) return;
-    const co = ev.company || 'Unknown';
-    if (!opCompliance[co]) opCompliance[co] = { pass: 0, total: 0 };
-    opCompliance[co].total++;
-    if (ev.compliant !== false) opCompliance[co].pass++;
-  });
+  if (role === 'ewura') {
+    allEvents.forEach(ev => {
+      if (!['inspected','ewura-monitored','tra-verified'].includes(ev.type)) return;
+      if (!inPeriod(ev.timestamp)) return;
+      const co = ev.company || 'Unknown';
+      if (!opCompliance[co]) opCompliance[co] = { pass: 0, total: 0 };
+      opCompliance[co].total++;
+      if (ev.compliant !== false) opCompliance[co].pass++;
+    });
+  }
   const opRankEntries = Object.entries(opCompliance)
     .map(([co, d]) => ({ co, rate: d.total ? Math.round(d.pass/d.total*100) : 0, total: d.total, pass: d.pass }))
     .sort((a, b) => b.rate - a.rate);
@@ -3514,13 +3516,13 @@ async function renderMgmtReports() {
       </div>
       ${alertRegionBarsHtml}
     </div>
-    <div class="mgmt-card">
+    ${role === 'ewura' ? `<div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">Operator Compliance Ranking</div>
         <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
       </div>
       ${opRankHtml}
-    </div>`;
+    </div>` : ''}`;
 }
 
 // Per-card CSV export buttons
