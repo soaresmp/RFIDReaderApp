@@ -99,6 +99,26 @@ const TRANSLATIONS = {
     'status.atTerminal':'At Terminal',
     'status.delivered':'Delivered',
     'status.loading':'Loading',
+    'nav.bulletTanks':'Bullet Tanks',
+    'page.bulletTanks':'🚛 Bullet Tanks',
+    'btn.register':'Register','btn.shipment':'Shipment','btn.reception':'Reception',
+    'btn.commitAll':'Commit All','btn.clear':'Clear','btn.logout':'← Exit',
+    'word.list':'List','word.map':'Map','word.info':'Info',
+    'word.misplacedCyl':'Misplaced Cylinder',
+    'filter.allCompanies':'All companies','filter.allSeverities':'All severities',
+    'batch.mode':'Batch mode',
+    'scan.keepFocus':'Keep this app in focus while scanning',
+    'scan.lastScan':'Last Scan','scan.recentEvents':'Recent Events',
+    'scan.noEvents':'No events yet. Start scanning.',
+    'scan.batchQueue':'Batch Queue',
+    'scan.startHint':'Tap to start scanning',
+    'scan.pauseHint':'Scanning active — tap to pause',
+    'scan.lookingUp':'Looking up…',
+    'scan.unknownTag':'Unknown tag — opening registration…',
+    'scan.notRegistered':'Tag not registered.',
+    'scan.active':'Active','scan.unfocused':'Unfocused','status.idle':'Idle',
+    'cyl.searchPlaceholder':'Search serial / tag…',
+    'cyl.notFound':'No cylinders found.','alert.noneFound':'No alerts.',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -189,6 +209,26 @@ const TRANSLATIONS = {
     'status.atTerminal':'Kitengelani',
     'status.delivered':'Imefikishwa',
     'status.loading':'Inapakia',
+    'nav.bulletTanks':'Matangi Makubwa',
+    'page.bulletTanks':'🚛 Matangi Makubwa',
+    'btn.register':'Sajili','btn.shipment':'Tuma','btn.reception':'Pokea',
+    'btn.commitAll':'Thibitisha Zote','btn.clear':'Futa','btn.logout':'← Toka',
+    'word.list':'Orodha','word.map':'Ramani','word.info':'Taarifa',
+    'word.misplacedCyl':'Mtungi Uliopotea',
+    'filter.allCompanies':'Kampuni Zote','filter.allSeverities':'Uzito Wote',
+    'batch.mode':'Hali ya Kundi',
+    'scan.keepFocus':'Weka programu hii mbele unapochanga',
+    'scan.lastScan':'Uchanganuzi wa Mwisho','scan.recentEvents':'Matukio ya Hivi Karibuni',
+    'scan.noEvents':'Hakuna matukio bado. Anza kuchanganua.',
+    'scan.batchQueue':'Foleni ya Kundi',
+    'scan.startHint':'Bonyeza kuanza kuchanganua',
+    'scan.pauseHint':'Uchanganuzi unaendelea — bonyeza kusimamisha',
+    'scan.lookingUp':'Inatafuta…',
+    'scan.unknownTag':'Lebo isiyojulikana — inafungua usajili…',
+    'scan.notRegistered':'Lebo haijasajiliwa.',
+    'scan.active':'Inafanya kazi','scan.unfocused':'Haijalenga','status.idle':'Kimya',
+    'cyl.searchPlaceholder':'Tafuta nambari / lebo…',
+    'cyl.notFound':'Hakuna mitungi iliyopatikana.','alert.noneFound':'Hakuna tahadhari.',
   },
 };
 
@@ -202,8 +242,11 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
-  const btn = $('lang-toggle');
-  if (btn) btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
+  document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+    btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
+  });
+  const cylSearch = $('cyl-search');
+  if (cylSearch) cylSearch.placeholder = t('cyl.searchPlaceholder');
   // Re-render current view if it uses dynamic text
   const activeView = document.querySelector('.view.active');
   if (activeView) {
@@ -1398,15 +1441,15 @@ function setFocused(yes) {
     scannerInput.focus();
     focusBtn.classList.add('active');
     focusIcon.textContent = '🟢';
-    focusLabel.textContent = 'Scanning active — tap to pause';
-    statusBadge.textContent = 'Active';
+    focusLabel.textContent = t('scan.pauseHint');
+    statusBadge.textContent = t('scan.active');
     statusBadge.className = 'badge badge-active';
     statusBadge.hidden = false;
   } else {
     scannerInput.blur();
     focusBtn.classList.remove('active');
     focusIcon.textContent = '📡';
-    focusLabel.textContent = 'Tap to start scanning';
+    focusLabel.textContent = t('scan.startHint');
     statusBadge.hidden = true;
   }
 }
@@ -1421,7 +1464,7 @@ document.addEventListener('click', (e) => {
 
 scannerInput.addEventListener('blur', () => {
   if (State.focused) {
-    statusBadge.textContent = 'Unfocused';
+    statusBadge.textContent = t('scan.unfocused');
     statusBadge.className = 'badge badge-scanning';
     statusBadge.hidden = false;
   }
@@ -1429,7 +1472,7 @@ scannerInput.addEventListener('blur', () => {
 
 scannerInput.addEventListener('focus', () => {
   if (State.focused) {
-    statusBadge.textContent = 'Active';
+    statusBadge.textContent = t('scan.active');
     statusBadge.className = 'badge badge-active';
     statusBadge.hidden = false;
   }
@@ -1468,7 +1511,7 @@ async function handleScan(tagId) {
   lastScanTime.textContent = formatTime(ts);
   lastScanTag.textContent  = tagId;
   lastScanResult.className = 'last-scan-result';
-  lastScanResult.textContent = 'Looking up…';
+  lastScanResult.textContent = t('scan.lookingUp');
 
   // Lookup cylinder
   const cyl = await txGet('cylinders', tagId);
@@ -1477,11 +1520,11 @@ async function handleScan(tagId) {
     // Unknown tag
     if (Auth.can('register')) {
       lastScanResult.className = 'last-scan-result warning';
-      lastScanResult.textContent = 'Unknown tag — opening registration…';
+      lastScanResult.textContent = t('scan.unknownTag');
       openRegisterModal(tagId);
     } else {
       lastScanResult.className = 'last-scan-result error';
-      lastScanResult.textContent = 'Tag not registered.';
+      lastScanResult.textContent = t('scan.notRegistered');
     }
     return;
   }
