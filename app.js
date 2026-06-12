@@ -81,6 +81,24 @@ const TRANSLATIONS = {
     'login.revalTitle':'Revalidator','login.revalDesc':'Cylinders Revalidator · Receive · Revalidate & Update · Return to LPGMC',
     'login.auditorTitle':'Field Auditor','login.auditorDesc':'Field Inspection Unit · Inspect Products · View All Cylinders',
     'login.traDesc':'Tanzania Revenue Authority · Cross-check Refills · Register Shipments',
+    'mgmt.netSalesTop10':'Network Sales — Top 10 Partners',
+    'mgmt.fieldInspByRegion':'Field Inspection by Region',
+    'mgmt.alertsByRegion':'Cylinder Alerts by Region',
+    'mgmt.totalCylAlerts':'Total cylinders with alerts',
+    'mgmt.totalInsp':'Total inspections',
+    'mgmt.opComplianceRanking':'Operator Compliance Ranking',
+    'msg.noInspData':'No inspection data yet.',
+    'msg.noSalesData':'No sales data yet.',
+    'msg.noActiveAlerts':'No active alerts.',
+    'msg.noInspPeriod':'No inspection data for this period.',
+    'msg.noSalesPeriod':'No sales data for this period.',
+    'word.inspections':'inspections',
+    'word.critical':'critical',
+    'word.warning':'warning',
+    'status.inTransit':'In Transit',
+    'status.atTerminal':'At Terminal',
+    'status.delivered':'Delivered',
+    'status.loading':'Loading',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -153,17 +171,39 @@ const TRANSLATIONS = {
     'login.revalTitle':'Mthibitishaji','login.revalDesc':'Mthibitishaji wa Mitungi · Pokea · Thibitisha Upya · Rudisha kwa LPGMC',
     'login.auditorTitle':'Mkaguzi wa Uwanjani','login.auditorDesc':'Kitengo cha Ukaguzi wa Uwanjani · Kagua Bidhaa · Tazama Mitungi Yote',
     'login.traDesc':'Mamlaka ya Mapato Tanzania · Kagua Kujaza · Sajili Mizigo',
+    'mgmt.netSalesTop10':'Mauzo ya Mtandao — Washirika 10 Bora',
+    'mgmt.fieldInspByRegion':'Ukaguzi wa Uwanjani kwa Mkoa',
+    'mgmt.alertsByRegion':'Tahadhari za Mitungi kwa Mkoa',
+    'mgmt.totalCylAlerts':'Jumla ya mitungi yenye tahadhari',
+    'mgmt.totalInsp':'Jumla ya ukaguzi',
+    'mgmt.opComplianceRanking':'Daraja la Uzingatiaji wa Waendeshaji',
+    'msg.noInspData':'Hakuna data ya ukaguzi bado.',
+    'msg.noSalesData':'Hakuna data ya mauzo bado.',
+    'msg.noActiveAlerts':'Hakuna tahadhari zinazoendelea.',
+    'msg.noInspPeriod':'Hakuna data ya ukaguzi kwa kipindi hiki.',
+    'msg.noSalesPeriod':'Hakuna data ya mauzo kwa kipindi hiki.',
+    'word.inspections':'ukaguzi',
+    'word.critical':'muhimu',
+    'word.warning':'onyo',
+    'status.inTransit':'Safarini',
+    'status.atTerminal':'Kitengelani',
+    'status.delivered':'Imefikishwa',
+    'status.loading':'Inapakia',
   },
 };
 
 let _lang = localStorage.getItem('lpg-lang') || 'en';
 function t(key) { return (TRANSLATIONS[_lang] || TRANSLATIONS.en)[key] || TRANSLATIONS.en[key] || key; }
+
+const FLAG_SVG_GB = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14' width='20' height='14' style='display:inline-block;vertical-align:middle;border-radius:2px;margin-right:3px'><rect width='20' height='14' fill='#012169'/><line x1='0' y1='0' x2='20' y2='14' stroke='white' stroke-width='4'/><line x1='20' y1='0' x2='0' y2='14' stroke='white' stroke-width='4'/><line x1='0' y1='0' x2='20' y2='14' stroke='#C8102E' stroke-width='2.5'/><line x1='20' y1='0' x2='0' y2='14' stroke='#C8102E' stroke-width='2.5'/><rect x='0' y='5.5' width='20' height='3' fill='white'/><rect x='8.5' y='0' width='3' height='14' fill='white'/><rect x='0' y='6' width='20' height='2' fill='#C8102E'/><rect x='9' y='0' width='2' height='14' fill='#C8102E'/></svg>`;
+const FLAG_SVG_TZ = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14' width='20' height='14' style='display:inline-block;vertical-align:middle;border-radius:2px;margin-right:3px'><rect width='20' height='14' fill='#1EB53A'/><polygon points='20,0 20,14 0,14' fill='#00A3DD'/><polygon points='0,10.34 14.77,0 20,0 20,3.66 5.23,14 0,14' fill='#FCD116'/><polygon points='0,12.17 17.38,0 20,0 20,1.83 2.62,14 0,14' fill='#231F20'/></svg>`;
+
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
   const btn = $('lang-toggle');
-  if (btn) btn.textContent = _lang === 'sw' ? '🇹🇿 SW' : '🇬🇧 EN';
+  if (btn) btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
   // Re-render current view if it uses dynamic text
   const activeView = document.querySelector('.view.active');
   if (activeView) {
@@ -1294,7 +1334,7 @@ function showView(name) {
     licenses:      'Licenses',
     network:       'Network',
     'mgmt-reports':'Management Reports',
-    'bulk-monitor':'Bulk Monitoring',
+    'bulk-monitor':'Tank Monitoring',
   }[name] || name;
 
   // Lazy render
@@ -2291,52 +2331,70 @@ const REGION_CENTROIDS = {
   'Iringa': [-7.7676, 35.6938], 'Zanzibar': [-6.1367, 39.3497],
 };
 
-let _alertMap = null;
+// ── Tanzania SVG map (offline, no CDN) ──────────────────────────────────────
+function buildTanzaniaMap(markers, height) {
+  const W = 600, H = 440;
+  // Viewport: lat [-11.7, -0.5], lng [29.0, 41.0]
+  function toSvg(lat, lng) {
+    const x = (lng - 29.0) / 12.0 * W;
+    const y = (-0.5 - lat) / 11.2 * H;
+    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+  }
+  // Simplified Tanzania outline (clockwise from NW)
+  const outline = [
+    [250,20],[433,22],[550,98],[510,155],[505,180],
+    [513,223],[511,247],[543,286],[559,385],[395,440],
+    [293,413],[147,343],[90,320],[30,252],[17,155],
+    [71,66],[130,42]
+  ];
+  const cities = [
+    { name:'Dar es Salaam', lat:-6.7924, lng:39.2083 },
+    { name:'Arusha',        lat:-3.3869, lng:36.6830 },
+    { name:'Mwanza',        lat:-2.5164, lng:32.9175 },
+    { name:'Dodoma',        lat:-6.1722, lng:35.7395 },
+    { name:'Mbeya',         lat:-8.9094, lng:33.4608 },
+    { name:'Tanga',         lat:-5.0690, lng:39.0997 },
+    { name:'Mtwara',        lat:-10.274, lng:40.183  },
+  ];
+  const outlineStr = outline.map(p => p.join(',')).join(' ');
+  const cityDots = cities.map(c => {
+    const [cx, cy] = toSvg(c.lat, c.lng);
+    return `<circle cx="${cx}" cy="${cy}" r="3" fill="#64748b"/><text x="${cx+5}" y="${cy+4}" font-size="8" fill="#94a3b8" font-family="sans-serif">${c.name}</text>`;
+  }).join('');
+  const markersSvg = (markers || []).map(m => {
+    const [mx, my] = toSvg(m.lat, m.lng);
+    const fill = m.color || '#3b82f6';
+    const r = m.big ? 10 : 7;
+    return `<circle cx="${mx}" cy="${my}" r="${r}" fill="${fill}" stroke="white" stroke-width="2" opacity="0.9"><title>${escapeHtml(m.label || '')}</title></circle>${m.symbol ? `<text x="${mx}" y="${my + 4}" font-size="9" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold">${m.symbol}</text>` : ''}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${height || 380}px;background:#0f172a;border-radius:8px;border:1px solid var(--border)" xmlns="http://www.w3.org/2000/svg"><polygon points="${outlineStr}" fill="#1e3a5f" stroke="#334155" stroke-width="1.5"/>${cityDots}${markersSvg}</svg>`;
+}
 
 function renderAlertsMap() {
   const mapEl = $('alert-map');
-  if (!mapEl || typeof L === 'undefined') return;
-  if (_alertMap) { _alertMap.remove(); _alertMap = null; }
-  _alertMap = L.map(mapEl).setView([-6.5, 35.5], 6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors', maxZoom: 18
-  }).addTo(_alertMap);
-
-  // Build last-region map from events
-  const _cylLastRegion = {};
-  // We use allEvents already loaded in _alertsData context — re-derive from DEMO_NETWORK
-  _alertsData.forEach(al => {
+  if (!mapEl) return;
+  const markers = _alertsData.map(al => {
     const cyl = al.cylinder;
-    if (!cyl) return;
-    // Try to find location from DEMO_NETWORK by company
-    const netEntry = DEMO_NETWORK.find(n => n.name === cyl.company);
-    let lat, lng;
-    if (netEntry) {
-      lat = netEntry.lat; lng = netEntry.lng;
-    } else {
-      // Try DEMO_LPGMC_INFO
-      const lpgmcInfo = DEMO_LPGMC_INFO[cyl.company];
-      if (lpgmcInfo) { lat = lpgmcInfo.lat; lng = lpgmcInfo.lng; }
+    let lat = -6.5, lng = 35.5;
+    if (cyl) {
+      const netEntry = DEMO_NETWORK.find(n => n.name === cyl.company);
+      if (netEntry) { lat = netEntry.lat; lng = netEntry.lng; }
+      else {
+        const lpgmcInfo = DEMO_LPGMC_INFO && DEMO_LPGMC_INFO[cyl.company];
+        if (lpgmcInfo) { lat = lpgmcInfo.lat; lng = lpgmcInfo.lng; }
+        else {
+          const locData = _cylLocations && _cylLocations[cyl.id];
+          const region = locData ? locData.region : null;
+          const centroid = region ? REGION_CENTROIDS[region] : null;
+          if (centroid) { lat = centroid[0]; lng = centroid[1]; }
+        }
+      }
     }
-    if (!lat) {
-      // Fall back to region centroid using _cylLocations
-      const locData = _cylLocations[cyl.id];
-      const region = locData ? locData.region : null;
-      const centroid = region ? REGION_CENTROIDS[region] : null;
-      if (centroid) { lat = centroid[0]; lng = centroid[1]; }
-    }
-    if (!lat) { lat = -6.5; lng = 35.5; }
-    // Add small jitter to avoid stacking
-    const jLat = lat + (Math.random() - 0.5) * 0.3;
-    const jLng = lng + (Math.random() - 0.5) * 0.3;
-    const color = al.severity === 'critical' ? '#dc2626' : '#f59e0b';
-    L.circleMarker([jLat, jLng], {
-      radius: 8, color, fillColor: color, fillOpacity: 0.8, weight: 2
-    }).addTo(_alertMap)
-      .bindPopup(`<strong>${escapeHtml(al.title)}</strong><br>${escapeHtml(al.desc || '')}`);
+    lat += (Math.random() - 0.5) * 0.4;
+    lng += (Math.random() - 0.5) * 0.4;
+    return { lat, lng, color: al.severity === 'critical' ? '#dc2626' : '#f59e0b', label: al.title + (al.desc ? ' — ' + al.desc : '') };
   });
-
-  setTimeout(() => _alertMap.invalidateSize(), 100);
+  mapEl.innerHTML = buildTanzaniaMap(markers, 480);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3286,7 +3344,7 @@ async function renderMgmtReports() {
           <span style="font-size:11px;color:var(--muted);min-width:40px;text-align:right">${rate}%</span>
         </div>`;
       }).join('')
-    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No inspection data yet.</p>';
+    : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noInspData')}</p>`;
 
   // 5. Sales by region (filtered by period)
   const regionSales = {};
@@ -3310,7 +3368,7 @@ async function renderMgmtReports() {
           </div>
         </div>`;
       }).join('')
-    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data yet.</p>';
+    : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noSalesData')}</p>`;
 
   // Sales by SKU removed
 
@@ -3345,7 +3403,7 @@ async function renderMgmtReports() {
     ? alertRegionEntries.map(({ region, critical, warning, total }) => {
         const pct = Math.round((total / maxAlertRegion) * 100);
         const barColor = critical > 0 ? 'var(--red)' : 'var(--amber)';
-        const detail = [critical > 0 ? `${critical} critical` : '', warning > 0 ? `${warning} warning` : ''].filter(Boolean).join(' · ');
+        const detail = [critical > 0 ? `${critical} ${t('word.critical')}` : '', warning > 0 ? `${warning} ${t('word.warning')}` : ''].filter(Boolean).join(' · ');
         return `<div class="mgmt-bar-row">
           <span class="mgmt-bar-label">${escapeHtml(region)}</span>
           <div style="flex:1;display:flex;flex-direction:column;gap:2px">
@@ -3356,7 +3414,7 @@ async function renderMgmtReports() {
           </div>
         </div>`;
       }).join('')
-    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No active alerts.</p>';
+    : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noActiveAlerts')}</p>`;
 
   // Operator Compliance Ranking — EWURA only
   const opCompliance = {};
@@ -3372,7 +3430,8 @@ async function renderMgmtReports() {
   }
   const opRankEntries = Object.entries(opCompliance)
     .map(([co, d]) => ({ co, rate: d.total ? Math.round(d.pass/d.total*100) : 0, total: d.total, pass: d.pass }))
-    .sort((a, b) => b.rate - a.rate);
+    .sort((a, b) => a.rate - b.rate)  // lowest compliance first (most problematic operators)
+    .slice(0, 10);
   const opRankHtml = opRankEntries.length
     ? opRankEntries.map(({ co, rate, total, pass }) => {
         const barColor = rate >= 80 ? 'var(--green)' : rate >= 50 ? 'var(--amber)' : 'var(--red)';
@@ -3381,11 +3440,11 @@ async function renderMgmtReports() {
           <span class="mgmt-bar-label" title="${escapeHtml(co)}">${escapeHtml(short)}</span>
           <div style="flex:1;display:flex;flex-direction:column;gap:2px">
             <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${rate}%;background:${barColor}"><span>${rate}%</span></div></div>
-            <div style="font-size:10px;color:var(--dim);padding-left:2px">${pass}/${total} inspections</div>
+            <div style="font-size:10px;color:var(--dim);padding-left:2px">${pass}/${total} ${t('word.inspections')}</div>
           </div>
         </div>`;
       }).join('')
-    : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No inspection data for this period.</p>';
+    : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noInspPeriod')}</p>`;
 
   grid.innerHTML = `
     <div class="mgmt-card">
@@ -3460,18 +3519,18 @@ async function renderMgmtReports() {
               <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--purple)"><span>${count}</span></div></div>
             </div>`;
           }).join('')
-        : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No sales data for this period.</p>';
+        : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noSalesPeriod')}</p>`;
       return `
         <div class="mgmt-card">
           <div class="mgmt-card-header">
-            <div class="mgmt-card-title">Sales by Month</div>
+            <div class="mgmt-card-title">${t('dash.salesByMonth')}</div>
             <button class="mgmt-card-export-btn" data-export="sales-month" type="button">↓ CSV</button>
           </div>
           ${salesMonthBarsHtml}
         </div>
         <div class="mgmt-card">
           <div class="mgmt-card-header">
-            <div class="mgmt-card-title">Network Sales — Top 10 Partners</div>
+            <div class="mgmt-card-title">${t('mgmt.netSalesTop10')}</div>
             <button class="mgmt-card-export-btn" data-export="network-sales" type="button">↓ CSV</button>
           </div>
           ${netSalesBarsHtml}
@@ -3482,7 +3541,7 @@ async function renderMgmtReports() {
         <div class="mgmt-card-title">${t('dash.marketCompliance')}</div>
         <button class="mgmt-card-export-btn" data-export="field-inspection" type="button">↓ CSV</button>
       </div>
-      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Total inspections: <strong style="color:var(--text)">${inspEventsM.length}</strong></div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${t('mgmt.totalInsp')}: <strong style="color:var(--text)">${inspEventsM.length}</strong></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:100px;background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
           <div style="font-size:28px;font-weight:700;color:var(--green)">${inspCompM}</div>
@@ -3500,25 +3559,25 @@ async function renderMgmtReports() {
     </div>
     <div class="mgmt-card">
       <div class="mgmt-card-header">
-        <div class="mgmt-card-title">Field Inspection by Region</div>
+        <div class="mgmt-card-title">${t('mgmt.fieldInspByRegion')}</div>
         <button class="mgmt-card-export-btn" data-export="insp-region" type="button">↓ CSV</button>
       </div>
-      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Inspections: <strong style="color:var(--text)">${inspRegEntries.reduce((s,[,v])=>s+v.total,0)}</strong></div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${t('mgmt.totalInsp')}: <strong style="color:var(--text)">${inspRegEntries.reduce((s,[,v])=>s+v.total,0)}</strong></div>
       ${inspRegBarsHtml}
     </div>` : ''}
     <div class="mgmt-card">
       <div class="mgmt-card-header">
-        <div class="mgmt-card-title">Cylinder Alerts by Region</div>
+        <div class="mgmt-card-title">${t('mgmt.alertsByRegion')}</div>
         <button class="mgmt-card-export-btn" data-export="alerts-region" type="button">↓ CSV</button>
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">
-        Total cylinders with alerts: <strong style="color:var(--text)">${_alertsData.length ? new Set(_alertsData.map(a => a.cylinder?.id).filter(Boolean)).size : 0}</strong>
+        ${t('mgmt.totalCylAlerts')}: <strong style="color:var(--text)">${_alertsData.length ? new Set(_alertsData.map(a => a.cylinder?.id).filter(Boolean)).size : 0}</strong>
       </div>
       ${alertRegionBarsHtml}
     </div>
     ${role === 'ewura' ? `<div class="mgmt-card">
       <div class="mgmt-card-header">
-        <div class="mgmt-card-title">Operator Compliance Ranking</div>
+        <div class="mgmt-card-title">${t('mgmt.opComplianceRanking')}</div>
         <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
       </div>
       ${opRankHtml}
@@ -4236,58 +4295,42 @@ if (_recConfirmBtn) _recConfirmBtn.addEventListener('click', async () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BULK MONITORING VIEW (EWURA)
+// TANK MONITORING VIEW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
-
-let _bulkMap = null;
 
 async function renderBulkMonitor() {
   const listEl = $('bulk-tanker-list');
   if (!listEl) return;
 
   const statusColor = { 'in-transit':'var(--blue)', 'at-terminal':'var(--amber)', 'delivered':'var(--green)', 'loading':'var(--purple)' };
-  const statusLabel = { 'in-transit':'In Transit', 'at-terminal':'At Terminal', 'delivered':'Delivered', 'loading':'Loading' };
+  function statusLbl(s) { return t('status.' + { 'in-transit':'inTransit', 'at-terminal':'atTerminal', 'delivered':'delivered', 'loading':'loading' }[s]) || s; }
 
-  listEl.innerHTML = DEMO_BULK_TANKERS.map(t => `
+  listEl.innerHTML = DEMO_BULK_TANKERS.map(tk => `
     <li class="network-item" style="cursor:default">
       <div class="network-item-header">
-        <span class="network-item-name">${escapeHtml(t.plate)}</span>
-        <span class="network-type-badge" style="background:${statusColor[t.status]||'var(--muted)'};color:#fff">${statusLabel[t.status]||t.status}</span>
+        <span class="network-item-name">${escapeHtml(tk.plate)}</span>
+        <span class="network-type-badge" style="background:${statusColor[tk.status]||'var(--muted)'};color:#fff">${statusLbl(tk.status)}</span>
       </div>
       <div class="network-item-meta">
-        🏭 ${escapeHtml(t.operator)} · 🛢 ${escapeHtml(t.capacity)}<br>
-        📍 ${escapeHtml(t.from)} → ${escapeHtml(t.to)}<br>
-        🚀 ${t.speed > 0 ? t.speed + ' km/h · ' : ''}Updated: ${escapeHtml(t.lastUpdate)}
-        ${t.routePct > 0 && t.routePct < 100 ? `· <span style="color:var(--blue)">${t.routePct}% route complete</span>` : ''}
+        🏭 ${escapeHtml(tk.operator)} · 🛢 ${escapeHtml(tk.capacity)}<br>
+        📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}<br>
+        🚀 ${tk.speed > 0 ? tk.speed + ' km/h · ' : ''}Updated: ${escapeHtml(tk.lastUpdate)}
+        ${tk.routePct > 0 && tk.routePct < 100 ? `· <span style="color:var(--blue)">${tk.routePct}% route complete</span>` : ''}
       </div>
     </li>`).join('');
 
-  requestAnimationFrame(() => {
-    const mapEl = $('bulk-map');
-    if (!mapEl || typeof L === 'undefined') return;
-    if (_bulkMap) { _bulkMap.remove(); _bulkMap = null; }
-    _bulkMap = L.map(mapEl).setView([-5.5, 35.5], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:'© OpenStreetMap contributors', maxZoom:18
-    }).addTo(_bulkMap);
-
-    L.circleMarker([-6.7924, 39.2083], { radius:12, color:'#f59e0b', fillColor:'#f59e0b', fillOpacity:0.8, weight:2 })
-      .addTo(_bulkMap)
-      .bindPopup('<strong>Dar es Salaam Import Terminal</strong><br>LPG Import & Loading Facility');
-
-    DEMO_BULK_TANKERS.forEach(t => {
-      const color = t.status === 'in-transit' ? '#3b82f6' : t.status === 'delivered' ? '#22c55e' : t.status === 'loading' ? '#a855f7' : '#f59e0b';
-      const icon = L.divIcon({
-        html: `<div style="background:${color};color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid rgba(255,255,255,0.7);box-shadow:0 2px 6px rgba(0,0,0,0.35)">🚛</div>`,
-        className:'', iconSize:[32,32], iconAnchor:[16,16]
-      });
-      L.marker([t.lat, t.lng], { icon })
-        .addTo(_bulkMap)
-        .bindPopup(`<strong>${t.plate}</strong> — ${t.operator}<br>Status: ${statusLabel[t.status]||t.status}<br>Load: ${t.capacity}<br>${t.to}<br><small>Updated: ${t.lastUpdate}</small>`);
-    });
-
-    setTimeout(() => _bulkMap.invalidateSize(), 100);
-  });
+  const mapEl = $('bulk-map');
+  if (mapEl) {
+    const tankerColor = { 'in-transit':'#3b82f6', 'delivered':'#22c55e', 'loading':'#a855f7', 'at-terminal':'#f59e0b' };
+    const terminalMarker = { lat:-6.7924, lng:39.2083, color:'#f59e0b', big:true, symbol:'T', label:'Dar es Salaam Import Terminal — LPG Import & Loading Facility' };
+    const tankerMarkers = DEMO_BULK_TANKERS.map(tk => ({
+      lat: tk.lat, lng: tk.lng,
+      color: tankerColor[tk.status] || '#64748b',
+      symbol: '▶',
+      label: `${tk.plate} — ${tk.operator} | ${statusLbl(tk.status)} | ${tk.capacity} | → ${tk.to} | Updated: ${tk.lastUpdate}`
+    }));
+    mapEl.innerHTML = buildTanzaniaMap([terminalMarker, ...tankerMarkers], 380);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
