@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v14';
+const SEED_KEY   = 'seeded-v15';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -25,7 +25,7 @@ const TRANSLATIONS = {
     'mgmt.status':'Cylinders by Status','mgmt.refills':'Refills by Month','mgmt.salesRegion':'Sales by Region',
     'mgmt.topPartners':'Top 10 Partners by Sales','mgmt.topPartnersAll':'Top 10 Partners by Cylinder Count',
     'alert.requalOverdue':'Requalification Overdue','alert.requalSoon':'Requalification Due (2yr)',
-    'alert.stuck':'Stuck in Circulation','alert.misplaced':'Misplaced',
+    'alert.stuck':'Unreported','alert.misplaced':'Misplaced',
     'status.active':'active','status.inactive':'inactive',
     'status.inRefill':'In Refill','status.inCirc':'In Circulation','status.inReval':'In Revalidation','status.inUse':'In Use',
     'status.registered':'Registered','status.refilled':'Refilled','status.shipped':'Shipped','status.distReceived':'Dist. Received',
@@ -97,7 +97,7 @@ const TRANSLATIONS = {
     'mgmt.status':'Mitungi kwa Hali','mgmt.refills':'Kujaza kwa Mwezi','mgmt.salesRegion':'Mauzo kwa Mkoa',
     'mgmt.topPartners':'Washirika 10 Bora kwa Mauzo','mgmt.topPartnersAll':'Washirika 10 Bora kwa Idadi ya Mitungi',
     'alert.requalOverdue':'Uhakiki Upya Umechelewa','alert.requalSoon':'Uhakiki Upya (Miaka 2)',
-    'alert.stuck':'Imekwama kwenye Mzunguko','alert.misplaced':'Imepotea',
+    'alert.stuck':'Haikutangazwa','alert.misplaced':'Imepotea',
     'status.active':'hai','status.inactive':'haifanyi kazi',
     'status.inRefill':'Kwenye Kujaza','status.inCirc':'Kwenye Mzunguko','status.inReval':'Kwenye Uhakiki Upya','status.inUse':'Inatumika',
     'status.registered':'Imesajiliwa','status.refilled':'Imejazwa','status.shipped':'Imetumwa','status.distReceived':'Imepokelewa (Msambazaji)',
@@ -619,9 +619,9 @@ function buildGeneratedCylinders() {
   companies.forEach((co, ci) => {
     const needed = 500 - (existingCounts[co.name] || 0);
     for (let i = 1; i <= needed; i++) {
-      // Only ~5% of cylinders are old (pre-2016) → minimal requalification overdue alerts
-      const isOld = (i % 20 === 0);
-      const year = isOld ? (2010 + (Math.floor(i/20) % 6)) : (2016 + (i % 10));
+      // ~2.5% slightly older cylinders, years 2017-2020 only → no generated requalOverdue alerts
+      const isOld = (i % 40 === 0);
+      const year = isOld ? (2017 + (Math.floor(i/40) % 4)) : (2016 + (i % 10));
       const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
       const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
       const mfgDate  = `${year}-${month}-${day}`;
@@ -763,9 +763,9 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
 
     } else if (cyl.status === 'in-circulation') {
-      // Shipped out ~60 days ago, stuck at distributor (triggers stuck-in-circulation alert)
+      // Last event ~98 days ago → triggers Unreported alert (> 90 days threshold)
       const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-      const base = now - 60*DAY;
+      const base = now - 110*DAY;
       await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
       await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
@@ -831,8 +831,8 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base - 8*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
       await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
     } else if (cyl.status === 'in-circulation') {
-      const isStuck = (idHash % 20 === 0);
-      const daysAgo = isStuck ? 65 : (8 + (idHash % 30));
+      const isStuck = (idHash % 4 === 0);
+      const daysAgo = isStuck ? 105 : (8 + (idHash % 30));
       const base = now2 - daysAgo * DAY;
       await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
@@ -854,15 +854,19 @@ async function seedDemoData() {
     }
   }
 
-  // Misplaced cylinder demo: shipped to ABC Gas, but received by Sunrise Gas (different region)
+  // Misplaced cylinder demo: shipped to X but received by Y (different region)
   const misplacedPairs = [
-    { cylId:'E280116060000204C3F04E85', intendedDist:'ABC Gas Distributors',  intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',       actualRegion:'Arusha' },
-    { cylId:'E280116060000204C3F04E95', intendedDist:'Capital Gas Supplies',  intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas', actualRegion:'Mbeya'  },
+    { cylId:'E280116060000204C3F04E85', company:'Vivo LPG',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',              actualRegion:'Arusha'      },
+    { cylId:'E280116060000204C3F04E95', company:'Shell Gas',      intendedDist:'Capital Gas Supplies',         intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',       actualRegion:'Mbeya'       },
+    { cylId:'E280116060000204C3F04E87', company:'Vivo LPG',       intendedDist:'Kilimanjaro Gas Distributors', intendedRegion:'Kilimanjaro',    actualDist:'ABC Gas Distributors',         actualRegion:'Dar es Salaam'},
+    { cylId:'E280116060000204C3F04E8B', company:'Total Energies', intendedDist:'Morogoro Gas Depot',           intendedRegion:'Morogoro',       actualDist:'Tabora Gas Distributors',      actualRegion:'Tabora'      },
+    { cylId:'E280116060000204C3F04E91', company:'Shell Gas',      intendedDist:'Coastal Gas Ltd',              intendedRegion:'Tanga',          actualDist:'Sunrise Gas Ltd',              actualRegion:'Arusha'      },
+    { cylId:'E280116060000204C3F04E9C', company:'Lake Gas',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam',  actualDist:'Lake Victoria Gas Supply',     actualRegion:'Mwanza'      },
   ];
   for (const mp of misplacedPairs) {
     const tShip = new Date(now - 10*DAY);
     const tRecv = new Date(now - 8*DAY);
-    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:'Vivo LPG', location:'Vivo LPG', destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
+    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company, location:mp.company, destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
     await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
   }
 
@@ -2134,8 +2138,8 @@ async function renderAlerts() {
         const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
         if (days > 90) {
           _alertsData.push({ severity:'warning', type:'stuck-in-circulation', cylinder:cyl,
-            title: `${cyl.serial} — Stuck in Circulation (${days}d)`,
-            desc: `Cylinder has been in circulation for ${days} days without returning to refill.` });
+            title: `${cyl.serial} — Unreported (${days}d)`,
+            desc: `Cylinder has been in circulation for ${days} days without a movement report.` });
         }
       }
     }
