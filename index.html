@@ -160,6 +160,9 @@
     <!-- Right login panel -->
     <div class="login-panel">
       <div class="login-panel-inner">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="lang-toggle-btn login-lang-btn" type="button" title="Switch language / Badilisha lugha">EN</button>
+        </div>
         <div class="login-panel-header">
           <h2 class="login-panel-title" data-i18n="login.panelTitle">Select your profile</h2>
           <p class="login-panel-subtitle" data-i18n="login.panelSubtitle">Choose the role that matches your organisation to continue</p>
@@ -278,8 +281,8 @@
         <button id="lang-toggle" class="lang-toggle-btn" type="button" title="Switch language / Badilisha lugha">EN</button>
         <span id="header-role-badge" class="header-role-badge" hidden></span>
         <span id="header-operator-pill" class="header-operator-pill" hidden></span>
-        <span id="status-badge" class="badge badge-idle" hidden>Idle</span>
-        <button id="logout-btn" class="logout-btn" hidden type="button" title="Log out">← Exit</button>
+        <span id="status-badge" class="badge badge-idle" hidden data-i18n="status.idle">Idle</span>
+        <button id="logout-btn" class="logout-btn" hidden type="button" title="Log out" data-i18n="btn.logout">← Exit</button>
       </div>
     </header>
 
@@ -311,7 +314,7 @@
             <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
           <button class="nav-tab" data-view="bulk-monitor" id="nav-bulk-monitor" style="display:none">
-            <span class="nav-label">Tank Monitor</span>
+            <span class="nav-label" data-i18n="nav.bulletTanks">Bullet Tanks</span>
           </button>
         </div>
       </nav>
@@ -322,7 +325,7 @@
         <!-- ── SCAN VIEW ──────────────────────────────────────────────── -->
         <div id="view-scan" class="view">
           <div class="page-header">
-            <h2 class="page-title">📡 Scan</h2>
+            <h2 class="page-title" data-i18n="page.scan">📡 Scan</h2>
           </div>
 
           <!-- Event type selector -->
@@ -335,7 +338,7 @@
             <label class="toggle-label">
               <input type="checkbox" id="batch-mode-toggle" />
               <span class="toggle-slider"></span>
-              <span class="toggle-text">Batch mode</span>
+              <span class="toggle-text" data-i18n="batch.mode">Batch mode</span>
             </label>
           </div>
 
@@ -343,15 +346,15 @@
           <div id="focus-section">
             <button id="focus-btn" class="focus-btn" type="button">
               <span id="focus-icon">📡</span>
-              <span id="focus-label">Tap to start scanning</span>
+              <span id="focus-label" data-i18n="scan.startHint">Tap to start scanning</span>
             </button>
-            <p class="focus-hint">Keep this app in focus while scanning</p>
+            <p class="focus-hint" data-i18n="scan.keepFocus">Keep this app in focus while scanning</p>
           </div>
 
           <!-- Last scan result card -->
           <div id="last-scan-card" class="last-scan-card" hidden>
             <div class="last-scan-header">
-              <span class="last-scan-label">Last Scan</span>
+              <span class="last-scan-label" data-i18n="scan.lastScan">Last Scan</span>
               <span id="last-scan-time" class="last-scan-time"></span>
             </div>
             <div id="last-scan-tag" class="last-scan-tag font-mono"></div>
@@ -363,8 +366,8 @@
             <div class="section-header" style="padding:10px 16px">
               <span>Batch Queue (<span id="batch-count">0</span>)</span>
               <div class="section-actions">
-                <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button">Commit All</button>
-                <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button">Clear</button>
+                <button id="batch-commit-btn" class="btn btn-sm btn-green" type="button" data-i18n="btn.commitAll">Commit All</button>
+                <button id="batch-clear-btn" class="btn btn-sm btn-outline-red" type="button" data-i18n="btn.clear">Clear</button>
               </div>
             </div>
             <ul id="batch-list" class="compact-list"></ul>
@@ -372,22 +375,22 @@
 
           <!-- Recent scan events -->
           <div class="section-header">
-            <span>Recent Events</span>
+            <span data-i18n="scan.recentEvents">Recent Events</span>
             <button id="export-events-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
           </div>
           <ul id="events-list" class="scan-events-list"></ul>
-          <p id="events-empty" class="list-empty">No events yet. Start scanning.</p>
+          <p id="events-empty" class="list-empty" data-i18n="scan.noEvents">No events yet. Start scanning.</p>
 
         </div><!-- /view-scan -->
 
         <!-- ── CYLINDERS VIEW ─────────────────────────────────────────── -->
         <div id="view-cylinders" class="view">
           <div class="page-header">
-            <h2 class="page-title">🔥 Cylinders</h2>
+            <h2 class="page-title" data-i18n="page.cylinders">🔥 Cylinders</h2>
             <div class="page-actions">
-              <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none">Register</button>
-              <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none">Shipment</button>
-              <button id="reception-btn" class="btn btn-primary" type="button" style="display:none">Reception</button>
+              <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.register">Register</button>
+              <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.shipment">Shipment</button>
+              <button id="reception-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.reception">Reception</button>
             </div>
           </div>
 
@@ -395,14 +398,14 @@
             <input id="cyl-search" type="search" class="search-input" placeholder="Search serial / tag…" />
             <div class="filter-row">
               <select id="cyl-filter-status" class="filter-select">
-                <option value="">All statuses</option>
-                <option value="in-refill">In Refill</option>
-                <option value="in-circulation">In Circulation</option>
-                <option value="revalidation">In Revalidation</option>
-                <option value="in-use">In Use</option>
+                <option value="" data-i18n="filter.allStatuses">All statuses</option>
+                <option value="in-refill" data-i18n="status.inRefill">In Refill</option>
+                <option value="in-circulation" data-i18n="status.inCirc">In Circulation</option>
+                <option value="revalidation" data-i18n="status.inReval">In Revalidation</option>
+                <option value="in-use" data-i18n="status.inUse">In Use</option>
               </select>
               <select id="cyl-filter-company" class="filter-select">
-                <option value="">All companies</option>
+                <option value="" data-i18n="filter.allCompanies">All companies</option>
                 <option value="Vivo LPG">Vivo LPG</option>
                 <option value="Total Energies">Total Energies</option>
                 <option value="Shell Gas">Shell Gas</option>
@@ -414,7 +417,7 @@
           <div id="cyl-stats" class="cyl-stats-row"></div>
 
           <ul id="cylinders-list" class="cylinders-list"></ul>
-          <p id="cylinders-empty" class="list-empty">No cylinders found.</p>
+          <p id="cylinders-empty" class="list-empty" data-i18n="cyl.notFound">No cylinders found.</p>
           <div id="cyl-pagination"></div>
 
         </div><!-- /view-cylinders -->
@@ -422,43 +425,43 @@
         <!-- ── ALERTS VIEW ────────────────────────────────────────────── -->
         <div id="view-alerts" class="view">
           <div class="page-header">
-            <h2 class="page-title">🔔 Alerts</h2>
+            <h2 class="page-title" data-i18n="page.alerts">🔔 Alerts</h2>
             <div class="page-actions">
               <div class="tab-pills" id="alert-view-tabs">
-                <button class="tab-pill active" data-alert-tab="list" type="button">List</button>
-                <button class="tab-pill" data-alert-tab="map" type="button">Map</button>
+                <button class="tab-pill active" data-alert-tab="list" type="button" data-i18n="word.list">List</button>
+                <button class="tab-pill" data-alert-tab="map" type="button" data-i18n="word.map">Map</button>
               </div>
             </div>
           </div>
           <div id="alert-list-pane">
             <div class="view-toolbar">
               <select id="alert-filter-severity" class="filter-select">
-                <option value="">All severities</option>
-                <option value="critical">Critical</option>
-                <option value="warning">Warning</option>
-                <option value="info">Info</option>
+                <option value="" data-i18n="filter.allSeverities">All severities</option>
+                <option value="critical" data-i18n="word.critical">Critical</option>
+                <option value="warning" data-i18n="word.warning">Warning</option>
+                <option value="info" data-i18n="word.info">Info</option>
               </select>
               <select id="alert-filter-type" class="filter-select">
-                <option value="">All types</option>
-                <option value="requalification-overdue">Requalification Overdue</option>
-                <option value="stuck-in-circulation">Unreported</option>
-                <option value="misplaced">Misplaced Cylinder</option>
+                <option value="" data-i18n="filter.allTypes">All types</option>
+                <option value="requalification-overdue" data-i18n="alert.requalOverdue">Requalification Overdue</option>
+                <option value="stuck-in-circulation" data-i18n="alert.stuck">Unreported</option>
+                <option value="misplaced" data-i18n="word.misplacedCyl">Misplaced Cylinder</option>
               </select>
             </div>
             <div id="alert-summary" class="alert-summary-row"></div>
             <ul id="alerts-list" class="alerts-list"></ul>
-            <p id="alerts-empty" class="list-empty">No alerts.</p>
+            <p id="alerts-empty" class="list-empty" data-i18n="alert.noneFound">No alerts.</p>
             <div id="alert-pagination"></div>
           </div>
           <div id="alert-map-pane" style="display:none">
-            <div id="alert-map" style="height:500px;border-radius:8px;overflow:hidden;border:1px solid var(--border)"></div>
+            <div id="alert-map"></div>
           </div>
         </div><!-- /view-alerts -->
 
         <!-- ── REPORTS / DASHBOARD VIEW ───────────────────────────────── -->
         <div id="view-reports" class="view">
           <div class="page-header">
-            <h2 class="page-title">📊 Dashboard</h2>
+            <h2 class="page-title" data-i18n="page.dashboard">📊 Dashboard</h2>
             <div class="page-actions"></div>
           </div>
           <div class="reports-grid" id="reports-grid"></div>
@@ -589,12 +592,12 @@
           <p id="licenses-empty" class="list-empty">No licenses found.</p>
         </div><!-- /view-licenses -->
 
-        <!-- ── TANK MONITORING VIEW (EWURA only) ─────────────────────────────── -->
+        <!-- ── BULLET TANKS VIEW (EWURA only) ───────────────────────────────── -->
         <div id="view-bulk-monitor" class="view">
           <div class="page-header">
-            <h2 class="page-title">🚛 Tank Monitoring</h2>
+            <h2 class="page-title" data-i18n="page.bulletTanks">🚛 Bullet Tanks</h2>
           </div>
-          <div id="bulk-map" style="height:380px;border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px"></div>
+          <div id="bulk-map" style="margin-bottom:16px"></div>
           <ul id="bulk-tanker-list" class="network-list" style="max-height:none"></ul>
         </div>
 
