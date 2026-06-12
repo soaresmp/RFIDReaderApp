@@ -2837,6 +2837,8 @@ async function renderMgmtReports() {
   // For distributor/retailer: show simplified own-company reports and return early
   if (role === 'distributor' || role === 'retailer') {
     const company = Auth.session?.company || '';
+    const nowMs = Date.now();
+
     const lastEvByCyl = {};
     allEvents.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
       .forEach(e => { lastEvByCyl[e.cylinderId] = e; });
@@ -2846,6 +2848,8 @@ async function renderMgmtReports() {
     const myFilled  = myCyls.filter(c => FILLED_EV.has(lastEvByCyl[c.id]?.type)).length;
     const myEmpty   = myCyls.filter(c => EMPTY_EV.has(lastEvByCyl[c.id]?.type)).length;
     const myTotal   = myCyls.length;
+
+    // ── Sales / Dispatches by Month ───────────────────────────────────────────
     const salesEvType = role === 'retailer' ? 'ret-sold' : 'dist-sent-retail';
     const smMonths2 = [];
     if (filterYear !== null) {
@@ -2873,6 +2877,84 @@ async function renderMgmtReports() {
         <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--green)"><span>${m.count}</span></div></div>
       </div>`;
     }).join('');
+
+    // ── Monthly Throughput ────────────────────────────────────────────────────
+    const recvEvType = role === 'retailer' ? 'ret-received' : 'dist-received';
+    const dispEvType = salesEvType;
+    const thruMonths = [];
+    if (filterYear !== null) {
+      for (let mo = 0; mo < 12; mo++) {
+        thruMonths.push({ label: new Date(filterYear, mo, 1).toLocaleString('default', { month: 'short' }), year: filterYear, month: mo, recv: 0, disp: 0 });
+      }
+    } else {
+      const thruYearSet = new Set();
+      allEvents.forEach(ev => {
+        if ((ev.type === recvEvType || ev.type === dispEvType) && ev.company === company)
+          thruYearSet.add(new Date(ev.timestamp).getFullYear());
+      });
+      if (!thruYearSet.size) thruYearSet.add(new Date().getFullYear());
+      [...thruYearSet].sort().forEach(y => thruMonths.push({ label: String(y), year: y, month: -1, recv: 0, disp: 0 }));
+    }
+    allEvents.forEach(ev => {
+      if (ev.company !== company) return;
+      const d = new Date(ev.timestamp);
+      const m = thruMonths.find(mo => mo.year === d.getFullYear() && (mo.month === -1 || mo.month === d.getMonth()));
+      if (!m) return;
+      if (ev.type === recvEvType) m.recv++;
+      else if (ev.type === dispEvType) m.disp++;
+    });
+    const maxThru = Math.max(...thruMonths.flatMap(m => [m.recv, m.disp]), 1);
+    const dispLabel = role === 'retailer' ? 'Sold' : 'Dispatched';
+    const thruBarsHtml = thruMonths.map(m => {
+      const rPct = Math.round((m.recv / maxThru) * 100);
+      const dPct = Math.round((m.disp / maxThru) * 100);
+      return `<div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">${m.label}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="font-size:10px;color:var(--dim);width:62px;flex-shrink:0">Received</span>
+          <div class="mgmt-bar-track" style="flex:1"><div class="mgmt-bar-fill" style="width:${rPct}%;background:var(--blue)"><span>${m.recv}</span></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px;color:var(--dim);width:62px;flex-shrink:0">${dispLabel}</span>
+          <div class="mgmt-bar-track" style="flex:1"><div class="mgmt-bar-fill" style="width:${dPct}%;background:var(--green)"><span>${m.disp}</span></div></div>
+        </div>
+      </div>`;
+    }).join('');
+    const thruTotalRecv = thruMonths.reduce((s, m) => s + m.recv, 0);
+    const thruTotalDisp = thruMonths.reduce((s, m) => s + m.disp, 0);
+
+    // ── Stock Age ─────────────────────────────────────────────────────────────
+    const inStockTypes = role === 'retailer' ? new Set(['ret-received']) : new Set(['dist-received']);
+    const inStockCyls  = myCyls.filter(c => {
+      const ev = lastEvByCyl[c.id];
+      return ev && inStockTypes.has(ev.type) && ev.company === company;
+    });
+    const stockAges = inStockCyls.map(c => Math.floor((nowMs - new Date(lastEvByCyl[c.id].timestamp)) / 86400000));
+    const ageFresh  = stockAges.filter(d => d < 7).length;
+    const ageNormal = stockAges.filter(d => d >= 7  && d <= 30).length;
+    const ageSlow   = stockAges.filter(d => d >  30 && d <= 60).length;
+    const ageStale  = stockAges.filter(d => d >  60).length;
+    const ageTotal  = inStockCyls.length;
+    const avgAge    = ageTotal ? Math.round(stockAges.reduce((s, d) => s + d, 0) / ageTotal) : 0;
+
+    const ageBlocks = [
+      { label: '< 7 days',   count: ageFresh,  color: 'var(--green)',  note: 'Fresh'        },
+      { label: '7 – 30 days',count: ageNormal, color: 'var(--blue)',   note: 'Normal'       },
+      { label: '31 – 60 days',count: ageSlow,  color: 'var(--amber)',  note: 'Slow-moving'  },
+      { label: '> 60 days',  count: ageStale,  color: 'var(--red)',    note: 'Aging stock'  },
+    ];
+    const ageMaxCount = Math.max(...ageBlocks.map(b => b.count), 1);
+    const ageHtml = ageBlocks.map(b => {
+      const pct = Math.round((b.count / ageMaxCount) * 100);
+      return `<div class="mgmt-bar-row">
+        <span class="mgmt-bar-label" style="min-width:80px">${b.label}</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+          <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${b.color}"><span>${b.count}</span></div></div>
+          <div style="font-size:10px;color:var(--dim);padding-left:2px">${b.note}</div>
+        </div>
+      </div>`;
+    }).join('');
+
     grid.innerHTML = `
       <div class="mgmt-card">
         <div class="mgmt-card-header"><div class="mgmt-card-title">Current Stock</div></div>
@@ -2894,6 +2976,26 @@ async function renderMgmtReports() {
       <div class="mgmt-card">
         <div class="mgmt-card-header"><div class="mgmt-card-title">${salesLabel}</div></div>
         ${salesMonthBars2 || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No data for this period.</p>'}
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">Monthly Throughput</div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--muted)">Total received: <strong style="color:var(--blue)">${thruTotalRecv}</strong></div>
+          <div style="font-size:12px;color:var(--muted)">Total ${dispLabel.toLowerCase()}: <strong style="color:var(--green)">${thruTotalDisp}</strong></div>
+        </div>
+        ${thruBarsHtml || '<p style="font-size:13px;color:var(--dim);padding:8px 0">No data for this period.</p>'}
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">Stock Age</div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--muted)">In stock: <strong style="color:var(--text)">${ageTotal}</strong></div>
+          <div style="font-size:12px;color:var(--muted)">Avg age: <strong style="color:${avgAge > 30 ? 'var(--amber)' : 'var(--text)'}">${avgAge}d</strong></div>
+        </div>
+        ${ageTotal > 0 ? ageHtml : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders currently in stock.</p>'}
       </div>`;
     return;
   }
