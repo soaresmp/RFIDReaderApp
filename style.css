@@ -2007,3 +2007,205 @@ body.nav-open .nav-backdrop { display: block; }
   border-color: var(--red);
   background: rgba(239,68,68,0.08);
 }
+
+/* ── Interactive map ──────────────────────────────────────────────────────── */
+.imap-container {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.imap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.imap-zoom-group { display: flex; gap: 4px; }
+.imap-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 10px;
+  transition: background 0.12s, border-color 0.12s;
+}
+.imap-btn:hover { background: var(--blue-dim); border-color: var(--blue); }
+.imap-legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; flex: 1; }
+.imap-legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.imap-legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+.imap-hint { font-size: 11px; color: var(--dim); white-space: nowrap; margin-left: auto; }
+.imap-body { position: relative; }
+.imap-detail-panel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10, 20, 45, 0.96);
+  border-top: 1px solid var(--border);
+  padding: 12px 40px 12px 14px;
+  backdrop-filter: blur(6px);
+  animation: imap-slide-up 0.18s ease-out;
+  max-height: 200px;
+  overflow-y: auto;
+}
+@keyframes imap-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.imap-detail-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.12s, background 0.12s;
+}
+.imap-detail-close:hover { color: var(--text); background: var(--surface); }
+.imap-detail-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.imap-detail-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.imap-detail-text {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 3px;
+  line-height: 1.45;
+}
+.imap-detail-meta {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+/* Marker states */
+.imap-marker {
+  transition: filter 0.12s, stroke-width 0.12s;
+}
+.imap-marker:hover { filter: brightness(1.3) drop-shadow(0 0 4px currentColor); }
+.imap-marker.imap-selected {
+  stroke-width: 3;
+  filter: brightness(1.2) drop-shadow(0 0 6px white);
+}
+/* Pulse ring animation */
+@keyframes imap-pulse {
+  0%   { opacity: 0.8; r: 15px; }
+  70%  { opacity: 0.1; r: 22px; }
+  100% { opacity: 0;   r: 22px; }
+}
+.imap-pulse-ring {
+  animation: imap-pulse 2s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Floating tooltip */
+.imap-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text);
+  pointer-events: none;
+  max-width: 280px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* ── Leaflet custom markers & popups ────────────────────────────────────── */
+.lmap-dot {
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.85);
+  box-shadow: 0 0 6px currentColor;
+}
+@keyframes lmap-pulse-anim {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.7), 0 0 6px #dc2626; }
+  50%      { box-shadow: 0 0 0 8px rgba(220,38,38,0), 0 0 6px #dc2626; }
+}
+.lmap-dot-pulse { animation: lmap-pulse-anim 2s ease-in-out infinite; }
+.lmap-terminal {
+  width: 32px; height: 32px;
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(245,158,11,0.15);
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(245,158,11,0.5);
+}
+.lmap-tanker {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+@keyframes lmap-tanker-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6), 0 2px 6px rgba(0,0,0,0.4); }
+  60%      { box-shadow: 0 0 0 10px rgba(59,130,246,0), 0 2px 6px rgba(0,0,0,0.4); }
+}
+.lmap-tanker-pulse { animation: lmap-tanker-pulse 2s ease-in-out infinite; }
+
+/* Leaflet popup styling */
+.lmap-popup-wrap .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  padding: 0;
+  overflow: hidden;
+}
+.lmap-popup-wrap .leaflet-popup-content { margin: 0; min-width: 200px; }
+.lmap-popup-wrap .leaflet-popup-tip-container { display: none; }
+.lmap-popup {
+  padding: 12px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+.lmap-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px; font-weight: 600;
+  margin-bottom: 6px;
+}
+.lmap-popup-title { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 3px; }
+.lmap-popup-text  { font-size: 12px; color: #475569; line-height: 1.45; margin-bottom: 2px; }
+.lmap-popup-meta  { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+/* Leaflet map legend */
+.lmap-legend {
+  background: rgba(255,255,255,0.92);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  line-height: 1.6;
+}
+.lmap-legend-item { display: flex; align-items: center; gap: 5px; color: #334155; }
+.lmap-legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.15); }
+.lmap-legend-pulse {
+  animation: lmap-pulse-anim 2s ease-in-out infinite;
+}
