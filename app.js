@@ -2615,69 +2615,35 @@ function renderAlertsMap() {
   const mapEl = $('alert-map');
   if (!mapEl) return;
 
-  // ── Build marker data (shared by both implementations) ──────────────────
-  const markerData = _alertsData.map(al => {
+  if (!_alertsData.length) {
+    mapEl.style.height = 'auto';
+    mapEl.style.border = 'none';
+    mapEl.innerHTML = `<p style="color:var(--muted);padding:16px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
+    return;
+  }
+
+  const cards = _alertsData.map(al => {
     const [lat, lng] = _resolveAlertLatLng(al);
     const isCrit = al.severity === 'critical';
     const color  = isCrit ? '#dc2626' : '#f59e0b';
     const cyl    = al.cylinder;
-    return { lat, lng, isCrit, color,
-      label: al.title,
-      popupHtml: `<div class="lmap-popup">
-        <span class="lmap-badge" style="background:${color}">${isCrit ? '🚨 Critical' : '⚠️ Warning'}</span>
-        <div class="lmap-popup-title">${escapeHtml(al.title)}</div>
-        <div class="lmap-popup-text">${escapeHtml(al.desc || '')}</div>
-        ${cyl ? `<div class="lmap-popup-meta">Cylinder <b>${escapeHtml(cyl.serial || '')}</b> · ${escapeHtml(cyl.company || '')}</div>` : ''}
-      </div>`,
-      detailHtml: `<div class="imap-detail-badge" style="background:${color};color:#fff">${isCrit ? '🚨 Critical' : '⚠️ Warning'}</div>
-        <div class="imap-detail-title">${escapeHtml(al.title)}</div>
-        <div class="imap-detail-text">${escapeHtml(al.desc || '')}</div>
-        ${cyl ? `<div class="imap-detail-meta">Cylinder <strong>${escapeHtml(cyl.serial || '')}</strong> · ${escapeHtml(cyl.company || '')}</div>` : ''}`,
-    };
-  });
+    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+      <div style="background:${color};padding:6px 10px">
+        <span style="font-size:11px;font-weight:600;color:#fff">${isCrit ? '🚨' : '⚠️'} ${escapeHtml(al.title)}</span>
+      </div>
+      <div style="height:160px">${buildOsmEmbed(lat, lng)}</div>
+      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
+        ${escapeHtml(al.desc || '')}
+        ${cyl ? `<br><span style="color:var(--text)">Cyl <b>${escapeHtml(cyl.serial || '')}</b></span> · ${escapeHtml(cyl.company || '')}` : ''}
+      </div>
+    </div>`;
+  }).join('');
 
-  // ── Leaflet (OSM) implementation ─────────────────────────────────────────
-  if (typeof L !== 'undefined') {
-    mapEl.style.height = '500px';
-    mapEl.style.borderRadius = '8px';
-    mapEl.style.overflow = 'hidden';
-    mapEl.style.border = '1px solid var(--border)';
-    mapEl.innerHTML = '';
-
-    if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
-    _alertLeafletMap = L.map(mapEl, { zoomControl: true }).setView([-6.5, 35.5], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18,
-    }).addTo(_alertLeafletMap);
-
-    // Legend control
-    const legendCtrl = L.control({ position: 'bottomright' });
-    legendCtrl.onAdd = () => {
-      const div = L.DomUtil.create('div', 'lmap-legend');
-      div.innerHTML = `<div class="lmap-legend-item"><span class="lmap-legend-dot" style="background:#dc2626"></span>Critical</div>
-                       <div class="lmap-legend-item"><span class="lmap-legend-dot" style="background:#f59e0b"></span>Warning</div>
-                       <div class="lmap-legend-item"><span class="lmap-legend-dot lmap-legend-pulse" style="background:#dc2626"></span>Pulse = critical</div>`;
-      return div;
-    };
-    legendCtrl.addTo(_alertLeafletMap);
-
-    markerData.forEach(m => {
-      const iconHtml = `<div class="lmap-dot${m.isCrit ? ' lmap-dot-pulse' : ''}" style="background:${m.color};width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 4px ${m.color}"></div>`;
-      const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -10] });
-      L.marker([m.lat, m.lng], { icon })
-        .addTo(_alertLeafletMap)
-        .bindPopup(m.popupHtml, { maxWidth: 280, className: 'lmap-popup-wrap' });
-    });
-
-    setTimeout(() => _alertLeafletMap.invalidateSize(), 150);
-    return;
-  }
-
-  // ── SVG fallback ─────────────────────────────────────────────────────────
-  const svgMarkers = markerData.map(m => ({ lat: m.lat, lng: m.lng, color: m.color, pulse: m.isCrit, label: m.label, detailHtml: m.detailHtml }));
-  mapEl.innerHTML = buildInteractiveMap('alert-map', svgMarkers, [{ color:'#dc2626', label:'Critical' }, { color:'#f59e0b', label:'Warning' }], 480);
-  initInteractiveMap('alert-map', svgMarkers);
+  mapEl.style.height = 'auto';
+  mapEl.style.border = 'none';
+  mapEl.style.borderRadius = '0';
+  mapEl.style.overflow = 'visible';
+  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px">${cards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3700,12 +3666,16 @@ async function renderMgmtReports() {
     : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noActiveAlerts')}</p>`;
 
   // Operator Compliance Ranking — EWURA only
+  // Group by the cylinder's owning company (the operator under inspection),
+  // not ev.company which is always the inspector ('Field Inspection Unit').
+  const _cylCoMap = {};
+  allCyls.forEach(c => { _cylCoMap[c.id] = c.company; });
   const opCompliance = {};
   if (role === 'ewura') {
     allEvents.forEach(ev => {
       if (!['inspected','ewura-monitored','tra-verified'].includes(ev.type)) return;
       if (!inPeriod(ev.timestamp)) return;
-      const co = ev.company || 'Unknown';
+      const co = _cylCoMap[ev.cylinderId] || ev.company || 'Unknown';
       if (!opCompliance[co]) opCompliance[co] = { pass: 0, total: 0 };
       opCompliance[co].total++;
       if (ev.compliant !== false) opCompliance[co].pass++;
@@ -3968,10 +3938,11 @@ if (mgmtGrid) {
       csv = 'Region,Severity,Type,Serial,CylinderID,Title\n' + rows.join('\n');
       downloadCSV(`lpg-alerts-by-region-${date}.csv`, csv);
     } else if (type === 'compliance-ranking') {
+      const _cmap = {}; allCyls.forEach(c => { _cmap[c.id] = c.company; });
       const ops = {};
       allEvents.filter(ev => ['inspected','ewura-monitored','tra-verified'].includes(ev.type) && inP(ev.timestamp))
         .forEach(ev => {
-          const co = ev.company || 'Unknown';
+          const co = _cmap[ev.cylinderId] || ev.company || 'Unknown';
           if (!ops[co]) ops[co] = { pass:0, total:0 };
           ops[co].total++;
           if (ev.compliant !== false) ops[co].pass++;
@@ -4608,137 +4579,40 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  const progressBar = (pct, color) =>
-    `<div style="height:5px;border-radius:3px;background:#1e3a5f;margin-top:6px"><div style="height:100%;width:${pct}%;border-radius:3px;background:${color}"></div></div>`;
-
-  // Build rich marker/popup data for both implementations
   const TERMINAL = { lat:-6.7924, lng:39.2083 };
-  const allMarkers = [
-    {
-      lat: TERMINAL.lat, lng: TERMINAL.lng,
-      color:'#f59e0b', big:true, symbol:'T',
-      label:'Dar es Salaam Import Terminal',
-      detailHtml:`<div class="imap-detail-badge" style="background:#f59e0b;color:#000">Terminal</div>
-        <div class="imap-detail-title">🏭 Dar es Salaam Import Terminal</div>
-        <div class="imap-detail-text">Main LPG import &amp; loading facility — bulk supply origin for Tanzania</div>`,
-      popupHtml:`<div class="lmap-popup">
-        <span class="lmap-badge" style="background:#f59e0b;color:#000">🏭 Terminal</span>
-        <div class="lmap-popup-title">Dar es Salaam Import Terminal</div>
-        <div class="lmap-popup-text">Main LPG import &amp; loading facility<br>Bulk supply origin for Tanzania</div>
-      </div>`,
-    },
-    ...DEMO_BULK_TANKERS.map(tk => {
-      const col = tankerHexColor[tk.status] || '#64748b';
-      const routeProgress = tk.routePct > 0 && tk.routePct < 100
-        ? progressBar(tk.routePct, col) + `<div style="font-size:11px;color:#94a3b8;margin-top:3px">${tk.routePct}% route complete</div>`
-        : '';
-      return {
-        lat: tk.lat, lng: tk.lng,
-        color: col, symbol: tankerSym[tk.status] || '●',
-        pulse: tk.status === 'in-transit',
-        label: `${tk.plate} — ${tk.operator}`,
-        detailHtml: `
-          <div class="imap-detail-badge" style="background:${col};color:#fff">${statusLbl(tk.status)}</div>
-          <div class="imap-detail-title">🚛 ${escapeHtml(tk.plate)}</div>
-          <div class="imap-detail-text"><strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}</div>
-          <div class="imap-detail-text" style="margin-top:4px">
-            <span style="font-size:11px;color:#64748b">FROM</span> ${escapeHtml(tk.from)}<br>
-            <span style="font-size:11px;color:#64748b">TO</span> ${escapeHtml(tk.to)}
-          </div>
-          ${routeProgress}
-          <div class="imap-detail-meta">${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}</div>`,
-        popupHtml: `<div class="lmap-popup">
-          <span class="lmap-badge" style="background:${col};color:#fff">${statusLbl(tk.status)}</span>
-          <div class="lmap-popup-title">🚛 ${escapeHtml(tk.plate)}</div>
-          <div class="lmap-popup-text"><strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}</div>
-          <div class="lmap-popup-text" style="margin-top:4px">
-            <span style="color:#888;font-size:11px">FROM</span> ${escapeHtml(tk.from)}<br>
-            <span style="color:#888;font-size:11px">TO</span>&nbsp; ${escapeHtml(tk.to)}
-          </div>
-          ${tk.routePct > 0 && tk.routePct < 100
-            ? `<div style="background:#e5e7eb;border-radius:3px;height:5px;margin-top:6px"><div style="width:${tk.routePct}%;height:100%;border-radius:3px;background:${col}"></div></div>
-               <div style="font-size:11px;color:#6b7280;margin-top:2px">${tk.routePct}% route complete</div>` : ''}
-          <div class="lmap-popup-meta">${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}</div>
-        </div>`,
-      };
-    }),
-  ];
 
-  // ── Leaflet (OSM) implementation ─────────────────────────────────────────
-  if (typeof L !== 'undefined') {
-    mapEl.style.height  = '420px';
-    mapEl.style.borderRadius = '8px';
-    mapEl.style.overflow = 'hidden';
-    mapEl.style.border   = '1px solid var(--border)';
-    mapEl.innerHTML = '';
+  const termCard = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+    <div style="background:#f59e0b;padding:6px 10px">
+      <span style="font-size:11px;font-weight:600;color:#000">🏭 Dar es Salaam Import Terminal</span>
+    </div>
+    <div style="height:180px">${buildOsmEmbed(TERMINAL.lat, TERMINAL.lng)}</div>
+    <div style="padding:6px 10px;font-size:11px;color:var(--muted)">Main LPG import &amp; loading facility — bulk supply origin for Tanzania</div>
+  </div>`;
 
-    if (_bulkLeafletMap) { _bulkLeafletMap.remove(); _bulkLeafletMap = null; }
-    _bulkLeafletMap = L.map(mapEl, { zoomControl: true }).setView([-5.5, 35.5], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18,
-    }).addTo(_bulkLeafletMap);
+  const tankerCards = DEMO_BULK_TANKERS.map(tk => {
+    const col = tankerHexColor[tk.status] || '#64748b';
+    const progressHtml = tk.routePct > 0 && tk.routePct < 100
+      ? `<div style="background:#e2e8f0;border-radius:3px;height:4px;margin-top:4px"><div style="width:${tk.routePct}%;height:100%;border-radius:3px;background:${col}"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${tk.routePct}% route complete</div>`
+      : '';
+    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+      <div style="background:${col};padding:6px 10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:#fff">🚛 ${escapeHtml(tk.plate)}</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.85)">${statusLbl(tk.status)}</span>
+      </div>
+      <div style="height:180px">${buildOsmEmbed(tk.lat, tk.lng)}</div>
+      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
+        <strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}<br>
+        📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}<br>
+        ${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}
+        ${progressHtml}
+      </div>
+    </div>`;
+  }).join('');
 
-    // Draw dashed route lines for in-transit tankers
-    DEMO_BULK_TANKERS.filter(tk => tk.status === 'in-transit').forEach(tk => {
-      const col = tankerHexColor[tk.status];
-      L.polyline([[TERMINAL.lat, TERMINAL.lng], [tk.lat, tk.lng]], {
-        color: col, weight: 2, opacity: 0.45, dashArray: '8, 6',
-      }).addTo(_bulkLeafletMap);
-    });
-
-    // Terminal marker
-    const termIcon = L.divIcon({
-      html: `<div class="lmap-terminal" title="Dar es Salaam Import Terminal">🏭</div>`,
-      className: '', iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18],
-    });
-    L.marker([TERMINAL.lat, TERMINAL.lng], { icon: termIcon })
-      .addTo(_bulkLeafletMap)
-      .bindPopup(allMarkers[0].popupHtml, { maxWidth: 300, className: 'lmap-popup-wrap' });
-
-    // Tanker markers
-    DEMO_BULK_TANKERS.forEach((tk, i) => {
-      const col = tankerHexColor[tk.status] || '#64748b';
-      const sym = tankerSym[tk.status] || '●';
-      const pulse = tk.status === 'in-transit' ? ' lmap-tanker-pulse' : '';
-      const tkIcon = L.divIcon({
-        html: `<div class="lmap-tanker${pulse}" style="background:${col}" title="${escapeHtml(tk.plate)}">${sym}</div>`,
-        className: '', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16],
-      });
-      L.marker([tk.lat, tk.lng], { icon: tkIcon })
-        .addTo(_bulkLeafletMap)
-        .bindPopup(allMarkers[i + 1].popupHtml, { maxWidth: 300, className: 'lmap-popup-wrap' });
-    });
-
-    // Legend
-    const bulkLegend = L.control({ position: 'bottomright' });
-    bulkLegend.onAdd = () => {
-      const div = L.DomUtil.create('div', 'lmap-legend');
-      div.innerHTML = [
-        { color:'#f59e0b', label:'Terminal' },
-        { color:'#3b82f6', label:t('status.inTransit') },
-        { color:'#a855f7', label:t('status.loading') },
-        { color:'#f59e0b', label:t('status.atTerminal') },
-        { color:'#22c55e', label:t('status.delivered') },
-      ].map(l => `<div class="lmap-legend-item"><span class="lmap-legend-dot" style="background:${l.color}"></span>${l.label}</div>`).join('');
-      return div;
-    };
-    bulkLegend.addTo(_bulkLeafletMap);
-
-    setTimeout(() => _bulkLeafletMap.invalidateSize(), 150);
-    return;
-  }
-
-  // ── SVG fallback ─────────────────────────────────────────────────────────
-  const legend = [
-    { color:'#f59e0b', label:'Terminal' },
-    { color:'#3b82f6', label:t('status.inTransit') },
-    { color:'#a855f7', label:t('status.loading') },
-    { color:'#f59e0b', label:t('status.atTerminal') },
-    { color:'#22c55e', label:t('status.delivered') },
-  ];
-  mapEl.innerHTML = buildInteractiveMap('bulk-map', allMarkers, legend, 420);
-  initInteractiveMap('bulk-map', allMarkers);
+  mapEl.style.height = 'auto';
+  mapEl.style.border = 'none';
+  mapEl.style.borderRadius = '0';
+  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:16px">${termCard}${tankerCards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
