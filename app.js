@@ -2204,7 +2204,10 @@ async function openPassportModal(cylId) {
       const recallBanner = cyl.recalled && cyl.recallInfo
         ? `<div style="margin-bottom:10px;padding:10px 12px;background:rgba(239,68,68,0.08);border:1px solid #ef4444;border-radius:6px;color:#ef4444">
             <div style="font-weight:700;font-size:13px;margin-bottom:2px">⚠ RECALL ISSUED</div>
-            <div style="font-size:12px">Batch <strong>${escapeHtml(cyl.recallInfo.batch)}</strong> · Refilled ${escapeHtml(cyl.recallInfo.date)} · Issued by ${escapeHtml(cyl.recallInfo.company)}</div>
+            <div style="font-size:12px">
+              ${cyl.recallInfo.date ? `Refill date <strong>${escapeHtml(cyl.recallInfo.date)}</strong> · ` : ''}
+              Issued by <strong>${escapeHtml(cyl.recallInfo.company)}</strong>
+            </div>
           </div>`
         : '';
       return `<div class="passport-section">
@@ -4943,24 +4946,21 @@ function renderRecall() {
 
 const _recallSearchBtn = $('recall-search-btn');
 if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
-  const selectedCo  = ($('recall-company-sel')  || {}).value?.trim();
-  const refillDate  = ($('recall-date-input')    || {}).value?.trim();
-  const batchCode   = ($('recall-batch-input')   || {}).value?.trim();
+  const selectedCo  = ($('recall-company-sel')      || {}).value?.trim();
+  const refillDate  = ($('recall-date-input')        || {}).value?.trim();
+  const mfgDate     = ($('recall-mfg-date-input')    || {}).value?.trim();
 
-  if (!selectedCo)  { showSnackbar('Select an LPGMC operator.', 'error'); return; }
-  if (!refillDate)  { showSnackbar('Select a refill date.', 'error');     return; }
-  if (!batchCode)   { showSnackbar('Enter a batch number.', 'error');     return; }
+  if (!selectedCo) { showSnackbar('Select an LPGMC operator.', 'error'); return; }
 
   const allEvents = await txGetAll('events');
   const allCyls   = await txGetAll('cylinders');
 
-  // Match refill events by company, date, and stampCode
+  // Match refill events: operator is required; refill date is optional
   const matchedIds = [...new Set(
     allEvents.filter(ev =>
       ev.type === 'refilled' &&
-      ev.stampCode === batchCode &&
       (ev.company || '') === selectedCo &&
-      (ev.timestamp || '').slice(0, 10) === refillDate
+      (!refillDate || (ev.timestamp || '').slice(0, 10) === refillDate)
     ).map(ev => ev.cylinderId)
   )];
 
@@ -4981,7 +4981,9 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
   allEvents.slice().sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp))
     .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
 
-  const cylsInBatch = allCyls.filter(c => matchedIds.includes(c.id));
+  let cylsInBatch = allCyls.filter(c => matchedIds.includes(c.id));
+  // Apply optional manufacture date filter
+  if (mfgDate) cylsInBatch = cylsInBatch.filter(c => (c.manufactureDate || '').slice(0, 10) === mfgDate);
 
   // Summary with Mark for Recall button
   const summaryEl = $('recall-summary');
@@ -4989,13 +4991,13 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
     const alreadyRecalled = cylsInBatch.filter(c => c.recalled).length;
     const valStyle = 'font-size:22px;font-weight:700;color:var(--primary)';
     const lblStyle = 'font-size:11px;color:var(--dim);margin-top:2px';
+    const filterDesc = [selectedCo, refillDate && `Refilled ${refillDate}`, mfgDate && `Mfg ${mfgDate}`].filter(Boolean).join(' · ');
     summaryEl.innerHTML = `
       <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
         <div style="text-align:center;min-width:72px"><div style="${valStyle}">${cylsInBatch.length}</div><div style="${lblStyle}">Cylinders</div></div>
         <div style="text-align:center;min-width:72px"><div style="${valStyle}">${alreadyRecalled}</div><div style="${lblStyle}">Already recalled</div></div>
         <div style="flex:1;min-width:160px">
-          <div style="font-size:13px;font-weight:600">${escapeHtml(batchCode)}</div>
-          <div style="${lblStyle}">${escapeHtml(selectedCo)} · ${escapeHtml(refillDate)}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(filterDesc)}</div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
           <button id="recall-export-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
@@ -5007,16 +5009,16 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
       </div>`;
 
     $('recall-export-btn')?.addEventListener('click', () => {
-      const rows = [['Serial','Company','Status','Current Location','Last Event','Last Event Date','Recalled']];
+      const rows = [['Serial','Company','Manufacture Date','Status','Current Location','Last Event','Last Event Date','Recalled']];
       cylsInBatch.forEach(cyl => {
         const ev  = lastEvMap[cyl.id];
         const loc = ev ? (ev.location || ev.company || '') : '';
-        rows.push([cyl.serial||cyl.id, cyl.company, cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'', cyl.recalled?'YES':'']);
+        rows.push([cyl.serial||cyl.id, cyl.company, cyl.manufactureDate||'', cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'', cyl.recalled?'YES':'']);
       });
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-      a.download = `recall-${batchCode}.csv`;
+      a.download = `recall-${selectedCo.replace(/\s+/g,'-')}-${refillDate||'all'}.csv`;
       a.click();
     });
 
@@ -5026,10 +5028,9 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
       const recalledAt = new Date().toISOString();
       for (const cyl of pending) {
         await txPut('cylinders', { ...cyl, recalled: true,
-          recallInfo: { batch: batchCode, date: refillDate, company: selectedCo, recalledAt } });
+          recallInfo: { date: refillDate || null, mfgDate: mfgDate || null, company: selectedCo, recalledAt } });
       }
       showSnackbar(`${pending.length} cylinder(s) marked for recall.`, 'success');
-      // Refresh results to show updated recall badges
       _recallSearchBtn.click();
     });
   }
