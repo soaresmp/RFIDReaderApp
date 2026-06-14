@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v17';
+const SEED_KEY   = 'seeded-v18';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -100,6 +100,7 @@ const TRANSLATIONS = {
     'status.delivered':'Delivered',
     'status.loading':'Loading',
     'nav.bulletTanks':'Bullet Tanks',
+    'nav.recall':'Recall',
     'page.bulletTanks':'🚛 Bullet Tanks',
     'btn.register':'Register','btn.shipment':'Shipment','btn.reception':'Reception',
     'btn.commitAll':'Commit All','btn.clear':'Clear','btn.logout':'← Exit',
@@ -210,6 +211,7 @@ const TRANSLATIONS = {
     'status.delivered':'Imefikishwa',
     'status.loading':'Inapakia',
     'nav.bulletTanks':'Matangi Makubwa',
+    'nav.recall':'Kumbuka',
     'page.bulletTanks':'🚛 Matangi Makubwa',
     'btn.register':'Sajili','btn.shipment':'Tuma','btn.reception':'Pokea',
     'btn.commitAll':'Thibitisha Zote','btn.clear':'Futa','btn.logout':'← Toka',
@@ -465,11 +467,11 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'network', 'licenses', 'mgmt-reports', 'bulk-monitor'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'network', 'licenses', 'mgmt-reports', 'bulk-monitor', 'recall'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
-  retailer:        ['reports', 'cylinders', 'mgmt-reports'],
+  retailer:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
 };
 
 const ROLE_LABELS = {
@@ -867,7 +869,7 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
       await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       // Now in-refill: refilled recently, awaiting dispatch
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, stampCode:'BATCH-2026-042' });
 
     } else if (cyl.status === 'in-circulation') {
       // Last event ~98 days ago → triggers Unreported alert (> 90 days threshold)
@@ -923,8 +925,10 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
     } else if (cyl.status === 'in-refill') {
       const base = now2 - 2 * MONTH;
+      const batchSuffix = String(40 + (idHash % 8)).padStart(3, '0');
+      const batchCode   = `BATCH-2026-${batchSuffix}`;
       await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, stampCode:batchCode });
     } else if (cyl._seedEmpty) {
       // Empty cylinder returned to distributor
       const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -1399,6 +1403,8 @@ function applySession() {
   // Shipment button: LPGMC, distributor, retailer
   const _shipBtn = $('shipment-btn');
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
+  const _rfBatchBtn = $('refill-batch-btn');
+  if (_rfBatchBtn) _rfBatchBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
 
   // Navigate to dashboard (reset)
   showView('reports');
@@ -1474,6 +1480,7 @@ function showView(name) {
   if (name === 'network')       renderNetwork();
   if (name === 'mgmt-reports')  renderMgmtReports();
   if (name === 'bulk-monitor') renderBulkMonitor();
+  if (name === 'recall')        renderRecall();
 }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -4887,6 +4894,216 @@ async function renderBulkMonitor() {
 
   buildTileMap('bulk-map', allMarkers, { height: 480, zoom: 6, center: { lat: -5.5, lng: 35.5 }, lines });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RECALL VIEW (EWURA)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function renderRecall() {
+  const resultsEl = $('recall-results');
+  const emptyEl   = $('recall-empty');
+  if (resultsEl) resultsEl.style.display = 'none';
+  if (emptyEl)   emptyEl.style.display   = 'none';
+}
+
+const _recallSearchBtn = $('recall-search-btn');
+if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
+  const batchCode = ($('recall-batch-input') || {}).value?.trim();
+  if (!batchCode) { showSnackbar('Enter a batch number to search.', 'error'); return; }
+
+  const allEvents = await txGetAll('events');
+  const allCyls   = await txGetAll('cylinders');
+
+  const matchedIds = [...new Set(
+    allEvents.filter(ev => ev.type === 'refilled' && ev.stampCode === batchCode).map(ev => ev.cylinderId)
+  )];
+
+  const resultsEl = $('recall-results');
+  const emptyEl   = $('recall-empty');
+
+  if (matchedIds.length === 0) {
+    if (resultsEl) resultsEl.style.display = 'none';
+    if (emptyEl)   emptyEl.style.display   = '';
+    return;
+  }
+
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (resultsEl) resultsEl.style.display = '';
+
+  // Last event per cylinder (current location)
+  const lastEvMap = {};
+  allEvents.slice().sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp))
+    .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
+
+  const cylsInBatch = allCyls.filter(c => matchedIds.includes(c.id));
+  const companies   = [...new Set(cylsInBatch.map(c => c.company))];
+
+  // Summary
+  const summaryEl = $('recall-summary');
+  if (summaryEl) {
+    const statStyle = 'text-align:center;min-width:80px';
+    const valStyle  = 'font-size:22px;font-weight:700;color:var(--primary)';
+    const lblStyle  = 'font-size:11px;color:var(--dim);margin-top:2px';
+    summaryEl.innerHTML = `
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <div style="${statStyle}"><div style="${valStyle}">${cylsInBatch.length}</div><div style="${lblStyle}">Cylinders in batch</div></div>
+        <div style="flex:1;min-width:140px"><div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(batchCode)}</div><div style="${lblStyle}">Batch / Stamp Code</div></div>
+        <div style="${statStyle}"><div style="${valStyle}">${companies.length}</div><div style="${lblStyle}">LPGMC companies</div></div>
+        <button id="recall-export-btn" class="btn btn-sm btn-outline" type="button" style="margin-left:auto">↓ Export CSV</button>
+      </div>`;
+    const expBtn = $('recall-export-btn');
+    if (expBtn) expBtn.addEventListener('click', () => {
+      const rows = [['Serial','Company','Status','Current Location','Last Event','Last Event Date']];
+      cylsInBatch.forEach(cyl => {
+        const ev  = lastEvMap[cyl.id];
+        const loc = ev ? (ev.location || ev.company || '') : '';
+        rows.push([cyl.serial||cyl.id, cyl.company, cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'']);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = `recall-${batchCode}.csv`;
+      a.click();
+    });
+  }
+
+  // Map markers (cylinder current locations)
+  const markers = cylsInBatch.map(cyl => {
+    const ev  = lastEvMap[cyl.id];
+    const loc = ev ? (ev.location || ev.company || '') : cyl.company;
+    const net = DEMO_NETWORK.find(n => n.name === loc);
+    const lpg = DEMO_LPGMC_INFO && DEMO_LPGMC_INFO[loc];
+    const lat = net ? net.lat : lpg ? lpg.lat : -6.5 + (Math.random()-0.5)*2;
+    const lng = net ? net.lng : lpg ? lpg.lng : 35.5 + (Math.random()-0.5)*2;
+    const col = {'in-refill':'#3b82f6','in-circulation':'#22c55e','in-use':'#f59e0b','revalidation':'#8b5cf6'}[cyl.status] || '#64748b';
+    return {
+      lat: lat + (Math.random()-0.5)*0.12,
+      lng: lng + (Math.random()-0.5)*0.12,
+      color: col, symbol: '●',
+      label: `${cyl.serial||cyl.id} · ${cyl.company} · ${loc}`,
+    };
+  });
+  buildTileMap('recall-map', markers, { height: 380, zoom: 6, center: { lat: -6.0, lng: 35.5 } });
+
+  // Cylinder list
+  const listEl = $('recall-cylinder-list');
+  if (listEl) {
+    const statusLbls = {'in-refill':'In Refill','in-circulation':'In Circulation','in-use':'In Use','revalidation':'Revalidation'};
+    listEl.innerHTML = cylsInBatch.map(cyl => {
+      const ev  = lastEvMap[cyl.id];
+      const loc = ev ? (ev.location || ev.company || '—') : '—';
+      const evLabel = ev ? (EVENT_LABELS[ev.type] || ev.type) : '—';
+      const evDate  = ev ? ev.timestamp.slice(0,10) : '—';
+      return `<li class="network-item" style="cursor:default">
+        <div class="network-item-header">
+          <span class="network-item-name">${escapeHtml(cyl.serial || cyl.id)}</span>
+          <span class="network-type-badge">${escapeHtml(statusLbls[cyl.status] || cyl.status)}</span>
+        </div>
+        <div class="network-item-meta">
+          🏭 ${escapeHtml(cyl.company)} · 📍 ${escapeHtml(loc)}<br>
+          Last event: ${escapeHtml(evLabel)} · ${escapeHtml(evDate)}
+        </div>
+      </li>`;
+    }).join('');
+  }
+});
+
+// ── Refill Batch Modal (LPGMC) ────────────────────────────────────────────
+let _refillBatchCyls = [];
+
+function _updateRefillBatchList() {
+  const listEl  = $('refill-batch-cylinder-list');
+  const countEl = $('refill-batch-count');
+  if (!listEl) return;
+  if (_refillBatchCyls.length === 0) {
+    listEl.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>';
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+  if (countEl) countEl.textContent = `${_refillBatchCyls.length} cylinder${_refillBatchCyls.length === 1 ? '' : 's'}`;
+  listEl.innerHTML = _refillBatchCyls.map(c => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border)">
+      <div>
+        <span class="font-mono" style="font-size:12px;font-weight:600">${escapeHtml(c.id)}</span>
+        <span style="margin-left:8px;font-size:12px;color:var(--dim)">${escapeHtml(c.serial || '')} · ${escapeHtml(c.company || '')}</span>
+      </div>
+      <button data-rfb-remove="${escapeHtml(c.id)}" style="background:none;border:none;color:var(--danger,#ef4444);cursor:pointer;font-size:18px;line-height:1;padding:0 4px" title="Remove">×</button>
+    </div>`).join('');
+  listEl.querySelectorAll('[data-rfb-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _refillBatchCyls = _refillBatchCyls.filter(c => c.id !== btn.dataset.rfbRemove);
+      _updateRefillBatchList();
+    });
+  });
+}
+
+async function _addToRefillBatch(tagId) {
+  tagId = tagId.trim().toUpperCase();
+  if (!tagId) return;
+  if (_refillBatchCyls.find(c => c.id === tagId)) { showSnackbar('Already in list.', 'warning'); return; }
+  const cyl = await txGet('cylinders', tagId);
+  if (!cyl) { showSnackbar(`Cylinder ${tagId} not found.`, 'error'); return; }
+  if (Auth.session && cyl.company !== Auth.session.company) { showSnackbar(`Belongs to ${cyl.company} — not your company.`, 'error'); return; }
+  _refillBatchCyls.push(cyl);
+  _updateRefillBatchList();
+  const inp = $('refill-batch-scan-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+function openRefillBatchModal() {
+  _refillBatchCyls = [];
+  const today = new Date().toISOString().slice(0, 10);
+  const dateInp = $('refill-batch-date');
+  if (dateInp) dateInp.value = today;
+  const siteInp = $('refill-batch-site');
+  if (siteInp && Auth.session) siteInp.value = Auth.session.company;
+  const numInp = $('refill-batch-number');
+  if (numInp) numInp.value = `BATCH-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`;
+  const notesInp = $('refill-batch-notes');
+  if (notesInp) notesInp.value = '';
+  _updateRefillBatchList();
+  openModal('modal-refill-batch');
+  const scanInp = $('refill-batch-scan-input');
+  if (scanInp) { scanInp.value = ''; scanInp.focus(); }
+}
+
+const _rfbBtn = $('refill-batch-btn');
+if (_rfbBtn) _rfbBtn.addEventListener('click', openRefillBatchModal);
+
+const _rfbAddBtn = $('refill-batch-add-btn');
+if (_rfbAddBtn) _rfbAddBtn.addEventListener('click', () => {
+  const inp = $('refill-batch-scan-input');
+  if (inp) _addToRefillBatch(inp.value);
+});
+
+const _rfbScanInp = $('refill-batch-scan-input');
+if (_rfbScanInp) _rfbScanInp.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); _addToRefillBatch(_rfbScanInp.value); }
+});
+
+const _rfbConfirmBtn = $('refill-batch-confirm-btn');
+if (_rfbConfirmBtn) _rfbConfirmBtn.addEventListener('click', async () => {
+  if (_refillBatchCyls.length === 0) { showSnackbar('Scan at least one cylinder.', 'error'); return; }
+  const batchNum = ($('refill-batch-number') || {}).value?.trim();
+  if (!batchNum) { showSnackbar('Enter a batch number.', 'error'); return; }
+  const batchDate  = ($('refill-batch-date')  || {}).value || new Date().toISOString().slice(0, 10);
+  const shift      = ($('refill-batch-shift') || {}).value || 'morning';
+  const site       = ($('refill-batch-site')  || {}).value?.trim() || Auth.session.company;
+  const notes      = ($('refill-batch-notes') || {}).value?.trim() || '';
+  const session    = Auth.session;
+  const ts         = new Date(batchDate + 'T12:00:00').toISOString();
+  for (const cyl of _refillBatchCyls) {
+    await txPut('events', {
+      cylinderId: cyl.id, type: 'refilled', timestamp: ts,
+      operatorId: session.operatorId, company: session.company,
+      location: site, stampCode: batchNum, shift, notes,
+    });
+    await txPut('cylinders', { ...cyl, fillCount: (cyl.fillCount || 0) + 1, status: 'in-refill', lastStampCode: batchNum });
+  }
+  showSnackbar(`Batch ${batchNum}: ${_refillBatchCyls.length} cylinder(s) refilled.`, 'success');
+  closeModal('modal-refill-batch');
+  renderCylinders();
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER

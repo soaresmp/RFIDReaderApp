@@ -315,6 +315,9 @@
           <button class="nav-tab" data-view="bulk-monitor" id="nav-bulk-monitor" style="display:none">
             <span class="nav-label" data-i18n="nav.bulletTanks">Bullet Tanks</span>
           </button>
+          <button class="nav-tab" data-view="recall" id="nav-recall" style="display:none">
+            <span class="nav-label" data-i18n="nav.recall">Recall</span>
+          </button>
         </div>
       </nav>
 
@@ -390,6 +393,7 @@
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.register">Register</button>
               <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.shipment">Shipment</button>
               <button id="reception-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.reception">Reception</button>
+              <button id="refill-batch-btn" class="btn btn-primary" type="button" style="display:none">Refill Batch</button>
             </div>
           </div>
 
@@ -598,6 +602,25 @@
           </div>
           <div id="bulk-map" style="margin-bottom:16px"></div>
           <ul id="bulk-tanker-list" class="network-list" style="max-height:none"></ul>
+        </div>
+
+        <!-- ── RECALL VIEW (EWURA only) ──────────────────────────────────────── -->
+        <div id="view-recall" class="view">
+          <div class="page-header">
+            <h2 class="page-title">🔍 Batch Recall</h2>
+          </div>
+          <div class="view-toolbar">
+            <div style="display:flex;gap:8px;align-items:center;width:100%">
+              <input id="recall-batch-input" type="text" class="search-input" style="flex:1" placeholder="Enter batch / stamp code (e.g. BATCH-2026-042)…" />
+              <button id="recall-search-btn" class="btn btn-primary" type="button">Search</button>
+            </div>
+          </div>
+          <p id="recall-empty" class="list-empty" style="display:none">No cylinders found for this batch number.</p>
+          <div id="recall-results" style="display:none">
+            <div id="recall-summary" style="margin:12px 0;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)"></div>
+            <div id="recall-map" style="margin-bottom:16px"></div>
+            <ul id="recall-cylinder-list" class="network-list" style="max-height:none"></ul>
+          </div>
         </div>
 
       </main><!-- /content-area -->
@@ -856,6 +879,59 @@
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-reception" type="button">Cancel</button>
         <button id="reception-confirm-btn" class="btn btn-primary" type="button">Confirm Reception</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refill Batch modal (LPGMC only) -->
+  <div id="modal-refill-batch" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Refill Batch">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>🔄 Refill Batch</h2>
+        <button class="modal-close" data-close="modal-refill-batch" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label>Batch Number</label>
+            <input id="refill-batch-number" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-099" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Date</label>
+            <input id="refill-batch-date" type="date" class="form-control" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Shift</label>
+            <select id="refill-batch-shift" class="form-control">
+              <option value="morning">Morning (06:00–14:00)</option>
+              <option value="afternoon">Afternoon (14:00–22:00)</option>
+              <option value="night">Night (22:00–06:00)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Refilling Site</label>
+            <input id="refill-batch-site" type="text" class="form-control" readonly style="background:var(--surface2)" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Scan Cylinders <span style="font-size:11px;color:var(--dim)">— scan or type each RFID tag, press Enter</span></label>
+          <div style="display:flex;gap:8px">
+            <input id="refill-batch-scan-input" type="text" class="form-control font-mono" placeholder="Scan RFID tag…" autocomplete="off" maxlength="24" />
+            <button id="refill-batch-add-btn" class="btn btn-primary" type="button">Add</button>
+          </div>
+        </div>
+        <div id="refill-batch-cylinder-list" style="margin-top:4px;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;min-height:52px">
+          <p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+          <textarea id="refill-batch-notes" class="form-control" rows="2" placeholder="Additional notes for this refill batch…" style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span id="refill-batch-count" style="font-size:13px;color:var(--dim);margin-right:auto"></span>
+        <button class="btn btn-outline" data-close="modal-refill-batch" type="button">Cancel</button>
+        <button id="refill-batch-confirm-btn" class="btn btn-primary" type="button">Confirm Refill Batch</button>
       </div>
     </div>
   </div>
