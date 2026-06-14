@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v15';
+const SEED_KEY   = 'seeded-v16';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -330,12 +330,13 @@ const DEMO_LICENSES = [
   { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired', history:[{type:'granted', date:'2023-02-14', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active',  history:[{type:'granted', date:'2021-09-01', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active',  history:[{type:'granted', date:'2024-11-01', by:'EWURA', note:'Initial license granted'}] },
+  { id:'LIC-008', companyName:'Sunrise Gas Ltd',  companyType:'Distributor',   licenseNumber:'DIST-2021-008',  issuedDate:'2021-05-12', expiryDate:'2026-05-11', status:'active',  history:[{type:'granted', date:'2021-05-12', by:'EWURA', note:'Initial license granted'},{type:'renewed', date:'2024-05-12', by:'EWURA', note:'License renewed for 2 years — full compliance record'}] },
 ];
 
 const DEMO_NETWORK = [
   // Distributors (12)
   { id:'NET-001', name:'ABC Gas Distributors',          type:'Distributor', region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo Market Area',        lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', contactPerson:'James Mwangi',      status:'active',   cylinders:145, full:87,  empty:58  },
-  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', contactPerson:'Amina Njoroge',      status:'active',   cylinders:98,  full:61,  empty:37  },
+  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', contactPerson:'Amina Njoroge',      status:'active',   cylinders:187, full:112, empty:75  },
   { id:'NET-003', name:'Lake Victoria Gas Supply',      type:'Distributor', region:'Mwanza',        city:'Mwanza',        address:'Pamba Road, Mwanza',           lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', contactPerson:'Peter Odhiambo',     status:'active',   cylinders:112, full:70,  empty:42  },
   { id:'NET-004', name:'Capital Gas Supplies',          type:'Distributor', region:'Dodoma',        city:'Dodoma',        address:'Makole Area, Dodoma',          lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', contactPerson:'Grace Makundi',      status:'active',   cylinders:67,  full:39,  empty:28  },
   { id:'NET-005', name:'Kilimanjaro Gas Distributors',  type:'Distributor', region:'Kilimanjaro',   city:'Moshi',         address:'Rindi Lane, Moshi',            lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', contactPerson:'David Kimaro',       status:'active',   cylinders:89,  full:52,  empty:37  },
@@ -365,6 +366,9 @@ const DEMO_NETWORK = [
   { id:'NET-028', name:'Mwanza Rock City Gas',          type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Nyamagana, Mwanza',            lat:-2.5150, lng:32.9080, contact:'+255 28 250 0028', contactPerson:'Bernard Nyerere',    status:'active',   cylinders:11,  full:6,   empty:5   },
   { id:'NET-029', name:'Arusha Clock Tower Gas',        type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Clock Tower Area, Arusha',     lat:-3.3660, lng:36.6870, contact:'+255 27 250 0029', contactPerson:'Winnie Kimani',      status:'active',   cylinders:16,  full:10,  empty:6   },
   { id:'NET-030', name:'Shinyanga Gas Retail',          type:'Retailer',    region:'Shinyanga',     city:'Shinyanga',     address:'Kahama Road, Shinyanga',       lat:-3.6650, lng:33.4280, contact:'+255 28 276 0030', contactPerson:'Terence Bundala',    status:'active',   cylinders:9,   full:5,   empty:4   },
+  { id:'NET-031', name:'Arusha City Gas Shop',          type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Swahili Street, Arusha Centre', lat:-3.3731, lng:36.6933, contact:'+255 27 250 0031', contactPerson:'Daniel Kimani',      status:'active',   cylinders:24,  full:15,  empty:9   },
+  { id:'NET-032', name:'Kaloleni Gas Retail Arusha',    type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Kaloleni Area, Arusha',         lat:-3.3950, lng:36.7100, contact:'+255 27 250 0032', contactPerson:'Fatuma Minja',        status:'active',   cylinders:18,  full:11,  empty:7   },
+  { id:'NET-033', name:'Tengeru Gas Point',             type:'Retailer',    region:'Arusha',        city:'Arumeru',       address:'Tengeru, Arumeru District',     lat:-3.3300, lng:36.8200, contact:'+255 27 255 0033', contactPerson:'Moses Tarimo',        status:'active',   cylinders:13,  full:8,   empty:5   },
 ];
 
 const DEMO_BULK_TANKERS = [
@@ -778,6 +782,9 @@ async function seedDemoData() {
     { name:'Tanga Shoreline Gas',        region:'Tanga' },
     { name:'Tabora Market Gas Shop',     region:'Tabora' },
     { name:'Shinyanga Gas Retail',       region:'Shinyanga' },
+    { name:'Arusha City Gas Shop',       region:'Arusha' },
+    { name:'Kaloleni Gas Retail Arusha', region:'Arusha' },
+    { name:'Tengeru Gas Point',          region:'Arusha' },
   ];
   const DISTRIBUTORS = [
     { name:'ABC Gas Distributors',         region:'Dar es Salaam' },
@@ -992,6 +999,82 @@ async function seedDemoData() {
       operatorId: 'SYSTEM', company: s.type === 'ewura-monitored' ? 'EWURA' : 'Field Inspection Unit',
       compliant: s.compliant,
     });
+  }
+
+  // ── Sunrise Gas Ltd dedicated events ──────────────────────────────────────
+  // Route a set of known generated cylinders through Sunrise Gas Ltd to build
+  // a rich activity history: multiple shipment cycles, retail sales in Arusha,
+  // inspections, and an unreported alert cylinder.
+  const SUNRISE = 'Sunrise Gas Ltd';
+  const SUNRISE_RETAILERS = [
+    { name:'Northern Gas Retail Arusha', region:'Arusha' },
+    { name:'Arusha Clock Tower Gas',     region:'Arusha' },
+    { name:'Arusha City Gas Shop',       region:'Arusha' },
+    { name:'Kaloleni Gas Retail Arusha', region:'Arusha' },
+    { name:'Tengeru Gas Point',          region:'Arusha' },
+  ];
+  // Generated cylinder IDs for Vivo LPG (code 01) and Total Energies (code 02)
+  // Pattern: E280116060{code}{i padded to 10}
+  const sgCylIds = [
+    // Vivo LPG cylinders routed via Sunrise Gas (i = 5, 25, 45, 65, 85, 105, 125, 145, 165, 185)
+    'E2801160600100000000005','E2801160600100000000025','E2801160600100000000045',
+    'E2801160600100000000065','E2801160600100000000085','E2801160600100000000105',
+    'E2801160600100000000125','E2801160600100000000145','E2801160600100000000165',
+    'E2801160600100000000185',
+    // Total Energies cylinders (i = 10, 30, 50, 70, 90, 110, 130, 150, 170, 190)
+    'E2801160600200000000010','E2801160600200000000030','E2801160600200000000050',
+    'E2801160600200000000070','E2801160600200000000090','E2801160600200000000110',
+    'E2801160600200000000130','E2801160600200000000150','E2801160600200000000170',
+    'E2801160600200000000190',
+    // Shell Gas cylinders (i = 15, 35, 55, 75, 95, 115)
+    'E2801160600300000000015','E2801160600300000000035','E2801160600300000000055',
+    'E2801160600300000000075','E2801160600300000000095','E2801160600300000000115',
+  ];
+  const sgCompany = (id) => id.startsWith('E280116060010') ? 'Vivo LPG' : id.startsWith('E280116060020') ? 'Total Energies' : 'Shell Gas';
+
+  let sgi = 0;
+  for (const cylId of sgCylIds) {
+    const co  = sgCompany(cylId);
+    const ret = SUNRISE_RETAILERS[sgi % SUNRISE_RETAILERS.length];
+    sgi++;
+    const base = now - (18 + sgi * 3) * MONTH / 12; // spread over 18 months back
+
+    // Cycle 1 (older): refilled at LPGMC → Sunrise → Arusha retailer → sold → returned
+    const b1 = base - 8 * MONTH;
+    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(b1).toISOString(),                  operatorId:'SYSTEM', company:co,      location:co,      region:'Dar es Salaam' });
+    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(b1 + 3*DAY).toISOString(),          operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(b1 + 5*DAY).toISOString(),          operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',    timestamp:new Date(b1 + 11*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-received',        timestamp:new Date(b1 + 13*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-sold',            timestamp:new Date(b1 + 20*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-returned-empty',  timestamp:new Date(b1 + 48*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'dist-returned-empty', timestamp:new Date(b1 + 51*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'received-empty',      timestamp:new Date(b1 + 54*DAY).toISOString(),         operatorId:'SYSTEM', company:co,      location:co });
+
+    // Cycle 2 (recent): refilled → Sunrise → retail sale → empty return
+    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(base).toISOString(),                operatorId:'SYSTEM', company:co,      location:co });
+    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(base + 4*DAY).toISOString(),        operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(base + 6*DAY).toISOString(),        operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',    timestamp:new Date(base + 10*DAY).toISOString(),       operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-received',        timestamp:new Date(base + 12*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-sold',            timestamp:new Date(base + 18*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'ret-returned-empty',  timestamp:new Date(base + 45*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    await txPut('events', { cylinderId:cylId, type:'dist-returned-empty', timestamp:new Date(base + 48*DAY).toISOString(),       operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'received-empty',      timestamp:new Date(base + 51*DAY).toISOString(),       operatorId:'SYSTEM', company:co,      location:co });
+
+    // Field inspection after cycle 2 (80% compliant, 20% non-compliant for variety)
+    await txPut('events', { cylinderId:cylId, type:'inspected',           timestamp:new Date(base + 60*DAY).toISOString(),       operatorId:'SYSTEM', company:'Field Inspection Unit', compliant: sgi % 5 !== 0, region:'Arusha', cylinderOwner:SUNRISE });
+
+    // Cycle 3 (current): in-circulation at Sunrise retailer
+    const b3 = base + 70 * DAY;
+    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(b3).toISOString(),                  operatorId:'SYSTEM', company:co,      location:co });
+    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(b3 + 4*DAY).toISOString(),          operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(b3 + 6*DAY).toISOString(),          operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    // Leave 6 cylinders (every 5th) in-stock at Sunrise (not yet sent to retail)
+    if (sgi % 5 !== 0) {
+      await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',  timestamp:new Date(b3 + 12*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
+      await txPut('events', { cylinderId:cylId, type:'ret-received',      timestamp:new Date(b3 + 14*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
+    }
   }
 
   for (const lic of DEMO_LICENSES) {
