@@ -372,12 +372,20 @@ const DEMO_NETWORK = [
 ];
 
 const DEMO_BULK_TANKERS = [
-  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42 },
-  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',     lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28 },
-  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',      lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0  },
-  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',    from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',    lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100},
-  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',      from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0  },
-  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',  lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65 },
+  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Moshi Plant',        lat:-5.1700, lng:38.6500, speed:62, lastUpdate:'3 min ago',  routePct:42, driver:'Juma Mwangi',    temp:'−3 °C', fillPct:92 },
+  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',      lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28, driver:'Ali Hassan',      temp:'−2 °C', fillPct:100},
+  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000 L', status:'at-terminal', from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',       lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0,  driver:'Peter Kimaro',    temp:'−1 °C', fillPct:0  },
+  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',     lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100,driver:'Hamisi Rashidi',   temp:'−2 °C', fillPct:5  },
+  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000 L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',     lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0,  driver:'David Maro',      temp:'0 °C',  fillPct:68 },
+  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',   lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65, driver:'Francis Mwamba',  temp:'−3 °C', fillPct:100},
+  { id:'BT-007', plate:'T 310 CHZ', operator:'Shell Gas',      capacity:'24,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',       lat:-6.3500, lng:38.0000, speed:58, lastUpdate:'2 min ago',  routePct:35, driver:'Omar Salehe',     temp:'−2 °C', fillPct:98 },
+  { id:'BT-008', plate:'T 475 DOD', operator:'Lake Gas',       capacity:'20,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Dodoma Depot',        lat:-6.1722, lng:35.7395, speed:0,  lastUpdate:'2 hr ago',   routePct:100,driver:'Ndugu Simba',      temp:'−1 °C', fillPct:8  },
+  { id:'BT-009', plate:'T 622 MSH', operator:'Vivo LPG',       capacity:'18,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Moshi Plant',        lat:-4.0700, lng:37.7200, speed:65, lastUpdate:'4 min ago',  routePct:70, driver:'Baraka Ng\'oma',  temp:'−2 °C', fillPct:100},
+  { id:'BT-010', plate:'T 540 DAR', operator:'Total Energies', capacity:'28,000 L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Total Energies Tanga Depot',   lat:-6.8050, lng:39.2600, speed:0,  lastUpdate:'18 min ago', routePct:0,  driver:'Samuel Otieno',  temp:'1 °C',  fillPct:44 },
+  { id:'BT-011', plate:'T 731 TNG', operator:'Shell Gas',      capacity:'16,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Tanga Depot',        lat:-5.5800, lng:38.8500, speed:52, lastUpdate:'6 min ago',  routePct:55, driver:'Rashid Kombo',    temp:'−2 °C', fillPct:100},
+  { id:'BT-012', plate:'T 285 MRG', operator:'Lake Gas',       capacity:'22,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Morogoro Plant',      lat:-6.8240, lng:37.6590, speed:0,  lastUpdate:'45 min ago', routePct:100,driver:'John Mbwana',      temp:'−1 °C', fillPct:12 },
+  { id:'BT-013', plate:'T 419 TAB', operator:'Vivo LPG',       capacity:'20,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Tabora Depot',        lat:-6.0200, lng:36.5000, speed:60, lastUpdate:'9 min ago',  routePct:30, driver:'Michael Banda',   temp:'−3 °C', fillPct:100},
+  { id:'BT-014', plate:'T 867 IRG', operator:'Total Energies', capacity:'18,000 L', status:'at-terminal', from:'Total Energies Iringa Plant',   to:'Dar es Salaam Import Terminal', lat:-6.7500, lng:39.2200, speed:0,  lastUpdate:'8 min ago',  routePct:0,  driver:'Charles Minja',   temp:'2 °C',  fillPct:3  },
 ];
 
 const EVENT_LABELS = {
@@ -2739,10 +2747,15 @@ function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = 
       const {x,y} = pxOf(m.lat, m.lng);
       const sz = m.big ? 30 : 18, fs = m.big ? 13 : 9, col = m.color || '#3b82f6';
       const pulse = m.pulse ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:${col};opacity:0.22;animation:imap-pulse 1.4s ease-out infinite;pointer-events:none"></div>` : '';
-      return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big?10:5};cursor:default">
+      const cur = m.info ? 'pointer' : 'default';
+      return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big?10:5};cursor:${cur}">
         ${pulse}<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${fs}px;color:#fff;font-weight:700;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4)">${escapeHtml(m.symbol||'')}</div>
       </div>`;
     }).join('');
+
+    // Preserve snack box state across re-renders
+    const prevSnack = el.querySelector(`#${mapId}-snack`);
+    const snackHtml = prevSnack ? prevSnack.outerHTML : `<div id="${mapId}-snack" style="position:absolute;bottom:8px;left:8px;right:8px;z-index:60;display:none;background:rgba(15,23,42,0.93);color:#f8fafc;border-radius:10px;padding:12px 14px 10px;font-size:12px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 4px 24px rgba(0,0,0,0.5)"><button data-tm-close style="position:absolute;top:8px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;line-height:1;padding:0" title="Close">×</button><div id="${mapId}-snack-body"></div></div>`;
 
     el.innerHTML = `
       <div data-tml style="position:absolute;inset:0;z-index:1">${tiles}</div>
@@ -2753,17 +2766,44 @@ function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = 
         <button data-tmz="-1" style="${btnSt}" title="Zoom out">−</button>
       </div>
       <div id="${mapId}-tmtip" style="position:absolute;background:#1e293b;color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:50;display:none;max-width:260px;line-height:1.4"></div>
+      ${snackHtml}
       <div style="position:absolute;bottom:0;right:0;background:rgba(255,255,255,0.72);font-size:10px;padding:2px 5px;z-index:20">© <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#0077bb">OpenStreetMap</a></div>`;
   }
 
   render();
 
-  // ── Zoom buttons ──────────────────────────────────────────────────────────
+  // ── Marker info snack box renderer ────────────────────────────────────────
+  function renderSnackInfo(info) {
+    const badge = info.badge
+      ? `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:${info.badge.color}30;color:${info.badge.color};border:1px solid ${info.badge.color}60;margin-left:8px">${escapeHtml(info.badge.text)}</span>`
+      : '';
+    const rows = (info.rows || []).map(([k,v]) =>
+      `<div style="display:flex;justify-content:space-between;gap:20px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+         <span style="color:#94a3b8;white-space:nowrap;flex-shrink:0">${escapeHtml(k)}</span>
+         <span style="font-weight:500;text-align:right;color:#e2e8f0">${escapeHtml(String(v))}</span>
+       </div>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;margin-bottom:10px">
+        <span style="font-size:14px;font-weight:700;color:#f1f5f9">${escapeHtml(info.title||'')}</span>${badge}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${rows}</div>`;
+  }
+
+  // ── Zoom buttons & marker click ───────────────────────────────────────────
   el.addEventListener('click', e => {
-    const btn = e.target.closest('[data-tmz]');
-    if (!btn) return;
-    Z = Math.max(2, Math.min(18, Z + +btn.dataset.tmz));
-    render();
+    const zBtn = e.target.closest('[data-tmz]');
+    if (zBtn) { Z = Math.max(2, Math.min(18, Z + +zBtn.dataset.tmz)); render(); return; }
+    if (_dragged) return;
+    const closeBtn = e.target.closest('[data-tm-close]');
+    const snack = el.querySelector(`#${mapId}-snack`);
+    if (closeBtn) { if (snack) snack.style.display = 'none'; return; }
+    const mk = e.target.closest('[data-tmi]');
+    if (!mk) { if (snack) snack.style.display = 'none'; return; }
+    const m = markers[+mk.dataset.tmi];
+    if (!m || !m.info) return;
+    const body = el.querySelector(`#${mapId}-snack-body`);
+    if (body) body.innerHTML = renderSnackInfo(m.info);
+    if (snack) snack.style.display = 'block';
   }, { signal: sig });
 
   // ── Mouse-wheel zoom ──────────────────────────────────────────────────────
@@ -2787,17 +2827,19 @@ function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = 
   }, { passive: false, signal: sig });
 
   // ── Drag to pan ───────────────────────────────────────────────────────────
-  let pd = null;
+  let pd = null, _dragged = false;
   el.addEventListener('mousedown', e => {
     if (e.target.closest('[data-tmz]') || e.target.closest('a')) return;
     e.preventDefault();
     el.style.cursor = 'grabbing';
     pd = { sx: e.clientX, sy: e.clientY, lat: C.lat, lng: C.lng };
+    _dragged = false;
   }, { signal: sig });
 
   window.addEventListener('mousemove', e => {
     if (!pd || sig.aborted) return;
     const dx = e.clientX - pd.sx, dy = e.clientY - pd.sy;
+    if (!_dragged && Math.hypot(dx, dy) > 4) _dragged = true;
     el.querySelectorAll('[data-tml]').forEach(d => d.style.transform = `translate(${dx}px,${dy}px)`);
   }, { signal: sig });
 
@@ -4809,6 +4851,23 @@ async function renderBulkMonitor() {
 
   const TERMINAL = { lat:-6.7924, lng:39.2083 };
 
+  function tkInfo(tk) {
+    const statusColor = tankerHexColor[tk.status] || '#64748b';
+    const rows = [
+      ['Operator',    tk.operator],
+      ['Capacity',    tk.capacity],
+      ['From',        tk.from],
+      ['To',          tk.to],
+      ['Driver',      tk.driver || '—'],
+      ['Temperature', tk.temp   || '—'],
+      ...(tk.speed > 0           ? [['Speed',    tk.speed + ' km/h']]         : []),
+      ...(tk.fillPct !== undefined ? [['Tank fill', tk.fillPct + '%']]          : []),
+      ...(tk.routePct > 0 && tk.routePct < 100 ? [['Route',  tk.routePct + '% complete']] : []),
+      ['Last update', tk.lastUpdate],
+    ];
+    return { title: tk.plate, badge: { text: statusLbl(tk.status), color: statusColor }, rows };
+  }
+
   const allMarkers = [
     { lat: TERMINAL.lat, lng: TERMINAL.lng, color: '#f59e0b', symbol: 'T', big: true,
       label: 'Dar es Salaam Import Terminal' },
@@ -4817,7 +4876,8 @@ async function renderBulkMonitor() {
       color:  tankerHexColor[tk.status] || '#64748b',
       symbol: tankerSym[tk.status] || '●',
       pulse:  tk.status === 'in-transit',
-      label:  `${tk.plate} — ${tk.operator} (${statusLbl(tk.status)})${tk.routePct > 0 && tk.routePct < 100 ? ' · ' + tk.routePct + '% complete' : ''}`,
+      label:  `${tk.plate} — ${tk.operator} (${statusLbl(tk.status)})`,
+      info:   tkInfo(tk),
     })),
   ];
 
@@ -4825,7 +4885,7 @@ async function renderBulkMonitor() {
     .filter(tk => tk.status === 'in-transit')
     .map(tk => ({ from: TERMINAL, to: { lat: tk.lat, lng: tk.lng }, color: tankerHexColor['in-transit'] }));
 
-  buildTileMap('bulk-map', allMarkers, { height: 420, zoom: 6, center: { lat: -5.5, lng: 35.5 }, lines });
+  buildTileMap('bulk-map', allMarkers, { height: 480, zoom: 6, center: { lat: -5.5, lng: 35.5 }, lines });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
