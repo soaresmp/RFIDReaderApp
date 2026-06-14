@@ -1065,11 +1065,11 @@ async function seedDemoData() {
     // Field inspection after cycle 2 (80% compliant, 20% non-compliant for variety)
     await txPut('events', { cylinderId:cylId, type:'inspected',           timestamp:new Date(base + 60*DAY).toISOString(),       operatorId:'SYSTEM', company:'Field Inspection Unit', compliant: sgi % 5 !== 0, region:'Arusha', cylinderOwner:SUNRISE });
 
-    // Cycle 3 (current): fresh shipment in stock at Sunrise warehouse
-    const b3 = base + 70 * DAY;
-    await txPut('events', { cylinderId:cylId, type:'refilled',      timestamp:new Date(b3).toISOString(),         operatorId:'SYSTEM', company:co,      location:co });
-    await txPut('events', { cylinderId:cylId, type:'shipped',       timestamp:new Date(b3 + 4*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-received', timestamp:new Date(b3 + 6*DAY).toISOString(), operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
+    // Cycle 3 (current): fresh shipment arrived at Sunrise in the last 1-4 weeks
+    const b3 = now - (28 - sgi) * DAY; // stagger arrivals: sgi=1 arrived 27 days ago, sgi=26 arrived 2 days ago
+    await txPut('events', { cylinderId:cylId, type:'refilled',      timestamp:new Date(b3 - 6*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co });
+    await txPut('events', { cylinderId:cylId, type:'shipped',       timestamp:new Date(b3 - 2*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-received', timestamp:new Date(b3).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
   }
 
   for (const lic of DEMO_LICENSES) {
