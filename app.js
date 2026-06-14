@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v16';
+const SEED_KEY   = 'seeded-v17';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -1017,20 +1017,20 @@ async function seedDemoData() {
   // Pattern: E280116060{code}{i padded to 10}
   const sgCylIds = [
     // Vivo LPG cylinders routed via Sunrise Gas (i = 5, 25, 45, 65, 85, 105, 125, 145, 165, 185)
-    'E2801160600100000000005','E2801160600100000000025','E2801160600100000000045',
-    'E2801160600100000000065','E2801160600100000000085','E2801160600100000000105',
-    'E2801160600100000000125','E2801160600100000000145','E2801160600100000000165',
-    'E2801160600100000000185',
+    'E280116060010000000005','E280116060010000000025','E280116060010000000045',
+    'E280116060010000000065','E280116060010000000085','E280116060010000000105',
+    'E280116060010000000125','E280116060010000000145','E280116060010000000165',
+    'E280116060010000000185',
     // Total Energies cylinders (i = 10, 30, 50, 70, 90, 110, 130, 150, 170, 190)
-    'E2801160600200000000010','E2801160600200000000030','E2801160600200000000050',
-    'E2801160600200000000070','E2801160600200000000090','E2801160600200000000110',
-    'E2801160600200000000130','E2801160600200000000150','E2801160600200000000170',
-    'E2801160600200000000190',
+    'E280116060020000000010','E280116060020000000030','E280116060020000000050',
+    'E280116060020000000070','E280116060020000000090','E280116060020000000110',
+    'E280116060020000000130','E280116060020000000150','E280116060020000000170',
+    'E280116060020000000190',
     // Shell Gas cylinders (i = 15, 35, 55, 75, 95, 115)
-    'E2801160600300000000015','E2801160600300000000035','E2801160600300000000055',
-    'E2801160600300000000075','E2801160600300000000095','E2801160600300000000115',
+    'E280116060030000000015','E280116060030000000035','E280116060030000000055',
+    'E280116060030000000075','E280116060030000000095','E280116060030000000115',
   ];
-  const sgCompany = (id) => id.startsWith('E280116060010') ? 'Vivo LPG' : id.startsWith('E280116060020') ? 'Total Energies' : 'Shell Gas';
+  const sgCompany = (id) => id.startsWith('E28011606001') ? 'Vivo LPG' : id.startsWith('E28011606002') ? 'Total Energies' : 'Shell Gas';
 
   let sgi = 0;
   for (const cylId of sgCylIds) {
@@ -1065,16 +1065,11 @@ async function seedDemoData() {
     // Field inspection after cycle 2 (80% compliant, 20% non-compliant for variety)
     await txPut('events', { cylinderId:cylId, type:'inspected',           timestamp:new Date(base + 60*DAY).toISOString(),       operatorId:'SYSTEM', company:'Field Inspection Unit', compliant: sgi % 5 !== 0, region:'Arusha', cylinderOwner:SUNRISE });
 
-    // Cycle 3 (current): in-circulation at Sunrise retailer
+    // Cycle 3 (current): fresh shipment in stock at Sunrise warehouse
     const b3 = base + 70 * DAY;
-    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(b3).toISOString(),                  operatorId:'SYSTEM', company:co,      location:co });
-    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(b3 + 4*DAY).toISOString(),          operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(b3 + 6*DAY).toISOString(),          operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
-    // Leave 6 cylinders (every 5th) in-stock at Sunrise (not yet sent to retail)
-    if (sgi % 5 !== 0) {
-      await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',  timestamp:new Date(b3 + 12*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
-      await txPut('events', { cylinderId:cylId, type:'ret-received',      timestamp:new Date(b3 + 14*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    }
+    await txPut('events', { cylinderId:cylId, type:'refilled',      timestamp:new Date(b3).toISOString(),         operatorId:'SYSTEM', company:co,      location:co });
+    await txPut('events', { cylinderId:cylId, type:'shipped',       timestamp:new Date(b3 + 4*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
+    await txPut('events', { cylinderId:cylId, type:'dist-received', timestamp:new Date(b3 + 6*DAY).toISOString(), operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
   }
 
   for (const lic of DEMO_LICENSES) {
