@@ -2201,21 +2201,16 @@ async function openPassportModal(cylId) {
     ${(() => {
       const lastRefill = events.find(ev => ev.type === 'refilled');
       if (!lastRefill) return '';
-      const shiftLabels = { morning: 'Morning (06:00–14:00)', afternoon: 'Afternoon (14:00–22:00)', night: 'Night (22:00–06:00)' };
       return `<div class="passport-section">
         <div class="passport-section-title">Refill</div>
         <div class="passport-row">
           <span class="passport-key">Last Refill Date</span>
           <span class="passport-value">${formatDate(lastRefill.timestamp.slice(0,10))}</span>
         </div>
-        ${lastRefill.shift ? `<div class="passport-row">
-          <span class="passport-key">Shift</span>
-          <span class="passport-value">${escapeHtml(shiftLabels[lastRefill.shift] || lastRefill.shift)}</span>
-        </div>` : ''}
-        ${lastRefill.stampCode ? `<div class="passport-row">
+        <div class="passport-row">
           <span class="passport-key">Batch Number</span>
-          <span class="passport-value mono">${escapeHtml(lastRefill.stampCode)}</span>
-        </div>` : ''}
+          <span class="passport-value mono">${lastRefill.stampCode ? escapeHtml(lastRefill.stampCode) : '—'}</span>
+        </div>
         <div class="passport-row">
           <span class="passport-key">Total Refills</span>
           <span class="passport-value">${cyl.fillCount || events.filter(ev => ev.type === 'refilled').length}</span>
