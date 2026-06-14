@@ -609,13 +609,28 @@
           <div class="page-header">
             <h2 class="page-title">🔍 Batch Recall</h2>
           </div>
-          <div class="view-toolbar">
-            <div style="display:flex;gap:8px;align-items:center;width:100%">
-              <input id="recall-batch-input" type="text" class="search-input" style="flex:1" placeholder="Enter batch / stamp code (e.g. BATCH-2026-042)…" />
+          <div class="view-toolbar" style="flex-direction:column;gap:10px;align-items:stretch">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div>
+                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">LPGMC Operator <span style="color:var(--danger,#ef4444)">*</span></label>
+                <select id="recall-company-sel" class="filter-select" style="width:100%">
+                  <option value="">Select operator…</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">Refill Date <span style="color:var(--danger,#ef4444)">*</span></label>
+                <input id="recall-date-input" type="date" class="form-control" />
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">Batch Number <span style="color:var(--danger,#ef4444)">*</span></label>
+                <input id="recall-batch-input" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-042" />
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end">
               <button id="recall-search-btn" class="btn btn-primary" type="button">Search</button>
             </div>
           </div>
-          <p id="recall-empty" class="list-empty" style="display:none">No cylinders found for this batch number.</p>
+          <p id="recall-empty" class="list-empty" style="display:none">No cylinders found matching those criteria.</p>
           <div id="recall-results" style="display:none">
             <div id="recall-summary" style="margin:12px 0;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)"></div>
             <div id="recall-map" style="margin-bottom:16px"></div>

@@ -2201,8 +2201,15 @@ async function openPassportModal(cylId) {
     ${(() => {
       const lastRefill = events.find(ev => ev.type === 'refilled');
       if (!lastRefill) return '';
+      const recallBanner = cyl.recalled && cyl.recallInfo
+        ? `<div style="margin-bottom:10px;padding:10px 12px;background:rgba(239,68,68,0.08);border:1px solid #ef4444;border-radius:6px;color:#ef4444">
+            <div style="font-weight:700;font-size:13px;margin-bottom:2px">⚠ RECALL ISSUED</div>
+            <div style="font-size:12px">Batch <strong>${escapeHtml(cyl.recallInfo.batch)}</strong> · Refilled ${escapeHtml(cyl.recallInfo.date)} · Issued by ${escapeHtml(cyl.recallInfo.company)}</div>
+          </div>`
+        : '';
       return `<div class="passport-section">
-        <div class="passport-section-title">Refill</div>
+        <div class="passport-section-title" style="${cyl.recalled ? 'color:#ef4444' : ''}">Refill${cyl.recalled ? ' ⚠' : ''}</div>
+        ${recallBanner}
         <div class="passport-row">
           <span class="passport-key">Last Refill Date</span>
           <span class="passport-value">${formatDate(lastRefill.timestamp.slice(0,10))}</span>
@@ -4923,18 +4930,38 @@ function renderRecall() {
   const emptyEl   = $('recall-empty');
   if (resultsEl) resultsEl.style.display = 'none';
   if (emptyEl)   emptyEl.style.display   = 'none';
+  // Populate LPGMC company dropdown
+  const sel = $('recall-company-sel');
+  if (sel && sel.options.length <= 1) {
+    LPGMC_COMPANIES.forEach(co => {
+      const opt = document.createElement('option');
+      opt.value = co; opt.textContent = co;
+      sel.appendChild(opt);
+    });
+  }
 }
 
 const _recallSearchBtn = $('recall-search-btn');
 if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
-  const batchCode = ($('recall-batch-input') || {}).value?.trim();
-  if (!batchCode) { showSnackbar('Enter a batch number to search.', 'error'); return; }
+  const selectedCo  = ($('recall-company-sel')  || {}).value?.trim();
+  const refillDate  = ($('recall-date-input')    || {}).value?.trim();
+  const batchCode   = ($('recall-batch-input')   || {}).value?.trim();
+
+  if (!selectedCo)  { showSnackbar('Select an LPGMC operator.', 'error'); return; }
+  if (!refillDate)  { showSnackbar('Select a refill date.', 'error');     return; }
+  if (!batchCode)   { showSnackbar('Enter a batch number.', 'error');     return; }
 
   const allEvents = await txGetAll('events');
   const allCyls   = await txGetAll('cylinders');
 
+  // Match refill events by company, date, and stampCode
   const matchedIds = [...new Set(
-    allEvents.filter(ev => ev.type === 'refilled' && ev.stampCode === batchCode).map(ev => ev.cylinderId)
+    allEvents.filter(ev =>
+      ev.type === 'refilled' &&
+      ev.stampCode === batchCode &&
+      (ev.company || '') === selectedCo &&
+      (ev.timestamp || '').slice(0, 10) === refillDate
+    ).map(ev => ev.cylinderId)
   )];
 
   const resultsEl = $('recall-results');
@@ -4955,28 +4982,36 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
     .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
 
   const cylsInBatch = allCyls.filter(c => matchedIds.includes(c.id));
-  const companies   = [...new Set(cylsInBatch.map(c => c.company))];
 
-  // Summary
+  // Summary with Mark for Recall button
   const summaryEl = $('recall-summary');
   if (summaryEl) {
-    const statStyle = 'text-align:center;min-width:80px';
-    const valStyle  = 'font-size:22px;font-weight:700;color:var(--primary)';
-    const lblStyle  = 'font-size:11px;color:var(--dim);margin-top:2px';
+    const alreadyRecalled = cylsInBatch.filter(c => c.recalled).length;
+    const valStyle = 'font-size:22px;font-weight:700;color:var(--primary)';
+    const lblStyle = 'font-size:11px;color:var(--dim);margin-top:2px';
     summaryEl.innerHTML = `
       <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
-        <div style="${statStyle}"><div style="${valStyle}">${cylsInBatch.length}</div><div style="${lblStyle}">Cylinders in batch</div></div>
-        <div style="flex:1;min-width:140px"><div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(batchCode)}</div><div style="${lblStyle}">Batch / Stamp Code</div></div>
-        <div style="${statStyle}"><div style="${valStyle}">${companies.length}</div><div style="${lblStyle}">LPGMC companies</div></div>
-        <button id="recall-export-btn" class="btn btn-sm btn-outline" type="button" style="margin-left:auto">↓ Export CSV</button>
+        <div style="text-align:center;min-width:72px"><div style="${valStyle}">${cylsInBatch.length}</div><div style="${lblStyle}">Cylinders</div></div>
+        <div style="text-align:center;min-width:72px"><div style="${valStyle}">${alreadyRecalled}</div><div style="${lblStyle}">Already recalled</div></div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:600">${escapeHtml(batchCode)}</div>
+          <div style="${lblStyle}">${escapeHtml(selectedCo)} · ${escapeHtml(refillDate)}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button id="recall-export-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
+          <button id="recall-mark-btn" class="btn btn-sm btn-danger" type="button"
+            style="background:var(--danger,#ef4444);color:#fff;border-color:var(--danger,#ef4444)">
+            ⚠ Mark All for Recall
+          </button>
+        </div>
       </div>`;
-    const expBtn = $('recall-export-btn');
-    if (expBtn) expBtn.addEventListener('click', () => {
-      const rows = [['Serial','Company','Status','Current Location','Last Event','Last Event Date']];
+
+    $('recall-export-btn')?.addEventListener('click', () => {
+      const rows = [['Serial','Company','Status','Current Location','Last Event','Last Event Date','Recalled']];
       cylsInBatch.forEach(cyl => {
         const ev  = lastEvMap[cyl.id];
         const loc = ev ? (ev.location || ev.company || '') : '';
-        rows.push([cyl.serial||cyl.id, cyl.company, cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'']);
+        rows.push([cyl.serial||cyl.id, cyl.company, cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'', cyl.recalled?'YES':'']);
       });
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
       const a = document.createElement('a');
@@ -4984,9 +5019,22 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
       a.download = `recall-${batchCode}.csv`;
       a.click();
     });
+
+    $('recall-mark-btn')?.addEventListener('click', async () => {
+      const pending = cylsInBatch.filter(c => !c.recalled);
+      if (pending.length === 0) { showSnackbar('All cylinders already marked for recall.', 'warning'); return; }
+      const recalledAt = new Date().toISOString();
+      for (const cyl of pending) {
+        await txPut('cylinders', { ...cyl, recalled: true,
+          recallInfo: { batch: batchCode, date: refillDate, company: selectedCo, recalledAt } });
+      }
+      showSnackbar(`${pending.length} cylinder(s) marked for recall.`, 'success');
+      // Refresh results to show updated recall badges
+      _recallSearchBtn.click();
+    });
   }
 
-  // Map markers (cylinder current locations)
+  // Map markers
   const markers = cylsInBatch.map(cyl => {
     const ev  = lastEvMap[cyl.id];
     const loc = ev ? (ev.location || ev.company || '') : cyl.company;
@@ -4994,12 +5042,13 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
     const lpg = DEMO_LPGMC_INFO && DEMO_LPGMC_INFO[loc];
     const lat = net ? net.lat : lpg ? lpg.lat : -6.5 + (Math.random()-0.5)*2;
     const lng = net ? net.lng : lpg ? lpg.lng : 35.5 + (Math.random()-0.5)*2;
-    const col = {'in-refill':'#3b82f6','in-circulation':'#22c55e','in-use':'#f59e0b','revalidation':'#8b5cf6'}[cyl.status] || '#64748b';
+    const col = cyl.recalled ? '#ef4444'
+      : ({'in-refill':'#3b82f6','in-circulation':'#22c55e','in-use':'#f59e0b','revalidation':'#8b5cf6'}[cyl.status] || '#64748b');
     return {
       lat: lat + (Math.random()-0.5)*0.12,
       lng: lng + (Math.random()-0.5)*0.12,
-      color: col, symbol: '●',
-      label: `${cyl.serial||cyl.id} · ${cyl.company} · ${loc}`,
+      color: col, symbol: cyl.recalled ? '!' : '●',
+      label: `${cyl.recalled ? '[RECALL] ' : ''}${cyl.serial||cyl.id} · ${cyl.company} · ${loc}`,
     };
   });
   buildTileMap('recall-map', markers, { height: 380, zoom: 6, center: { lat: -6.0, lng: 35.5 } });
@@ -5009,13 +5058,16 @@ if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
   if (listEl) {
     const statusLbls = {'in-refill':'In Refill','in-circulation':'In Circulation','in-use':'In Use','revalidation':'Revalidation'};
     listEl.innerHTML = cylsInBatch.map(cyl => {
-      const ev  = lastEvMap[cyl.id];
-      const loc = ev ? (ev.location || ev.company || '—') : '—';
-      const evLabel = ev ? (EVENT_LABELS[ev.type] || ev.type) : '—';
-      const evDate  = ev ? ev.timestamp.slice(0,10) : '—';
-      return `<li class="network-item" style="cursor:default">
+      const ev       = lastEvMap[cyl.id];
+      const loc      = ev ? (ev.location || ev.company || '—') : '—';
+      const evLabel  = ev ? (EVENT_LABELS[ev.type] || ev.type) : '—';
+      const evDate   = ev ? ev.timestamp.slice(0,10) : '—';
+      const recBadge = cyl.recalled
+        ? `<span style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px">RECALL</span>`
+        : '';
+      return `<li class="network-item" style="cursor:default${cyl.recalled ? ';border-left:3px solid #ef4444' : ''}">
         <div class="network-item-header">
-          <span class="network-item-name">${escapeHtml(cyl.serial || cyl.id)}</span>
+          <span class="network-item-name">${escapeHtml(cyl.serial || cyl.id)}${recBadge}</span>
           <span class="network-type-badge">${escapeHtml(statusLbls[cyl.status] || cyl.status)}</span>
         </div>
         <div class="network-item-meta">
