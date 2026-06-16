@@ -333,6 +333,8 @@ const DEMO_LICENSES = [
   { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active',  history:[{type:'granted', date:'2021-09-01', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active',  history:[{type:'granted', date:'2024-11-01', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-008', companyName:'Sunrise Gas Ltd',  companyType:'Distributor',   licenseNumber:'DIST-2021-008',  issuedDate:'2021-05-12', expiryDate:'2026-05-11', status:'active',  history:[{type:'granted', date:'2021-05-12', by:'EWURA', note:'Initial license granted'},{type:'renewed', date:'2024-05-12', by:'EWURA', note:'License renewed for 2 years — full compliance record'}] },
+  { id:'LIC-009', companyName:'EastCoast Gas Co.', companyType:'Distributor',  licenseNumber:'DIST-2020-009',  issuedDate:'2020-03-01', expiryDate:'2025-02-28', status:'revoked', history:[{type:'granted', date:'2020-03-01', by:'EWURA', note:'Initial license granted'},{type:'revoked', date:'2025-01-10', by:'EWURA', note:'Revoked due to repeated non-compliance with safety standards'}] },
+  { id:'LIC-010', companyName:'Mara Gas Supplies', companyType:'Retailer',     licenseNumber:'RET-2026-010',   issuedDate:'2026-05-20', expiryDate:'2031-05-19', status:'pending', history:[{type:'applied', date:'2026-05-20', by:'Mara Gas Supplies', note:'New licence application submitted — awaiting EWURA review'}] },
 ];
 
 const DEMO_NETWORK = [
@@ -3184,10 +3186,36 @@ async function renderReports() {
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
         const inspRateD = inspEvsD.length ? Math.round(inspCompD / inspEvsD.length * 100) : 0;
+        const licActive  = DEMO_LICENSES.filter(l => l.status === 'active').length;
+        const licExpired = DEMO_LICENSES.filter(l => l.status === 'expired').length;
+        const licRevoked = DEMO_LICENSES.filter(l => l.status === 'revoked').length;
+        const licPending = DEMO_LICENSES.filter(l => l.status === 'pending').length;
+        const licTotal   = DEMO_LICENSES.length;
         return `<div class="report-card">
           <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
           <div class="report-card-label">${t('dash.marketCompliance')}</div>
           <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')}</div>
+        </div>
+        <div class="dashboard-section-title">Licences</div>
+        <div class="report-card">
+          <span class="report-card-value" style="color:var(--green)">${licActive}</span>
+          <div class="report-card-label">Valid / Active</div>
+        </div>
+        <div class="report-card">
+          <span class="report-card-value" style="color:var(--amber)">${licExpired}</span>
+          <div class="report-card-label">Expired</div>
+        </div>
+        <div class="report-card">
+          <span class="report-card-value" style="color:var(--red)">${licRevoked}</span>
+          <div class="report-card-label">Revoked</div>
+        </div>
+        <div class="report-card">
+          <span class="report-card-value" style="color:var(--blue)">${licPending}</span>
+          <div class="report-card-label">Pending Review</div>
+        </div>
+        <div class="report-card">
+          <span class="report-card-value">${licTotal}</span>
+          <div class="report-card-label">Total Licences</div>
         </div>`;
       })() : ''}
       `;
