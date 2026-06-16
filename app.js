@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v18';
+const SEED_KEY   = 'seeded-v15';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -100,7 +100,6 @@ const TRANSLATIONS = {
     'status.delivered':'Delivered',
     'status.loading':'Loading',
     'nav.bulletTanks':'Bullet Tanks',
-    'nav.recall':'Recall',
     'page.bulletTanks':'🚛 Bullet Tanks',
     'btn.register':'Register','btn.shipment':'Shipment','btn.reception':'Reception',
     'btn.commitAll':'Commit All','btn.clear':'Clear','btn.logout':'← Exit',
@@ -120,6 +119,84 @@ const TRANSLATIONS = {
     'scan.active':'Active','scan.unfocused':'Unfocused','status.idle':'Idle',
     'cyl.searchPlaceholder':'Search serial / tag…',
     'cyl.notFound':'No cylinders found.','alert.noneFound':'No alerts.',
+    'nav.inspections':'Inspections','nav.marketIntel':'Market Intel',
+    'page.inspections':'🔍 Field Inspections','page.marketIntel':'📊 Market Intelligence',
+    'btn.newInspection':'+ New Inspection','btn.bulkRegister':'Bulk Register',
+    'btn.scheduleInspection':'Schedule','btn.registerCylinders':'Register Cylinders',
+    'insp.company':'Company / Operator','insp.region':'Region','insp.auditor':'Auditor',
+    'insp.date':'Scheduled Date','insp.notes':'Notes','insp.newTitle':'Schedule Inspection',
+    'insp.status.overdue':'overdue','insp.status.scheduled':'scheduled','insp.status.completed':'completed',
+    'bulk.title':'Bulk Cylinder Registration','bulk.uploadLabel':'Upload CSV / TXT file',
+    'bulk.pasteLabel':'Or paste cylinder IDs (one per line, 22-char E280116060… format)',
+    'bulk.validIds':'valid IDs found','bulk.noValidIds':'No valid IDs found',
+    'counterfeit.title':'COUNTERFEIT ALERT','counterfeit.body':'is not registered in the national LPG database.',
+    'counterfeit.sub':'This may indicate a counterfeit or unregistered cylinder.',
+    'counterfeit.report':'Report to EWURA','counterfeit.reported':'Reported ✓',
+    'counterfeit.submitted':'Counterfeit report submitted to EWURA',
+    'alert.stockShortage':'Stock Shortage','alert.stockSurplus':'Stock Surplus',
+    'alert.counterfeit':'Counterfeit Alert',
+    'marketIntel.summary':'National Summary','marketIntel.totalCyls':'Total Cylinders',
+    'marketIntel.activeOps':'Active Operators','marketIntel.activeLic':'Active Licences',
+    'marketIntel.totalEvents':'Total Events','marketIntel.byRegion':'Cylinders by Region',
+    'marketIntel.opShare':'Operator Market Share','marketIntel.scanVolume':'Monthly Scan Volume (last 6 months)',
+    'marketIntel.statusBreakdown':'Cylinder Status Breakdown',
+    'marketIntel.atRefill':'At Refill Plant','marketIntel.inDist':'In Distribution',
+    'marketIntel.inReval':'In Revalidation','marketIntel.withConsumer':'With Consumer',
+    'returnRate.title':'Return Rate by Retailer','returnRate.noData':'No dispatch data available.',
+    'audit.exported':'Audit trail exported',
+    'consumer.title':'Cylinder Status Check','consumer.subtitle':'Tanzania LPG Cylinder Verification',
+    'consumer.registered':'Registered Cylinder','consumer.notRegistered':'Not Registered',
+    'consumer.notRegisteredDesc':'is not registered in the national LPG database. This may be a counterfeit or unregistered cylinder — do not use and report to EWURA.',
+    'consumer.closeLogin':'Close & Login',
+    'insp.scheduledOk':'Inspection scheduled.',
+    'licApp.newUser':'New to the platform?',
+    'licApp.btnLabel':'📋 Apply for LPG Distribution Licence',
+    'licApp.title':'LPG Distribution Licence Application',
+    'licApp.subtitle':'EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825)',
+    'licApp.allRequired':'All fields marked * are required',
+    'licApp.completeness':'Application completeness',
+    'licApp.back':'← Back','licApp.cancel':'Cancel',
+    'licApp.saveDraft':'💾 Save Draft','licApp.draftSaved':'✓ Draft saved',
+    'licApp.submit':'Submit Application →',
+    'licApp.sec1':'1. Applicant Information',
+    'licApp.sec2':'2. Corporate / Registration Documents',
+    'licApp.sec2sub':'Certified copies in PDF or image format (max 10 MB each)',
+    'licApp.sec3':'3. Land & Facility Documents',
+    'licApp.sec3sub':'Documents for the premises where LPG operations will be conducted',
+    'licApp.sec4':'4. Technical Requirements',
+    'licApp.sec4sub':'Operational and commercial capability documentation',
+    'licApp.sec5':'5. Financial Proof',
+    'licApp.sec5note':'(at least one required — minimum TZS 1.5 billion)',
+    'licApp.sec5sub':'Submit at least one of the following documents demonstrating sufficient financial capacity',
+    'licApp.sec6':'6. Health, Safety & Environment',
+    'licApp.sec6sub':'Valid certificates from the relevant regulatory bodies',
+    'licApp.sec7':'7. Administrative & Compliance Documents',
+    'licApp.sec7sub':'Declarations, pledges and proof of payment',
+    'licApp.companyName':'Company Name (as registered)',
+    'licApp.companyNamePlh':'Full legal name of the company',
+    'licApp.tin':'TIN Number','licApp.tinPlh':'e.g. 100-123-456',
+    'licApp.vat':'VAT Registration Number','licApp.vatPlh':'If registered for VAT',
+    'licApp.contact':'Contact Person','licApp.contactPlh':'Full name',
+    'licApp.designation':'Designation / Title','licApp.designationPlh':'e.g. Managing Director',
+    'licApp.email':'Email Address','licApp.emailPlh':'official@company.com',
+    'licApp.phone':'Phone Number','licApp.phonePlh':'+255 …',
+    'licApp.address':'Physical / Registered Address','licApp.addressPlh':'Street address, city',
+    'licApp.region':'Region','licApp.selectRegion':'Select region…',
+    'licApp.companyType':'Company Type','licApp.local':'Local Company','licApp.foreign':'Foreign Company',
+    'licApp.optional':'optional','licApp.attachFile':'Attach file','licApp.noFile':'No file selected',
+    'licApp.processTitle':'ℹ EWURA Application Process',
+    'licApp.proc1':'Applications are submitted online via EWURA\'s LOIS (Licence and Order Information System)',
+    'licApp.proc2':'EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong>',
+    'licApp.proc3':'EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back',
+    'licApp.proc4':'A pre-licensing facility inspection is conducted before the licence is granted',
+    'licApp.proc5':'Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable',
+    'licApp.successTitle':'Application Submitted',
+    'licApp.successMsg1':'Your LPG Distribution Licence application for <strong>{{company}}</strong> has been received.',
+    'licApp.successMsg2':'EWURA will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.',
+    'licApp.successNext':'<strong>Next step:</strong> Submit your physical application documents to EWURA\'s LOIS portal at <strong>lois.ewura.go.tz</strong> or visit the EWURA offices in Dar es Salaam.',
+    'licApp.backToLogin':'Back to Login',
+    'licApp.noCompany':'Please enter your company name before submitting.',
+    'licApp.noFinancial':'Please attach at least one financial proof document (Section 5).',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -211,7 +288,6 @@ const TRANSLATIONS = {
     'status.delivered':'Imefikishwa',
     'status.loading':'Inapakia',
     'nav.bulletTanks':'Matangi Makubwa',
-    'nav.recall':'Kumbuka',
     'page.bulletTanks':'🚛 Matangi Makubwa',
     'btn.register':'Sajili','btn.shipment':'Tuma','btn.reception':'Pokea',
     'btn.commitAll':'Thibitisha Zote','btn.clear':'Futa','btn.logout':'← Toka',
@@ -231,6 +307,84 @@ const TRANSLATIONS = {
     'scan.active':'Inafanya kazi','scan.unfocused':'Haijalenga','status.idle':'Kimya',
     'cyl.searchPlaceholder':'Tafuta nambari / lebo…',
     'cyl.notFound':'Hakuna mitungi iliyopatikana.','alert.noneFound':'Hakuna tahadhari.',
+    'nav.inspections':'Ukaguzi','nav.marketIntel':'Akili ya Soko',
+    'page.inspections':'🔍 Ukaguzi wa Uwanjani','page.marketIntel':'📊 Akili ya Soko',
+    'btn.newInspection':'+ Ukaguzi Mpya','btn.bulkRegister':'Sajili Kwa Wingi',
+    'btn.scheduleInspection':'Panga Ratiba','btn.registerCylinders':'Sajili Mitungi',
+    'insp.company':'Kampuni / Mwendeshaji','insp.region':'Mkoa','insp.auditor':'Mkaguzi',
+    'insp.date':'Tarehe ya Ukaguzi','insp.notes':'Maelezo','insp.newTitle':'Panga Ukaguzi',
+    'insp.status.overdue':'imechelewa','insp.status.scheduled':'imepangwa','insp.status.completed':'imekamilika',
+    'bulk.title':'Usajili wa Mitungi kwa Wingi','bulk.uploadLabel':'Pakia faili la CSV / TXT',
+    'bulk.pasteLabel':'Au bandika vitambulisho vya mitungi (kimoja kwa mstari, muundo E280116060… wa herufi 22)',
+    'bulk.validIds':'vitambulisho sahihi vimepatikana','bulk.noValidIds':'Hakuna vitambulisho sahihi',
+    'counterfeit.title':'TAHADHARI YA BANDIA','counterfeit.body':'haijasajiliwa katika hifadhidata ya kitaifa ya LPG.',
+    'counterfeit.sub':'Hii inaweza kuashiria mtungi bandia au ambao haujasajiliwa.',
+    'counterfeit.report':'Ripoti kwa EWURA','counterfeit.reported':'Imeripotiwa ✓',
+    'counterfeit.submitted':'Ripoti ya mtungi bandia imetumwa kwa EWURA',
+    'alert.stockShortage':'Upungufu wa Hifadhi','alert.stockSurplus':'Ziada ya Hifadhi',
+    'alert.counterfeit':'Tahadhari ya Bandia',
+    'marketIntel.summary':'Muhtasari wa Kitaifa','marketIntel.totalCyls':'Jumla ya Mitungi',
+    'marketIntel.activeOps':'Waendeshaji Wanaofanya Kazi','marketIntel.activeLic':'Leseni Zinazofanya Kazi',
+    'marketIntel.totalEvents':'Jumla ya Matukio','marketIntel.byRegion':'Mitungi kwa Mkoa',
+    'marketIntel.opShare':'Sehemu ya Soko ya Waendeshaji','marketIntel.scanVolume':'Kiasi cha Uchanganuzi kwa Mwezi (miezi 6 iliyopita)',
+    'marketIntel.statusBreakdown':'Mgawanyo wa Hali za Mitungi',
+    'marketIntel.atRefill':'Kituo cha Kujaza','marketIntel.inDist':'Kwenye Usambazaji',
+    'marketIntel.inReval':'Kwenye Uthibitishaji','marketIntel.withConsumer':'Kwa Mnunuzi',
+    'returnRate.title':'Kiwango cha Urudishaji kwa Muuzaji','returnRate.noData':'Hakuna data ya usafirishaji.',
+    'audit.exported':'Rekodi ya ukaguzi imehamiishwa',
+    'consumer.title':'Ukaguzi wa Hali ya Mtungi','consumer.subtitle':'Uhakiki wa Mitungi ya LPG Tanzania',
+    'consumer.registered':'Mtungi Uliosajiliwa','consumer.notRegistered':'Haujasajiliwa',
+    'consumer.notRegisteredDesc':'haujasajiliwa katika hifadhidata ya kitaifa ya LPG. Hii inaweza kuwa mtungi bandia — usitumie na ripoti kwa EWURA.',
+    'consumer.closeLogin':'Funga na Ingia',
+    'insp.scheduledOk':'Ukaguzi umepangwa.',
+    'licApp.newUser':'Mgeni kwenye jukwaa?',
+    'licApp.btnLabel':'📋 Omba Leseni ya Usambazaji wa LPG',
+    'licApp.title':'Maombi ya Leseni ya Usambazaji wa LPG',
+    'licApp.subtitle':'EWURA Fomu Na. 2 — Kanuni za Petroli (Uendeshaji wa LPG), 2020 (GN Na. 825)',
+    'licApp.allRequired':'Sehemu zote zenye alama * zinahitajika',
+    'licApp.completeness':'Ukamilishaji wa maombi',
+    'licApp.back':'← Rudi','licApp.cancel':'Ghairi',
+    'licApp.saveDraft':'💾 Hifadhi Rasimu','licApp.draftSaved':'✓ Rasimu imehifadhiwa',
+    'licApp.submit':'Wasilisha Maombi →',
+    'licApp.sec1':'1. Taarifa za Mwombaji',
+    'licApp.sec2':'2. Hati za Kampuni / Usajili',
+    'licApp.sec2sub':'Nakala zilizoidhinishwa katika muundo wa PDF au picha (hadi MB 10 kila moja)',
+    'licApp.sec3':'3. Hati za Ardhi na Jengo',
+    'licApp.sec3sub':'Hati za eneo ambapo shughuli za LPG zitafanyika',
+    'licApp.sec4':'4. Mahitaji ya Kiufundi',
+    'licApp.sec4sub':'Nyaraka za uwezo wa uendeshaji na biashara',
+    'licApp.sec5':'5. Uthibitisho wa Fedha',
+    'licApp.sec5note':'(angalau moja inahitajika — kiwango cha chini TZS bilioni 1.5)',
+    'licApp.sec5sub':'Wasilisha angalau moja ya hati zifuatazo zinazoonyesha uwezo wa kutosha wa fedha',
+    'licApp.sec6':'6. Afya, Usalama na Mazingira',
+    'licApp.sec6sub':'Vyeti halali kutoka kwa mamlaka husika za udhibiti',
+    'licApp.sec7':'7. Hati za Kiutawala na Uzingatiaji',
+    'licApp.sec7sub':'Tangazo, ahadi na uthibitisho wa malipo',
+    'licApp.companyName':'Jina la Kampuni (kama ilivyosajiliwa)',
+    'licApp.companyNamePlh':'Jina kamili la kisheria la kampuni',
+    'licApp.tin':'Nambari ya TIN','licApp.tinPlh':'mfano: 100-123-456',
+    'licApp.vat':'Nambari ya Usajili wa VAT','licApp.vatPlh':'Ikiwa imesajiliwa kwa VAT',
+    'licApp.contact':'Mtu wa Kuwasiliana Naye','licApp.contactPlh':'Jina kamili',
+    'licApp.designation':'Cheo / Wadhifa','licApp.designationPlh':'mfano: Mkurugenzi Mtendaji',
+    'licApp.email':'Anwani ya Barua Pepe','licApp.emailPlh':'rasmi@kampuni.com',
+    'licApp.phone':'Nambari ya Simu','licApp.phonePlh':'+255 …',
+    'licApp.address':'Anwani ya Makao Makuu / Iliyosajiliwa','licApp.addressPlh':'Mtaa, mji',
+    'licApp.region':'Mkoa','licApp.selectRegion':'Chagua mkoa…',
+    'licApp.companyType':'Aina ya Kampuni','licApp.local':'Kampuni ya Ndani','licApp.foreign':'Kampuni ya Kigeni',
+    'licApp.optional':'ya hiari','licApp.attachFile':'Ambatanisha faili','licApp.noFile':'Hakuna faili lililochaguliwa',
+    'licApp.processTitle':'ℹ Mchakato wa Maombi wa EWURA',
+    'licApp.proc1':'Maombi yanawasilishwa mtandaoni kupitia mfumo wa LOIS wa EWURA (Mfumo wa Taarifa za Leseni na Agizo)',
+    'licApp.proc2':'EWURA huchapisha tangazo katika gazeti linalofikia watu wengi kupata maoni ya umma ndani ya <strong>siku 14</strong>',
+    'licApp.proc3':'EWURA lazima ifanye uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili kutoa, kukataa, au kurudisha',
+    'licApp.proc4':'Ukaguzi wa awali wa kituo unafanywa kabla ya kutoa leseni',
+    'licApp.proc5':'Muda wa leseni: <strong>miaka 5</strong> &nbsp;·&nbsp; Ada ya maombi hairejeshe',
+    'licApp.successTitle':'Maombi Yamewasilishwa',
+    'licApp.successMsg1':'Maombi yako ya Leseni ya Usambazaji wa LPG kwa <strong>{{company}}</strong> yamepokelewa.',
+    'licApp.successMsg2':'EWURA itachapisha tangazo la umma ndani ya <strong>siku 14</strong> na kutoa uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili. Ukaguzi wa awali wa kituo utaratibiwa.',
+    'licApp.successNext':'<strong>Hatua inayofuata:</strong> Wasilisha hati zako za maombi ya kimwili kwenye tovuti ya LOIS ya EWURA kwenye <strong>lois.ewura.go.tz</strong> au tembelea ofisi za EWURA Dar es Salaam.',
+    'licApp.backToLogin':'Rudi kwenye Kuingia',
+    'licApp.noCompany':'Tafadhali ingiza jina la kampuni yako kabla ya kuwasilisha.',
+    'licApp.noFinancial':'Tafadhali ambatanisha angalau hati moja ya uthibitisho wa fedha (Sehemu ya 5).',
   },
 };
 
@@ -243,6 +397,9 @@ const FLAG_SVG_TZ = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14'
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
     btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
@@ -332,15 +489,21 @@ const DEMO_LICENSES = [
   { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired', history:[{type:'granted', date:'2023-02-14', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active',  history:[{type:'granted', date:'2021-09-01', by:'EWURA', note:'Initial license granted'}] },
   { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active',  history:[{type:'granted', date:'2024-11-01', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-008', companyName:'Sunrise Gas Ltd',  companyType:'Distributor',   licenseNumber:'DIST-2021-008',  issuedDate:'2021-05-12', expiryDate:'2026-05-11', status:'active',  history:[{type:'granted', date:'2021-05-12', by:'EWURA', note:'Initial license granted'},{type:'renewed', date:'2024-05-12', by:'EWURA', note:'License renewed for 2 years — full compliance record'}] },
-  { id:'LIC-009', companyName:'EastCoast Gas Co.', companyType:'Distributor',  licenseNumber:'DIST-2020-009',  issuedDate:'2020-03-01', expiryDate:'2025-02-28', status:'revoked', history:[{type:'granted', date:'2020-03-01', by:'EWURA', note:'Initial license granted'},{type:'revoked', date:'2025-01-10', by:'EWURA', note:'Revoked due to repeated non-compliance with safety standards'}] },
-  { id:'LIC-010', companyName:'Mara Gas Supplies', companyType:'Retailer',     licenseNumber:'RET-2026-010',   issuedDate:'2026-05-20', expiryDate:'2031-05-19', status:'pending', history:[{type:'applied', date:'2026-05-20', by:'Mara Gas Supplies', note:'New licence application submitted — awaiting EWURA review'}] },
+];
+
+const DEMO_INSPECTIONS = [
+  { id:'INS-001', company:'Vivo LPG',                region:'Dar es Salaam', auditor:'John Msaki',    scheduledDate:'2026-05-10', status:'completed', notes:'Full compliance check. All cylinders tagged and verified.' },
+  { id:'INS-002', company:'Sunrise Gas Ltd',          region:'Arusha',        auditor:'Amina Waweru',  scheduledDate:'2026-05-28', status:'completed', notes:'Minor labelling issues found. Follow-up scheduled.' },
+  { id:'INS-003', company:'ABC Gas Distributors',     region:'Dar es Salaam', auditor:'Peter Oloo',    scheduledDate:'2026-06-25', status:'scheduled', notes:'Routine annual inspection.' },
+  { id:'INS-004', company:'Total Energies',           region:'Mwanza',        auditor:'Grace Makundi', scheduledDate:'2026-07-05', status:'scheduled', notes:'New facility inspection — first visit.' },
+  { id:'INS-005', company:'Lake Victoria Gas Supply', region:'Mwanza',        auditor:'David Kimaro',  scheduledDate:'2026-04-15', status:'overdue',   notes:'Inspection not completed — auditor unavailable.' },
+  { id:'INS-006', company:'CityGas Direct',           region:'Dodoma',        auditor:'Salma Hamisi',  scheduledDate:'2026-05-01', status:'overdue',   notes:'No response from operator. Second notice sent.' },
 ];
 
 const DEMO_NETWORK = [
   // Distributors (12)
   { id:'NET-001', name:'ABC Gas Distributors',          type:'Distributor', region:'Dar es Salaam', city:'Dar es Salaam', address:'Kariakoo Market Area',        lat:-6.8160, lng:39.2803, contact:'+255 22 218 0001', contactPerson:'James Mwangi',      status:'active',   cylinders:145, full:87,  empty:58  },
-  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', contactPerson:'Amina Njoroge',      status:'active',   cylinders:187, full:112, empty:75  },
+  { id:'NET-002', name:'Sunrise Gas Ltd',               type:'Distributor', region:'Arusha',        city:'Arusha',        address:'Sokoni Road, Arusha',          lat:-3.3869, lng:36.6830, contact:'+255 27 250 0002', contactPerson:'Amina Njoroge',      status:'active',   cylinders:98,  full:61,  empty:37  },
   { id:'NET-003', name:'Lake Victoria Gas Supply',      type:'Distributor', region:'Mwanza',        city:'Mwanza',        address:'Pamba Road, Mwanza',           lat:-2.5164, lng:32.9175, contact:'+255 28 250 0003', contactPerson:'Peter Odhiambo',     status:'active',   cylinders:112, full:70,  empty:42  },
   { id:'NET-004', name:'Capital Gas Supplies',          type:'Distributor', region:'Dodoma',        city:'Dodoma',        address:'Makole Area, Dodoma',          lat:-6.1730, lng:35.7395, contact:'+255 26 232 0004', contactPerson:'Grace Makundi',      status:'active',   cylinders:67,  full:39,  empty:28  },
   { id:'NET-005', name:'Kilimanjaro Gas Distributors',  type:'Distributor', region:'Kilimanjaro',   city:'Moshi',         address:'Rindi Lane, Moshi',            lat:-3.3537, lng:37.3398, contact:'+255 27 275 0005', contactPerson:'David Kimaro',       status:'active',   cylinders:89,  full:52,  empty:37  },
@@ -370,26 +533,15 @@ const DEMO_NETWORK = [
   { id:'NET-028', name:'Mwanza Rock City Gas',          type:'Retailer',    region:'Mwanza',        city:'Mwanza',        address:'Nyamagana, Mwanza',            lat:-2.5150, lng:32.9080, contact:'+255 28 250 0028', contactPerson:'Bernard Nyerere',    status:'active',   cylinders:11,  full:6,   empty:5   },
   { id:'NET-029', name:'Arusha Clock Tower Gas',        type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Clock Tower Area, Arusha',     lat:-3.3660, lng:36.6870, contact:'+255 27 250 0029', contactPerson:'Winnie Kimani',      status:'active',   cylinders:16,  full:10,  empty:6   },
   { id:'NET-030', name:'Shinyanga Gas Retail',          type:'Retailer',    region:'Shinyanga',     city:'Shinyanga',     address:'Kahama Road, Shinyanga',       lat:-3.6650, lng:33.4280, contact:'+255 28 276 0030', contactPerson:'Terence Bundala',    status:'active',   cylinders:9,   full:5,   empty:4   },
-  { id:'NET-031', name:'Arusha City Gas Shop',          type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Swahili Street, Arusha Centre', lat:-3.3731, lng:36.6933, contact:'+255 27 250 0031', contactPerson:'Daniel Kimani',      status:'active',   cylinders:24,  full:15,  empty:9   },
-  { id:'NET-032', name:'Kaloleni Gas Retail Arusha',    type:'Retailer',    region:'Arusha',        city:'Arusha',        address:'Kaloleni Area, Arusha',         lat:-3.3950, lng:36.7100, contact:'+255 27 250 0032', contactPerson:'Fatuma Minja',        status:'active',   cylinders:18,  full:11,  empty:7   },
-  { id:'NET-033', name:'Tengeru Gas Point',             type:'Retailer',    region:'Arusha',        city:'Arumeru',       address:'Tengeru, Arumeru District',     lat:-3.3300, lng:36.8200, contact:'+255 27 255 0033', contactPerson:'Moses Tarimo',        status:'active',   cylinders:13,  full:8,   empty:5   },
 ];
 
 const DEMO_BULK_TANKERS = [
-  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Moshi Plant',        lat:-5.1700, lng:38.6500, speed:62, lastUpdate:'3 min ago',  routePct:42, driver:'Juma Mwangi',    temp:'−3 °C', fillPct:92 },
-  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',      lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28, driver:'Ali Hassan',      temp:'−2 °C', fillPct:100},
-  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000 L', status:'at-terminal', from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',       lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0,  driver:'Peter Kimaro',    temp:'−1 °C', fillPct:0  },
-  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',     lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100,driver:'Hamisi Rashidi',   temp:'−2 °C', fillPct:5  },
-  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000 L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',     lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0,  driver:'David Maro',      temp:'0 °C',  fillPct:68 },
-  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',   lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65, driver:'Francis Mwamba',  temp:'−3 °C', fillPct:100},
-  { id:'BT-007', plate:'T 310 CHZ', operator:'Shell Gas',      capacity:'24,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',       lat:-6.3500, lng:38.0000, speed:58, lastUpdate:'2 min ago',  routePct:35, driver:'Omar Salehe',     temp:'−2 °C', fillPct:98 },
-  { id:'BT-008', plate:'T 475 DOD', operator:'Lake Gas',       capacity:'20,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Dodoma Depot',        lat:-6.1722, lng:35.7395, speed:0,  lastUpdate:'2 hr ago',   routePct:100,driver:'Ndugu Simba',      temp:'−1 °C', fillPct:8  },
-  { id:'BT-009', plate:'T 622 MSH', operator:'Vivo LPG',       capacity:'18,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Moshi Plant',        lat:-4.0700, lng:37.7200, speed:65, lastUpdate:'4 min ago',  routePct:70, driver:'Baraka Ng\'oma',  temp:'−2 °C', fillPct:100},
-  { id:'BT-010', plate:'T 540 DAR', operator:'Total Energies', capacity:'28,000 L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Total Energies Tanga Depot',   lat:-6.8050, lng:39.2600, speed:0,  lastUpdate:'18 min ago', routePct:0,  driver:'Samuel Otieno',  temp:'1 °C',  fillPct:44 },
-  { id:'BT-011', plate:'T 731 TNG', operator:'Shell Gas',      capacity:'16,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Tanga Depot',        lat:-5.5800, lng:38.8500, speed:52, lastUpdate:'6 min ago',  routePct:55, driver:'Rashid Kombo',    temp:'−2 °C', fillPct:100},
-  { id:'BT-012', plate:'T 285 MRG', operator:'Lake Gas',       capacity:'22,000 L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Morogoro Plant',      lat:-6.8240, lng:37.6590, speed:0,  lastUpdate:'45 min ago', routePct:100,driver:'John Mbwana',      temp:'−1 °C', fillPct:12 },
-  { id:'BT-013', plate:'T 419 TAB', operator:'Vivo LPG',       capacity:'20,000 L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Tabora Depot',        lat:-6.0200, lng:36.5000, speed:60, lastUpdate:'9 min ago',  routePct:30, driver:'Michael Banda',   temp:'−3 °C', fillPct:100},
-  { id:'BT-014', plate:'T 867 IRG', operator:'Total Energies', capacity:'18,000 L', status:'at-terminal', from:'Total Energies Iringa Plant',   to:'Dar es Salaam Import Terminal', lat:-6.7500, lng:39.2200, speed:0,  lastUpdate:'8 min ago',  routePct:0,  driver:'Charles Minja',   temp:'2 °C',  fillPct:3  },
+  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42 },
+  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',     lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28 },
+  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',      lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0  },
+  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',    from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',    lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100},
+  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',      from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0  },
+  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',  lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65 },
 ];
 
 const EVENT_LABELS = {
@@ -469,11 +621,11 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'network', 'licenses', 'mgmt-reports', 'bulk-monitor', 'recall'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'licenses', 'market-intel', 'mgmt-reports', 'network', 'bulk-monitor'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
-  retailer:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
+  retailer:        ['reports', 'cylinders', 'mgmt-reports'],
 };
 
 const ROLE_LABELS = {
@@ -794,9 +946,6 @@ async function seedDemoData() {
     { name:'Tanga Shoreline Gas',        region:'Tanga' },
     { name:'Tabora Market Gas Shop',     region:'Tabora' },
     { name:'Shinyanga Gas Retail',       region:'Shinyanga' },
-    { name:'Arusha City Gas Shop',       region:'Arusha' },
-    { name:'Kaloleni Gas Retail Arusha', region:'Arusha' },
-    { name:'Tengeru Gas Point',          region:'Arusha' },
   ];
   const DISTRIBUTORS = [
     { name:'ABC Gas Distributors',         region:'Dar es Salaam' },
@@ -871,7 +1020,7 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
       await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
       // Now in-refill: refilled recently, awaiting dispatch
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, stampCode:'BATCH-2026-042' });
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
 
     } else if (cyl.status === 'in-circulation') {
       // Last event ~98 days ago → triggers Unreported alert (> 90 days threshold)
@@ -927,10 +1076,8 @@ async function seedDemoData() {
       await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
     } else if (cyl.status === 'in-refill') {
       const base = now2 - 2 * MONTH;
-      const batchSuffix = String(40 + (idHash % 8)).padStart(3, '0');
-      const batchCode   = `BATCH-2026-${batchSuffix}`;
       await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, stampCode:batchCode });
+      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
     } else if (cyl._seedEmpty) {
       // Empty cylinder returned to distributor
       const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -1013,77 +1160,6 @@ async function seedDemoData() {
       operatorId: 'SYSTEM', company: s.type === 'ewura-monitored' ? 'EWURA' : 'Field Inspection Unit',
       compliant: s.compliant,
     });
-  }
-
-  // ── Sunrise Gas Ltd dedicated events ──────────────────────────────────────
-  // Route a set of known generated cylinders through Sunrise Gas Ltd to build
-  // a rich activity history: multiple shipment cycles, retail sales in Arusha,
-  // inspections, and an unreported alert cylinder.
-  const SUNRISE = 'Sunrise Gas Ltd';
-  const SUNRISE_RETAILERS = [
-    { name:'Northern Gas Retail Arusha', region:'Arusha' },
-    { name:'Arusha Clock Tower Gas',     region:'Arusha' },
-    { name:'Arusha City Gas Shop',       region:'Arusha' },
-    { name:'Kaloleni Gas Retail Arusha', region:'Arusha' },
-    { name:'Tengeru Gas Point',          region:'Arusha' },
-  ];
-  // Generated cylinder IDs for Vivo LPG (code 01) and Total Energies (code 02)
-  // Pattern: E280116060{code}{i padded to 10}
-  const sgCylIds = [
-    // Vivo LPG cylinders routed via Sunrise Gas (i = 5, 25, 45, 65, 85, 105, 125, 145, 165, 185)
-    'E280116060010000000005','E280116060010000000025','E280116060010000000045',
-    'E280116060010000000065','E280116060010000000085','E280116060010000000105',
-    'E280116060010000000125','E280116060010000000145','E280116060010000000165',
-    'E280116060010000000185',
-    // Total Energies cylinders (i = 10, 30, 50, 70, 90, 110, 130, 150, 170, 190)
-    'E280116060020000000010','E280116060020000000030','E280116060020000000050',
-    'E280116060020000000070','E280116060020000000090','E280116060020000000110',
-    'E280116060020000000130','E280116060020000000150','E280116060020000000170',
-    'E280116060020000000190',
-    // Shell Gas cylinders (i = 15, 35, 55, 75, 95, 115)
-    'E280116060030000000015','E280116060030000000035','E280116060030000000055',
-    'E280116060030000000075','E280116060030000000095','E280116060030000000115',
-  ];
-  const sgCompany = (id) => id.startsWith('E28011606001') ? 'Vivo LPG' : id.startsWith('E28011606002') ? 'Total Energies' : 'Shell Gas';
-
-  let sgi = 0;
-  for (const cylId of sgCylIds) {
-    const co  = sgCompany(cylId);
-    const ret = SUNRISE_RETAILERS[sgi % SUNRISE_RETAILERS.length];
-    sgi++;
-    const base = now - (18 + sgi * 3) * MONTH / 12; // spread over 18 months back
-
-    // Cycle 1 (older): refilled at LPGMC → Sunrise → Arusha retailer → sold → returned
-    const b1 = base - 8 * MONTH;
-    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(b1).toISOString(),                  operatorId:'SYSTEM', company:co,      location:co,      region:'Dar es Salaam' });
-    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(b1 + 3*DAY).toISOString(),          operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(b1 + 5*DAY).toISOString(),          operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',    timestamp:new Date(b1 + 11*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-received',        timestamp:new Date(b1 + 13*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-sold',            timestamp:new Date(b1 + 20*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-returned-empty',  timestamp:new Date(b1 + 48*DAY).toISOString(),         operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'dist-returned-empty', timestamp:new Date(b1 + 51*DAY).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'received-empty',      timestamp:new Date(b1 + 54*DAY).toISOString(),         operatorId:'SYSTEM', company:co,      location:co });
-
-    // Cycle 2 (recent): refilled → Sunrise → retail sale → empty return
-    await txPut('events', { cylinderId:cylId, type:'refilled',            timestamp:new Date(base).toISOString(),                operatorId:'SYSTEM', company:co,      location:co });
-    await txPut('events', { cylinderId:cylId, type:'shipped',             timestamp:new Date(base + 4*DAY).toISOString(),        operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-received',       timestamp:new Date(base + 6*DAY).toISOString(),        operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-sent-retail',    timestamp:new Date(base + 10*DAY).toISOString(),       operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha', destinedFor:ret.name, destinedRegion:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-received',        timestamp:new Date(base + 12*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-sold',            timestamp:new Date(base + 18*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'ret-returned-empty',  timestamp:new Date(base + 45*DAY).toISOString(),       operatorId:'SYSTEM', company:ret.name,location:ret.name,region:ret.region });
-    await txPut('events', { cylinderId:cylId, type:'dist-returned-empty', timestamp:new Date(base + 48*DAY).toISOString(),       operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'received-empty',      timestamp:new Date(base + 51*DAY).toISOString(),       operatorId:'SYSTEM', company:co,      location:co });
-
-    // Field inspection after cycle 2 (80% compliant, 20% non-compliant for variety)
-    await txPut('events', { cylinderId:cylId, type:'inspected',           timestamp:new Date(base + 60*DAY).toISOString(),       operatorId:'SYSTEM', company:'Field Inspection Unit', compliant: sgi % 5 !== 0, region:'Arusha', cylinderOwner:SUNRISE });
-
-    // Cycle 3 (current): fresh shipment arrived at Sunrise in the last 1-4 weeks
-    const b3 = now - (28 - sgi) * DAY; // stagger arrivals: sgi=1 arrived 27 days ago, sgi=26 arrived 2 days ago
-    await txPut('events', { cylinderId:cylId, type:'refilled',      timestamp:new Date(b3 - 6*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co });
-    await txPut('events', { cylinderId:cylId, type:'shipped',       timestamp:new Date(b3 - 2*DAY).toISOString(), operatorId:'SYSTEM', company:co,      location:co,      destinedFor:SUNRISE, destinedRegion:'Arusha' });
-    await txPut('events', { cylinderId:cylId, type:'dist-received', timestamp:new Date(b3).toISOString(),         operatorId:'SYSTEM', company:SUNRISE, location:SUNRISE, region:'Arusha' });
   }
 
   for (const lic of DEMO_LICENSES) {
@@ -1399,14 +1475,15 @@ function applySession() {
   if (registerCylBtn) {
     registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   }
+  // Bulk register button: LPGMC only
+  const _bulkBtn = $('bulk-register-btn');
+  if (_bulkBtn) _bulkBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   // Reception button: LPGMC, distributor, retailer
   const _recBtn = $('reception-btn');
   if (_recBtn) _recBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
   // Shipment button: LPGMC, distributor, retailer
   const _shipBtn = $('shipment-btn');
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
-  const _rfBatchBtn = $('refill-batch-btn');
-  if (_rfBatchBtn) _rfBatchBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
 
   // Navigate to dashboard (reset)
   showView('reports');
@@ -1464,14 +1541,16 @@ function showView(name) {
   if (tabEl) tabEl.classList.add('active');
 
   headerSubtitle.textContent = {
-    scan:          'Scanning',
-    cylinders:     'Cylinders',
-    alerts:        'Alerts',
-    reports:       'Dashboard',
-    licenses:      'Licenses',
-    network:       'Network',
-    'mgmt-reports':'Management Reports',
-    'bulk-monitor':'Bullet Tanks',
+    scan:           'Scanning',
+    cylinders:      'Cylinders',
+    alerts:         'Alerts',
+    reports:        'Dashboard',
+    licenses:       'Licenses',
+    network:        'Network',
+    'mgmt-reports': 'Management Reports',
+    'bulk-monitor': 'Bullet Tanks',
+    'market-intel': 'Market Intelligence',
+    inspections:    'Field Inspections',
   }[name] || name;
 
   // Lazy render
@@ -1481,8 +1560,9 @@ function showView(name) {
   if (name === 'licenses')      renderLicenses();
   if (name === 'network')       renderNetwork();
   if (name === 'mgmt-reports')  renderMgmtReports();
-  if (name === 'bulk-monitor') renderBulkMonitor();
-  if (name === 'recall')        renderRecall();
+  if (name === 'bulk-monitor')  renderBulkMonitor();
+  if (name === 'market-intel')  renderMarketIntel();
+  if (name === 'inspections')   renderInspections();
 }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -1618,8 +1698,22 @@ async function handleScan(tagId) {
       lastScanResult.textContent = t('scan.unknownTag');
       openRegisterModal(tagId);
     } else {
-      lastScanResult.className = 'last-scan-result error';
-      lastScanResult.textContent = t('scan.notRegistered');
+      lastScanResult.className = 'last-scan-result';
+      lastScanResult.innerHTML = `
+        <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:8px;padding:16px;text-align:center">
+          <div style="font-size:18px;font-weight:700;color:#dc2626">&#9888; ${t('counterfeit.title')}</div>
+          <div style="margin:8px 0">${t('scan.lastScan').replace('Scan','').trim() || 'Cylinder'} <strong>${escapeHtml(tagId)}</strong> ${t('counterfeit.body')}</div>
+          <div style="color:#6b7280;font-size:13px">${t('counterfeit.sub')}</div>
+          <button id="report-counterfeit-btn" style="margin-top:12px;background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px">${t('counterfeit.report')}</button>
+        </div>`;
+      document.getElementById('report-counterfeit-btn')?.addEventListener('click', () => {
+        const reports = JSON.parse(localStorage.getItem('lpg-counterfeits') || '[]');
+        reports.push({ tagId, timestamp: nowISO(), reportedBy: Auth.session?.company || 'unknown', role: Auth.session?.role || 'unknown' });
+        localStorage.setItem('lpg-counterfeits', JSON.stringify(reports));
+        showSnackbar(t('counterfeit.submitted'), 'success');
+        document.getElementById('report-counterfeit-btn').disabled = true;
+        document.getElementById('report-counterfeit-btn').textContent = t('counterfeit.reported');
+      });
     }
     return;
   }
@@ -2200,35 +2294,6 @@ async function openPassportModal(cylId) {
         <span class="passport-value">${cyl.netWeight || cyl.capacity} kg</span>
       </div>
     </div>
-    ${(() => {
-      const lastRefill = events.find(ev => ev.type === 'refilled');
-      if (!lastRefill) return '';
-      const recallBanner = cyl.recalled && cyl.recallInfo
-        ? `<div style="margin-bottom:10px;padding:10px 12px;background:rgba(239,68,68,0.08);border:1px solid #ef4444;border-radius:6px;color:#ef4444">
-            <div style="font-weight:700;font-size:13px;margin-bottom:2px">⚠ RECALL ISSUED</div>
-            <div style="font-size:12px">
-              ${cyl.recallInfo.date ? `Refill date <strong>${escapeHtml(cyl.recallInfo.date)}</strong> · ` : ''}
-              Issued by <strong>${escapeHtml(cyl.recallInfo.company)}</strong>
-            </div>
-          </div>`
-        : '';
-      return `<div class="passport-section">
-        <div class="passport-section-title" style="${cyl.recalled ? 'color:#ef4444' : ''}">Refill${cyl.recalled ? ' ⚠' : ''}</div>
-        ${recallBanner}
-        <div class="passport-row">
-          <span class="passport-key">Last Refill Date</span>
-          <span class="passport-value">${formatDate(lastRefill.timestamp.slice(0,10))}</span>
-        </div>
-        <div class="passport-row">
-          <span class="passport-key">Batch Number</span>
-          <span class="passport-value mono">${lastRefill.stampCode ? escapeHtml(lastRefill.stampCode) : '—'}</span>
-        </div>
-        <div class="passport-row">
-          <span class="passport-key">Total Refills</span>
-          <span class="passport-value">${cyl.fillCount || events.filter(ev => ev.type === 'refilled').length}</span>
-        </div>
-      </div>`;
-    })()}
     <div class="passport-section">
       <div class="passport-section-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>${t('passport.eventHistory')} (${events.length})</span>
@@ -2309,17 +2374,32 @@ passportExportBtn.addEventListener('click', async () => {
   const events = await txGetIndex('events', 'cylinderId', cyl.id);
   events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  let text = `LPG Cylinder Passport\n${'='.repeat(40)}\n`;
-  text += `Serial:   ${cyl.serial}\nTag:      ${cyl.id}\nCompany:  ${cyl.company}\nStatus:   ${cyl.status}\n`;
-  text += `Fills:    ${cyl.fillCount}\nHydro:    ${cyl.lastHydroTest || 'N/A'}\n\nEvents:\n`;
-  events.forEach(ev => { text += `  ${ev.timestamp}  ${ev.type}  ${ev.operatorId || ''}\n`; });
+  function csvCell(v) {
+    const s = String(v == null ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  const rows = [];
+  rows.push(['Field', 'Value']);
+  rows.push(['CylinderID', cyl.id]);
+  rows.push(['Serial', cyl.serial]);
+  rows.push(['Size', cyl.size || '']);
+  rows.push(['Company', cyl.company || '']);
+  rows.push(['Status', cyl.status || '']);
+  rows.push(['FillCount', cyl.fillCount || 0]);
+  rows.push(['LastHydroTest', cyl.lastHydroTest || '']);
+  rows.push([]);
+  rows.push(['EventNum', 'Type', 'Date', 'By', 'Notes']);
+  events.forEach((ev, i) => rows.push([i + 1, ev.type, ev.timestamp, ev.operatorId || ev.company || '', ev.notes || '']));
 
-  const blob = new Blob([text], { type: 'text/plain' });
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  const today = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `passport-${cyl.serial}.txt`;
+  a.download = `audit-trail-${cyl.serial}-${today}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
+  showSnackbar(t('audit.exported'), 'success');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2407,6 +2487,51 @@ async function renderAlerts() {
   }
 
   buildCylLocations(cyls, allEvents);
+
+  // Shortage / Surplus stock alerts
+  const stockRole = Auth.session?.role;
+  if (stockRole === 'distributor' || stockRole === 'lpgmc') {
+    const allEvForStock = await txGetAll('events');
+    const lastEvMap2 = {};
+    allEvForStock.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvMap2[ev.cylinderId] = ev; });
+    if (stockRole === 'distributor') {
+      const company = Auth.session.company;
+      const myCyls = (await txGetAll('cylinders')).filter(c => {
+        const ev = lastEvMap2[c.id];
+        return ev && (ev.location || ev.company || '') === company;
+      });
+      const total = myCyls.length;
+      if (total < 15) {
+        _alertsData.unshift({ severity:'warning', type:'stock-shortage', cylinder:{ id:'stock-shortage', serial:'Stock', company, status:'in-circulation' },
+          title:`${t('alert.stockShortage')} — only ${total} cylinders at ${company}`,
+          desc:`Current stock is below the minimum threshold of 15 cylinders. Consider placing a replenishment order.` });
+      } else if (total > 120) {
+        _alertsData.unshift({ severity:'info', type:'stock-surplus', cylinder:{ id:'stock-surplus', serial:'Stock', company, status:'in-circulation' },
+          title:`${t('alert.stockSurplus')} — ${total} cylinders at ${company}`,
+          desc:`Current stock exceeds 120 cylinders. Consider redistributing to other network partners.` });
+      }
+    } else if (stockRole === 'lpgmc') {
+      const company = Auth.session.company;
+      const inRefill = cyls.filter(c => c.status === 'in-refill').length;
+      if (inRefill < 30) {
+        _alertsData.unshift({ severity:'warning', type:'stock-shortage', cylinder:{ id:'stock-inrefill', serial:'In-Refill', company, status:'in-refill' },
+          title:`${t('alert.stockShortage')} — only ${inRefill} cylinders in refill at ${company}`,
+          desc:`In-refill inventory is below the minimum threshold of 30 cylinders.` });
+      }
+    }
+  }
+
+  // Counterfeit reports for EWURA
+  if (Auth.session?.role === 'ewura') {
+    const reports = JSON.parse(localStorage.getItem('lpg-counterfeits') || '[]');
+    reports.slice().reverse().forEach(r => {
+      _alertsData.unshift({ severity:'critical', type:'counterfeit', cylinder:{ id:r.tagId, serial:r.tagId, company:r.reportedBy || 'Unknown', status:'in-circulation' },
+        title:`${t('alert.counterfeit')} — Tag ${r.tagId}`,
+        desc:`Unregistered cylinder reported by ${r.reportedBy || 'unknown'} (${r.role || ''}) on ${r.timestamp ? r.timestamp.slice(0,10) : ''}` });
+    });
+  }
+
   applyAlertFilters();
 }
 
@@ -2715,212 +2840,6 @@ function initInteractiveMap(mapId, markers) {
 
 let _alertLeafletMap = null;
 
-// ── Lightweight OSM tile map — zoom, pan, hover tooltip ───────────────────
-function buildTileMap(mapId, markers, { height = 420, zoom = 6, center, lines = [] } = {}) {
-  const el = $(mapId);
-  if (!el) return;
-
-  const TS = 256;
-  let Z = zoom;
-  let C = center ? { ...center }
-    : markers.length
-      ? { lat: markers.reduce((s,m) => s+m.lat, 0) / markers.length,
-          lng: markers.reduce((s,m) => s+m.lng, 0) / markers.length }
-      : { lat: -6.5, lng: 35.5 };
-
-  // Abort previous interaction listeners if map is rebuilt in-place
-  if (el._tmAC) el._tmAC.abort();
-  const ac = new AbortController();
-  el._tmAC = ac;
-  const sig = ac.signal;
-
-  el.style.cssText = `position:relative;overflow:hidden;height:${height}px;border:1px solid var(--border);border-radius:8px;background:#d4d0cb;cursor:grab;user-select:none`;
-
-  // Web Mercator helpers
-  function merc(lat, lng) {
-    const N = 1 << Z, sin = Math.sin(lat * Math.PI / 180);
-    return { tx: (lng + 180) / 360 * N,
-             ty: (1 - Math.log((1+sin)/(1-sin)) / (2*Math.PI)) / 2 * N };
-  }
-  function tileToLatLng(tx, ty) {
-    const N = 1 << Z;
-    const n = Math.PI - 2 * Math.PI * ty / N;
-    return { lat: 180/Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n))),
-             lng: tx / N * 360 - 180 };
-  }
-
-  const btnSt = 'width:28px;height:28px;background:#fff;border:1px solid rgba(0,0,0,0.25);border-radius:4px;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.2);color:#333;padding:0;font-weight:300';
-
-  function render() {
-    const N = 1 << Z, w = el.offsetWidth || 640, h = height;
-    const Cp = merc(C.lat, C.lng);
-    const cx = Math.floor(Cp.tx), cy = Math.floor(Cp.ty);
-    const hw = Math.ceil(w/2/TS)+1, hh = Math.ceil(h/2/TS)+1;
-
-    function pxOf(lat, lng) {
-      const p = merc(lat, lng);
-      return { x: (p.tx-Cp.tx)*TS + w/2, y: (p.ty-Cp.ty)*TS + h/2 };
-    }
-
-    // Tile grid
-    let tiles = '';
-    for (let dy = -hh; dy <= hh; dy++) for (let dx = -hw; dx <= hw; dx++) {
-      const tx = ((cx+dx)%N+N)%N, ty = cy+dy;
-      if (ty < 0 || ty >= N) continue;
-      const sub = ['a','b','c'][(tx+ty)%3];
-      const x = (cx+dx - Cp.tx)*TS + w/2, y = (cy+dy - Cp.ty)*TS + h/2;
-      tiles += `<img src="https://${sub}.tile.openstreetmap.org/${Z}/${tx}/${ty}.png" style="position:absolute;left:${x}px;top:${y}px;width:${TS}px;height:${TS}px" loading="eager">`;
-    }
-
-    // Route lines (SVG)
-    const svgLines = lines.length ? `<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${
-      lines.map(({from,to,color='#3b82f6',dash='7 5'}) => {
-        const a = pxOf(from.lat,from.lng), b = pxOf(to.lat,to.lng);
-        return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.55" stroke-dasharray="${dash}"/>`;
-      }).join('')
-    }</svg>` : '';
-
-    // Markers
-    const mkrs = markers.map((m,i) => {
-      const {x,y} = pxOf(m.lat, m.lng);
-      const sz = m.big ? 30 : 18, fs = m.big ? 13 : 9, col = m.color || '#3b82f6';
-      const pulse = m.pulse ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:${col};opacity:0.22;animation:imap-pulse 1.4s ease-out infinite;pointer-events:none"></div>` : '';
-      const cur = m.info ? 'pointer' : 'default';
-      return `<div data-tmi="${i}" style="position:absolute;left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;transform:translate(-50%,-50%);z-index:${m.big?10:5};cursor:${cur}">
-        ${pulse}<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${fs}px;color:#fff;font-weight:700;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4)">${escapeHtml(m.symbol||'')}</div>
-      </div>`;
-    }).join('');
-
-    // Preserve snack box state across re-renders
-    const prevSnack = el.querySelector(`#${mapId}-snack`);
-    const snackHtml = prevSnack ? prevSnack.outerHTML : `<div id="${mapId}-snack" style="position:absolute;bottom:8px;left:8px;right:8px;z-index:60;display:none;background:rgba(15,23,42,0.93);color:#f8fafc;border-radius:10px;padding:12px 14px 10px;font-size:12px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 4px 24px rgba(0,0,0,0.5)"><button data-tm-close style="position:absolute;top:8px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;line-height:1;padding:0" title="Close">×</button><div id="${mapId}-snack-body"></div></div>`;
-
-    el.innerHTML = `
-      <div data-tml style="position:absolute;inset:0;z-index:1">${tiles}</div>
-      <div data-tml style="position:absolute;inset:0;z-index:2;pointer-events:none">${svgLines}</div>
-      <div data-tml style="position:absolute;inset:0;z-index:3">${mkrs}</div>
-      <div style="position:absolute;top:10px;left:10px;z-index:20;display:flex;flex-direction:column;gap:3px">
-        <button data-tmz="1"  style="${btnSt}" title="Zoom in">+</button>
-        <button data-tmz="-1" style="${btnSt}" title="Zoom out">−</button>
-      </div>
-      <div id="${mapId}-tmtip" style="position:absolute;background:#1e293b;color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:50;display:none;max-width:260px;line-height:1.4"></div>
-      ${snackHtml}
-      <div style="position:absolute;bottom:0;right:0;background:rgba(255,255,255,0.72);font-size:10px;padding:2px 5px;z-index:20">© <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#0077bb">OpenStreetMap</a></div>`;
-  }
-
-  render();
-
-  // ── Marker info snack box renderer ────────────────────────────────────────
-  function renderSnackInfo(info) {
-    const badge = info.badge
-      ? `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:${info.badge.color}30;color:${info.badge.color};border:1px solid ${info.badge.color}60;margin-left:8px">${escapeHtml(info.badge.text)}</span>`
-      : '';
-    const rows = (info.rows || []).map(([k,v]) =>
-      `<div style="display:flex;justify-content:space-between;gap:20px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
-         <span style="color:#94a3b8;white-space:nowrap;flex-shrink:0">${escapeHtml(k)}</span>
-         <span style="font-weight:500;text-align:right;color:#e2e8f0">${escapeHtml(String(v))}</span>
-       </div>`
-    ).join('');
-    return `<div style="display:flex;align-items:center;margin-bottom:10px">
-        <span style="font-size:14px;font-weight:700;color:#f1f5f9">${escapeHtml(info.title||'')}</span>${badge}
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${rows}</div>`;
-  }
-
-  // ── Zoom buttons & marker click ───────────────────────────────────────────
-  el.addEventListener('click', e => {
-    const zBtn = e.target.closest('[data-tmz]');
-    if (zBtn) { Z = Math.max(2, Math.min(18, Z + +zBtn.dataset.tmz)); render(); return; }
-    if (_dragged) return;
-    const closeBtn = e.target.closest('[data-tm-close]');
-    const snack = el.querySelector(`#${mapId}-snack`);
-    if (closeBtn) { if (snack) snack.style.display = 'none'; return; }
-    const mk = e.target.closest('[data-tmi]');
-    if (!mk) { if (snack) snack.style.display = 'none'; return; }
-    const m = markers[+mk.dataset.tmi];
-    if (!m || !m.info) return;
-    const body = el.querySelector(`#${mapId}-snack-body`);
-    if (body) body.innerHTML = renderSnackInfo(m.info);
-    if (snack) snack.style.display = 'block';
-  }, { signal: sig });
-
-  // ── Mouse-wheel zoom ──────────────────────────────────────────────────────
-  el.addEventListener('wheel', e => {
-    e.preventDefault();
-    // Zoom toward cursor position
-    const N = 1 << Z, w = el.offsetWidth || 640, h = height;
-    const r  = el.getBoundingClientRect();
-    const mx = e.clientX - r.left - w/2, my = e.clientY - r.top - h/2;
-    const Cp = merc(C.lat, C.lng);
-    // Point under cursor in tile coords
-    const ptx = Cp.tx + mx/TS, pty = Cp.ty + my/TS;
-    const delta = e.deltaY < 0 ? 1 : -1;
-    const newZ = Math.max(2, Math.min(18, Z + delta));
-    if (newZ === Z) return;
-    Z = newZ;
-    const scale = (1 << Z) / N;
-    // Recompute center so the point under cursor stays fixed
-    C = tileToLatLng(ptx*scale - mx/TS, pty*scale - my/TS);
-    render();
-  }, { passive: false, signal: sig });
-
-  // ── Drag to pan ───────────────────────────────────────────────────────────
-  let pd = null, _dragged = false;
-  el.addEventListener('mousedown', e => {
-    if (e.target.closest('[data-tmz]') || e.target.closest('a')) return;
-    e.preventDefault();
-    el.style.cursor = 'grabbing';
-    pd = { sx: e.clientX, sy: e.clientY, lat: C.lat, lng: C.lng };
-    _dragged = false;
-  }, { signal: sig });
-
-  window.addEventListener('mousemove', e => {
-    if (!pd || sig.aborted) return;
-    const dx = e.clientX - pd.sx, dy = e.clientY - pd.sy;
-    if (!_dragged && Math.hypot(dx, dy) > 4) _dragged = true;
-    el.querySelectorAll('[data-tml]').forEach(d => d.style.transform = `translate(${dx}px,${dy}px)`);
-  }, { signal: sig });
-
-  window.addEventListener('mouseup', e => {
-    if (!pd || sig.aborted) return;
-    const N = 1 << Z;
-    const dx = e.clientX - pd.sx, dy = e.clientY - pd.sy;
-    const sin = Math.sin(pd.lat * Math.PI / 180);
-    const tx  = (pd.lng + 180) / 360 * N - dx / TS;
-    const ty  = (1 - Math.log((1+sin)/(1-sin)) / (2*Math.PI)) / 2 * N - dy / TS;
-    C = tileToLatLng(tx, ty);
-    pd = null;
-    el.style.cursor = 'grab';
-    render();
-  }, { signal: sig });
-
-  // ── Hover tooltip ─────────────────────────────────────────────────────────
-  el.addEventListener('mousemove', e => {
-    if (sig.aborted) return;
-    const tip = el.querySelector(`#${mapId}-tmtip`);
-    if (!tip) return;
-    const mk = e.target.closest('[data-tmi]');
-    if (mk && !pd) {
-      const m = markers[+mk.dataset.tmi];
-      if (!m) return;
-      tip.textContent = m.label || '';
-      tip.style.display = 'block';
-      const r = el.getBoundingClientRect(), w = el.offsetWidth;
-      let lx = e.clientX - r.left + 12, ly = e.clientY - r.top - 36;
-      if (lx + 270 > w) lx = e.clientX - r.left - 270;
-      if (ly < 0) ly = e.clientY - r.top + 14;
-      tip.style.left = lx + 'px'; tip.style.top = ly + 'px';
-    } else {
-      tip.style.display = 'none';
-    }
-  }, { signal: sig });
-
-  el.addEventListener('mouseleave', () => {
-    const tip = el.querySelector(`#${mapId}-tmtip`);
-    if (tip) tip.style.display = 'none';
-  }, { signal: sig });
-}
-
 function _resolveAlertLatLng(al) {
   const cyl = al.cylinder;
   let lat = -6.5, lng = 35.5;
@@ -2942,19 +2861,38 @@ function _resolveAlertLatLng(al) {
 }
 
 function renderAlertsMap() {
-  const markers = _alertsData.map(al => {
+  const mapEl = $('alert-map');
+  if (!mapEl) return;
+
+  if (!_alertsData.length) {
+    mapEl.style.height = 'auto';
+    mapEl.style.border = 'none';
+    mapEl.innerHTML = `<p style="color:var(--muted);padding:16px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
+    return;
+  }
+
+  const cards = _alertsData.map(al => {
     const [lat, lng] = _resolveAlertLatLng(al);
     const isCrit = al.severity === 'critical';
-    const cyl = al.cylinder;
-    return {
-      lat, lng,
-      color:  isCrit ? '#dc2626' : '#f59e0b',
-      symbol: isCrit ? '!' : '▲',
-      pulse:  isCrit,
-      label:  al.title + (cyl ? ' · ' + (cyl.serial || '') + ' · ' + (cyl.company || '') : ''),
-    };
-  });
-  buildTileMap('alert-map', markers, { height: 480, zoom: 6, center: { lat: -6.5, lng: 35.5 } });
+    const color  = isCrit ? '#dc2626' : '#f59e0b';
+    const cyl    = al.cylinder;
+    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+      <div style="background:${color};padding:6px 10px">
+        <span style="font-size:11px;font-weight:600;color:#fff">${isCrit ? '🚨' : '⚠️'} ${escapeHtml(al.title)}</span>
+      </div>
+      <div style="height:160px">${buildOsmEmbed(lat, lng)}</div>
+      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
+        ${escapeHtml(al.desc || '')}
+        ${cyl ? `<br><span style="color:var(--text)">Cyl <b>${escapeHtml(cyl.serial || '')}</b></span> · ${escapeHtml(cyl.company || '')}` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  mapEl.style.height = 'auto';
+  mapEl.style.border = 'none';
+  mapEl.style.borderRadius = '0';
+  mapEl.style.overflow = 'visible';
+  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px">${cards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3186,36 +3124,10 @@ async function renderReports() {
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
         const inspRateD = inspEvsD.length ? Math.round(inspCompD / inspEvsD.length * 100) : 0;
-        const licActive  = DEMO_LICENSES.filter(l => l.status === 'active').length;
-        const licExpired = DEMO_LICENSES.filter(l => l.status === 'expired').length;
-        const licRevoked = DEMO_LICENSES.filter(l => l.status === 'revoked').length;
-        const licPending = DEMO_LICENSES.filter(l => l.status === 'pending').length;
-        const licTotal   = DEMO_LICENSES.length;
         return `<div class="report-card">
           <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
           <div class="report-card-label">${t('dash.marketCompliance')}</div>
           <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')}</div>
-        </div>
-        <div class="dashboard-section-title">Licences</div>
-        <div class="report-card">
-          <span class="report-card-value" style="color:var(--green)">${licActive}</span>
-          <div class="report-card-label">Valid / Active</div>
-        </div>
-        <div class="report-card">
-          <span class="report-card-value" style="color:var(--amber)">${licExpired}</span>
-          <div class="report-card-label">Expired</div>
-        </div>
-        <div class="report-card">
-          <span class="report-card-value" style="color:var(--red)">${licRevoked}</span>
-          <div class="report-card-label">Revoked</div>
-        </div>
-        <div class="report-card">
-          <span class="report-card-value" style="color:var(--blue)">${licPending}</span>
-          <div class="report-card-label">Pending Review</div>
-        </div>
-        <div class="report-card">
-          <span class="report-card-value">${licTotal}</span>
-          <div class="report-card-label">Total Licences</div>
         </div>`;
       })() : ''}
       `;
@@ -3787,7 +3699,34 @@ async function renderMgmtReports() {
           <div style="font-size:12px;color:var(--muted)">Avg age: <strong style="color:${avgAge > 30 ? 'var(--amber)' : 'var(--text)'}">${avgAge}d</strong></div>
         </div>
         ${ageTotal > 0 ? ageHtml : '<p style="font-size:13px;color:var(--dim);padding:8px 0">No cylinders currently in stock.</p>'}
-      </div>`;
+      </div>
+      ${role === 'distributor' ? (() => {
+        // Return Rate by Retailer
+        const sentMap = {};
+        const returnedMap = {};
+        allEvents.forEach(ev => {
+          if (ev.company !== company) return;
+          if (ev.type === 'dist-sent-retail') sentMap[ev.location || ''] = (sentMap[ev.location || ''] || 0) + 1;
+          if (ev.type === 'dist-returned-empty') returnedMap[ev.location || ''] = (returnedMap[ev.location || ''] || 0) + 1;
+        });
+        const retailers = Object.keys(sentMap).filter(r => r);
+        if (!retailers.length) return `<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">${t('returnRate.title')}</div></div><p style="font-size:13px;color:var(--dim);padding:8px 0">${t('returnRate.noData')}</p></div>`;
+        const rrData = retailers.map(r => ({
+          name: r,
+          sent: sentMap[r] || 0,
+          returned: returnedMap[r] || 0,
+          rate: sentMap[r] ? Math.round(((returnedMap[r] || 0) / sentMap[r]) * 100) : 0,
+        })).sort((a, b) => a.rate - b.rate);
+        const rrBars = rrData.map(r => {
+          const color = r.rate >= 70 ? 'var(--green)' : r.rate >= 40 ? 'var(--amber)' : 'var(--red)';
+          return `<div class="mgmt-bar-row">
+            <span class="mgmt-bar-label" style="min-width:120px;font-size:11px">${escapeHtml(r.name.replace(' Gas','').replace(' Retail',''))}</span>
+            <div class="mgmt-bar-track" style="flex:1"><div class="mgmt-bar-fill" style="width:${r.rate}%;background:${color}"><span>${r.rate}%</span></div></div>
+            <span style="font-size:11px;color:var(--muted);min-width:50px;text-align:right">${r.returned}/${r.sent}</span>
+          </div>`;
+        }).join('');
+        return `<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">${t('returnRate.title')}</div></div>${rrBars}</div>`;
+      })() : ''}`;
     return;
   }
 
@@ -4171,55 +4110,6 @@ async function renderMgmtReports() {
         <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
       </div>
       ${opRankHtml}
-    </div>
-    <div class="mgmt-card">
-      <div class="mgmt-card-header">
-        <div class="mgmt-card-title">Licences by Status</div>
-      </div>
-      ${(() => {
-        const counts = { active: 0, expired: 0, revoked: 0, pending: 0 };
-        DEMO_LICENSES.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
-        const total = DEMO_LICENSES.length;
-        const rows = [
-          { label: 'Valid / Active',  key: 'active',  color: 'var(--green)' },
-          { label: 'Expired',         key: 'expired', color: 'var(--amber)' },
-          { label: 'Revoked',         key: 'revoked', color: 'var(--red)'   },
-          { label: 'Pending Review',  key: 'pending', color: 'var(--blue)'  },
-        ];
-        return rows.map(r => {
-          const pct = total ? Math.round(counts[r.key] / total * 100) : 0;
-          return `<div class="mgmt-bar-row">
-            <span class="mgmt-bar-label">${r.label}</span>
-            <div class="mgmt-bar-track">
-              <div class="mgmt-bar-fill" style="width:${pct}%;background:${r.color}">
-                <span>${counts[r.key]}</span>
-              </div>
-            </div>
-          </div>`;
-        }).join('') + `<div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right">Total: ${total} licences</div>`;
-      })()}
-    </div>
-    <div class="mgmt-card">
-      <div class="mgmt-card-header">
-        <div class="mgmt-card-title">Supply Chain Dashboard</div>
-      </div>
-      ${(() => {
-        const refillerCount  = LPGMC_COMPANIES.length;
-        const distActive     = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
-        const distTotal      = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
-        const retailActive   = DEMO_NETWORK.filter(n => n.type === 'Retailer'   && n.status === 'active').length;
-        const retailTotal    = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
-        const rows = [
-          { label: 'LPG Refilling Companies', value: refillerCount, sub: '' },
-          { label: 'Active Distributors',      value: distActive,   sub: `${distTotal - distActive} inactive` },
-          { label: 'Active Retailers',          value: retailActive, sub: `${retailTotal - retailActive} inactive` },
-        ];
-        return rows.map(r => `<div class="mgmt-bar-row" style="align-items:center">
-          <span class="mgmt-bar-label">${r.label}</span>
-          <span style="font-size:22px;font-weight:700;color:var(--blue);min-width:40px;text-align:right">${r.value}</span>
-          ${r.sub ? `<span style="font-size:11px;color:var(--muted);margin-left:6px">${r.sub}</span>` : ''}
-        </div>`).join('');
-      })()}
     </div>` : ''}`;
 }
 
@@ -4962,295 +4852,450 @@ async function renderBulkMonitor() {
       </div>
     </li>`).join('');
 
+  const mapEl = $('bulk-map');
+  if (!mapEl) return;
+
   const TERMINAL = { lat:-6.7924, lng:39.2083 };
 
-  function tkInfo(tk) {
-    const statusColor = tankerHexColor[tk.status] || '#64748b';
-    const rows = [
-      ['Operator',    tk.operator],
-      ['Capacity',    tk.capacity],
-      ['From',        tk.from],
-      ['To',          tk.to],
-      ['Driver',      tk.driver || '—'],
-      ['Temperature', tk.temp   || '—'],
-      ...(tk.speed > 0           ? [['Speed',    tk.speed + ' km/h']]         : []),
-      ...(tk.fillPct !== undefined ? [['Tank fill', tk.fillPct + '%']]          : []),
-      ...(tk.routePct > 0 && tk.routePct < 100 ? [['Route',  tk.routePct + '% complete']] : []),
-      ['Last update', tk.lastUpdate],
-    ];
-    return { title: tk.plate, badge: { text: statusLbl(tk.status), color: statusColor }, rows };
-  }
+  const termCard = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+    <div style="background:#f59e0b;padding:6px 10px">
+      <span style="font-size:11px;font-weight:600;color:#000">🏭 Dar es Salaam Import Terminal</span>
+    </div>
+    <div style="height:180px">${buildOsmEmbed(TERMINAL.lat, TERMINAL.lng)}</div>
+    <div style="padding:6px 10px;font-size:11px;color:var(--muted)">Main LPG import &amp; loading facility — bulk supply origin for Tanzania</div>
+  </div>`;
 
-  const allMarkers = [
-    { lat: TERMINAL.lat, lng: TERMINAL.lng, color: '#f59e0b', symbol: 'T', big: true,
-      label: 'Dar es Salaam Import Terminal' },
-    ...DEMO_BULK_TANKERS.map(tk => ({
-      lat: tk.lat, lng: tk.lng,
-      color:  tankerHexColor[tk.status] || '#64748b',
-      symbol: tankerSym[tk.status] || '●',
-      pulse:  tk.status === 'in-transit',
-      label:  `${tk.plate} — ${tk.operator} (${statusLbl(tk.status)})`,
-      info:   tkInfo(tk),
-    })),
-  ];
+  const tankerCards = DEMO_BULK_TANKERS.map(tk => {
+    const col = tankerHexColor[tk.status] || '#64748b';
+    const progressHtml = tk.routePct > 0 && tk.routePct < 100
+      ? `<div style="background:#e2e8f0;border-radius:3px;height:4px;margin-top:4px"><div style="width:${tk.routePct}%;height:100%;border-radius:3px;background:${col}"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${tk.routePct}% route complete</div>`
+      : '';
+    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+      <div style="background:${col};padding:6px 10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:#fff">🚛 ${escapeHtml(tk.plate)}</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.85)">${statusLbl(tk.status)}</span>
+      </div>
+      <div style="height:180px">${buildOsmEmbed(tk.lat, tk.lng)}</div>
+      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
+        <strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}<br>
+        📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}<br>
+        ${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}
+        ${progressHtml}
+      </div>
+    </div>`;
+  }).join('');
 
-  const lines = DEMO_BULK_TANKERS
-    .filter(tk => tk.status === 'in-transit')
-    .map(tk => ({ from: TERMINAL, to: { lat: tk.lat, lng: tk.lng }, color: tankerHexColor['in-transit'] }));
-
-  buildTileMap('bulk-map', allMarkers, { height: 480, zoom: 6, center: { lat: -5.5, lng: 35.5 }, lines });
+  mapEl.style.height = 'auto';
+  mapEl.style.border = 'none';
+  mapEl.style.borderRadius = '0';
+  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:16px">${termCard}${tankerCards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// RECALL VIEW (EWURA)
+// LPG DISTRIBUTION LICENCE APPLICATION
 // ══════════════════════════════════════════════════════════════════════════════
 
-function renderRecall() {
-  const resultsEl = $('recall-results');
-  const emptyEl   = $('recall-empty');
-  if (resultsEl) resultsEl.style.display = 'none';
-  if (emptyEl)   emptyEl.style.display   = 'none';
-  // Populate LPGMC company dropdown
-  const sel = $('recall-company-sel');
-  if (sel && sel.options.length <= 1) {
-    LPGMC_COMPANIES.forEach(co => {
-      const opt = document.createElement('option');
-      opt.value = co; opt.textContent = co;
-      sel.appendChild(opt);
-    });
-  }
-}
+(function initLicenceApp() {
+  const overlay   = document.getElementById('license-apply-overlay');
+  const openBtn   = document.getElementById('license-apply-open-btn');
+  const backBtn   = document.getElementById('license-apply-back-btn');
+  const backBtn2  = document.getElementById('license-apply-back-btn2');
+  const saveBtn   = document.getElementById('license-apply-save-btn');
+  const submitBtn = document.getElementById('license-apply-submit-btn');
+  if (!overlay) return;
 
-const _recallSearchBtn = $('recall-search-btn');
-if (_recallSearchBtn) _recallSearchBtn.addEventListener('click', async () => {
-  const selectedCo  = ($('recall-company-sel')      || {}).value?.trim();
-  const refillDate  = ($('recall-date-input')        || {}).value?.trim();
-  const mfgDate     = ($('recall-mfg-date-input')    || {}).value?.trim();
+  const SECTIONS = {
+    'la-docs-corp': [
+      { id:'corp-biz',  label:'Business Licence',                                    required:true  },
+      { id:'corp-inc',  label:'Certificate of Incorporation',                         required:true  },
+      { id:'corp-comp', label:'Certificate of Compliance',                            required:false, note:'Required for foreign companies' },
+      { id:'corp-maa',  label:'Memorandum and Articles of Association',               required:true  },
+      { id:'corp-tin',  label:'TIN Certificate',                                      required:true  },
+      { id:'corp-vat',  label:'VAT Certificate',                                      required:true  },
+    ],
+    'la-docs-land': [
+      { id:'land-permit',label:'Building Permit',                                     required:true  },
+      { id:'land-title', label:'Land Title Deed',                                     required:true  },
+      { id:'land-lease', label:'Lease Agreement',                                     required:false, note:'Required if applicant is not the land owner' },
+    ],
+    'la-docs-tech': [
+      { id:'tech-plant', label:'Proof of Ownership or Hospitality Agreement for Filling Plant & Storage Depot', required:true  },
+      { id:'tech-staff', label:'Personnel Profile (demonstrating adequate skilled personnel)',                   required:true  },
+      { id:'tech-deal',  label:'Dealership Agreement with a licensed LPG Wholesaler',                           required:true  },
+      { id:'tech-list',  label:'List of LPG Dealers with Dealership Agreements',                                required:true  },
+    ],
+    'la-docs-fin': [
+      { id:'fin-audit',  label:'Audited Financial Statement (annual gross turnover ≥ TZS 1.5 billion)',         required:false },
+      { id:'fin-bank',   label:'Bank Statement (credit balance ≥ TZS 1.5 billion)',                             required:false },
+      { id:'fin-guar',   label:'Bank Guarantee or Credit Facility (≥ TZS 1.5 billion)',                         required:false },
+      { id:'fin-letter', label:'Letter of Comfort from Licensed Bank / Financial Institution',                  required:false },
+    ],
+    'la-docs-hse': [
+      { id:'hse-eia',    label:'EIA Certificate from NEMC (Environmental Impact Assessment)',                   required:true  },
+      { id:'hse-osha',   label:'OSHA Certificate',                                                              required:true  },
+      { id:'hse-fire',   label:'Fire Safety Certificate (from Fire Department)',                                 required:true  },
+    ],
+    'la-docs-admin': [
+      { id:'adm-pledge', label:'Integrity Pledge Form — Form No. 3 (duly filled and signed)',                   required:true  },
+      { id:'adm-fee',    label:'Proof of Payment of non-refundable Application Fee',                            required:true  },
+      { id:'adm-mou',    label:'Memoranda of Understanding (governing commercial transactions)',                 required:false, note:'If applicable' },
+    ],
+  };
 
-  if (!selectedCo) { showSnackbar('Select an LPGMC operator.', 'error'); return; }
-
-  const allEvents = await txGetAll('events');
-  const allCyls   = await txGetAll('cylinders');
-
-  // Match refill events: operator is required; refill date is optional
-  const matchedIds = [...new Set(
-    allEvents.filter(ev =>
-      ev.type === 'refilled' &&
-      (ev.company || '') === selectedCo &&
-      (!refillDate || (ev.timestamp || '').slice(0, 10) === refillDate)
-    ).map(ev => ev.cylinderId)
-  )];
-
-  const resultsEl = $('recall-results');
-  const emptyEl   = $('recall-empty');
-
-  if (matchedIds.length === 0) {
-    if (resultsEl) resultsEl.style.display = 'none';
-    if (emptyEl)   emptyEl.style.display   = '';
-    return;
-  }
-
-  if (emptyEl) emptyEl.style.display = 'none';
-  if (resultsEl) resultsEl.style.display = '';
-
-  // Last event per cylinder (current location)
-  const lastEvMap = {};
-  allEvents.slice().sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp))
-    .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
-
-  let cylsInBatch = allCyls.filter(c => matchedIds.includes(c.id));
-  // Apply optional manufacture date filter
-  if (mfgDate) cylsInBatch = cylsInBatch.filter(c => (c.manufactureDate || '').slice(0, 10) === mfgDate);
-
-  // Summary with Mark for Recall button
-  const summaryEl = $('recall-summary');
-  if (summaryEl) {
-    const alreadyRecalled = cylsInBatch.filter(c => c.recalled).length;
-    const valStyle = 'font-size:22px;font-weight:700;color:var(--primary)';
-    const lblStyle = 'font-size:11px;color:var(--dim);margin-top:2px';
-    const filterDesc = [selectedCo, refillDate && `Refilled ${refillDate}`, mfgDate && `Mfg ${mfgDate}`].filter(Boolean).join(' · ');
-    summaryEl.innerHTML = `
-      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
-        <div style="text-align:center;min-width:72px"><div style="${valStyle}">${cylsInBatch.length}</div><div style="${lblStyle}">Cylinders</div></div>
-        <div style="text-align:center;min-width:72px"><div style="${valStyle}">${alreadyRecalled}</div><div style="${lblStyle}">Already recalled</div></div>
-        <div style="flex:1;min-width:160px">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(filterDesc)}</div>
+  function buildDocRow(doc) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${doc.note ? '2px' : '0'}">
+          <span style="font-size:13px;font-weight:500;color:#1e293b">${escapeHtml(doc.label)}</span>
+          ${doc.required ? '<span style="color:#ef4444;font-size:11px;font-weight:600">*</span>' : `<span style="font-size:10px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:4px">${t('licApp.optional')}</span>`}
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button id="recall-export-btn" class="btn btn-sm btn-outline" type="button">↓ CSV</button>
-          <button id="recall-mark-btn" class="btn btn-sm btn-danger" type="button"
-            style="background:var(--danger,#ef4444);color:#fff;border-color:var(--danger,#ef4444)">
-            ⚠ Mark All for Recall
+        ${doc.note ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${escapeHtml(doc.note)}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <label style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;color:#475569;white-space:nowrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            ${t('licApp.attachFile')}
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" data-doc-id="${escapeHtml(doc.id)}" class="la-file-input" />
+          </label>
+          <span class="la-file-name" data-for="${escapeHtml(doc.id)}" style="font-size:11px;color:#94a3b8;font-style:italic">${t('licApp.noFile')}</span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;width:22px;height:22px;margin-top:2px">
+        <svg class="la-doc-check" data-doc="${escapeHtml(doc.id)}" width="22" height="22" viewBox="0 0 22 22" style="display:none">
+          <circle cx="11" cy="11" r="10" fill="#22c55e" opacity="0.15"/>
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+          <polyline points="6,11 10,15 16,7" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="la-doc-empty" data-doc="${escapeHtml(doc.id)}" width="22" height="22" viewBox="0 0 22 22">
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+        </svg>
+      </div>`;
+    return row;
+  }
+
+  Object.entries(SECTIONS).forEach(([containerId, docs]) => {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    docs.forEach(doc => el.appendChild(buildDocRow(doc)));
+  });
+
+  overlay.addEventListener('change', e => {
+    const inp = e.target;
+    if (!inp.classList.contains('la-file-input')) return;
+    const docId = inp.dataset.docId;
+    const nameEl = overlay.querySelector(`.la-file-name[data-for="${docId}"]`);
+    const checkEl = overlay.querySelector(`.la-doc-check[data-doc="${docId}"]`);
+    const emptyEl = overlay.querySelector(`.la-doc-empty[data-doc="${docId}"]`);
+    if (inp.files && inp.files[0]) {
+      if (nameEl) { nameEl.textContent = inp.files[0].name; nameEl.style.color = '#22c55e'; nameEl.style.fontStyle = 'normal'; nameEl.style.fontWeight = '500'; }
+      if (checkEl) checkEl.style.display = '';
+      if (emptyEl) emptyEl.style.display = 'none';
+    } else {
+      if (nameEl) { nameEl.textContent = t('licApp.noFile'); nameEl.style.color = '#94a3b8'; nameEl.style.fontStyle = 'italic'; nameEl.style.fontWeight = ''; }
+      if (checkEl) checkEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = '';
+    }
+    updateProgress();
+  });
+
+  overlay.addEventListener('input', e => { if (e.target.hasAttribute('data-la-required')) updateProgress(); });
+
+  function updateProgress() {
+    const reqFields = overlay.querySelectorAll('[data-la-required]');
+    let filledFields = 0;
+    reqFields.forEach(f => { if (f.value && f.value.trim()) filledFields++; });
+
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+
+    let reqDocs = 0, attachedDocs = 0;
+    Object.entries(SECTIONS).forEach(([, docs]) => {
+      docs.filter(d => d.required).forEach(doc => {
+        if (doc.id.startsWith('fin-')) return;
+        reqDocs++;
+        const inp = overlay.querySelector(`input[data-doc-id="${doc.id}"]`);
+        if (inp && inp.files && inp.files[0]) attachedDocs++;
+      });
+    });
+
+    const total = reqFields.length + reqDocs + 1;
+    const done  = filledFields + attachedDocs + (finAttached > 0 ? 1 : 0);
+    const pct   = Math.round(done / total * 100);
+    const bar   = document.getElementById('license-apply-bar');
+    const pctEl = document.getElementById('license-apply-pct');
+    if (bar) { bar.style.width = pct + '%'; bar.style.background = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6'; }
+    if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6'; }
+  }
+
+  function openOverlay() { overlay.style.display = 'block'; overlay.scrollTop = 0; updateProgress(); applyLang(); }
+  function closeOverlay() { overlay.style.display = 'none'; }
+
+  if (openBtn)  openBtn.addEventListener('click', openOverlay);
+  if (backBtn)  backBtn.addEventListener('click', closeOverlay);
+  if (backBtn2) backBtn2.addEventListener('click', closeOverlay);
+
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const draft = {};
+    overlay.querySelectorAll('[id^="la-"]').forEach(el => { if (el.type !== 'file' && el.id) draft[el.id] = el.value || ''; });
+    localStorage.setItem('lpg-licence-draft', JSON.stringify(draft));
+    const orig = saveBtn.textContent;
+    saveBtn.textContent = t('licApp.draftSaved');
+    saveBtn.style.color = '#22c55e';
+    setTimeout(() => { saveBtn.textContent = t('licApp.saveDraft'); saveBtn.style.color = ''; }, 2000);
+  });
+
+  const savedDraft = localStorage.getItem('lpg-licence-draft');
+  if (savedDraft) {
+    try {
+      const draft = JSON.parse(savedDraft);
+      Object.entries(draft).forEach(([id, val]) => { const el = document.getElementById(id); if (el && el.type !== 'file') el.value = val; });
+    } catch {}
+  }
+
+  if (submitBtn) submitBtn.addEventListener('click', () => {
+    const company = (document.getElementById('la-company') || {}).value?.trim();
+    if (!company) { alert(t('licApp.noCompany')); document.getElementById('la-company')?.focus(); return; }
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+    if (finAttached === 0) { alert(t('licApp.noFinancial')); document.getElementById('la-docs-fin')?.scrollIntoView({ behavior: 'smooth' }); return; }
+
+    const safeCompany = escapeHtml(company);
+    overlay.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+        <div style="max-width:520px;text-align:center">
+          <div style="font-size:56px;margin-bottom:20px">✅</div>
+          <h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 12px" data-i18n="licApp.successTitle">${t('licApp.successTitle')}</h2>
+          <p style="font-size:14px;color:#475569;margin:0 0 8px">${t('licApp.successMsg1').replace('{{company}}', safeCompany)}</p>
+          <p style="font-size:13px;color:#64748b;margin:0 0 28px">${t('licApp.successMsg2')}</p>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 18px;font-size:12px;color:#1d4ed8;margin-bottom:28px;text-align:left">${t('licApp.successNext')}</div>
+          <button type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#3b82f6;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">
+            ${t('licApp.backToLogin')}
           </button>
         </div>
       </div>`;
-
-    $('recall-export-btn')?.addEventListener('click', () => {
-      const rows = [['Serial','Company','Manufacture Date','Status','Current Location','Last Event','Last Event Date','Recalled']];
-      cylsInBatch.forEach(cyl => {
-        const ev  = lastEvMap[cyl.id];
-        const loc = ev ? (ev.location || ev.company || '') : '';
-        rows.push([cyl.serial||cyl.id, cyl.company, cyl.manufactureDate||'', cyl.status, loc, ev?ev.type:'', ev?ev.timestamp.slice(0,10):'', cyl.recalled?'YES':'']);
-      });
-      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-      a.download = `recall-${selectedCo.replace(/\s+/g,'-')}-${refillDate||'all'}.csv`;
-      a.click();
-    });
-
-    $('recall-mark-btn')?.addEventListener('click', async () => {
-      const pending = cylsInBatch.filter(c => !c.recalled);
-      if (pending.length === 0) { showSnackbar('All cylinders already marked for recall.', 'warning'); return; }
-      const recalledAt = new Date().toISOString();
-      for (const cyl of pending) {
-        await txPut('cylinders', { ...cyl, recalled: true,
-          recallInfo: { date: refillDate || null, mfgDate: mfgDate || null, company: selectedCo, recalledAt } });
-      }
-      showSnackbar(`${pending.length} cylinder(s) marked for recall.`, 'success');
-      _recallSearchBtn.click();
-    });
-  }
-
-  // Map markers
-  const markers = cylsInBatch.map(cyl => {
-    const ev  = lastEvMap[cyl.id];
-    const loc = ev ? (ev.location || ev.company || '') : cyl.company;
-    const net = DEMO_NETWORK.find(n => n.name === loc);
-    const lpg = DEMO_LPGMC_INFO && DEMO_LPGMC_INFO[loc];
-    const lat = net ? net.lat : lpg ? lpg.lat : -6.5 + (Math.random()-0.5)*2;
-    const lng = net ? net.lng : lpg ? lpg.lng : 35.5 + (Math.random()-0.5)*2;
-    const col = cyl.recalled ? '#ef4444'
-      : ({'in-refill':'#3b82f6','in-circulation':'#22c55e','in-use':'#f59e0b','revalidation':'#8b5cf6'}[cyl.status] || '#64748b');
-    return {
-      lat: lat + (Math.random()-0.5)*0.12,
-      lng: lng + (Math.random()-0.5)*0.12,
-      color: col, symbol: cyl.recalled ? '!' : '●',
-      label: `${cyl.recalled ? '[RECALL] ' : ''}${cyl.serial||cyl.id} · ${cyl.company} · ${loc}`,
-    };
+    overlay.scrollTop = 0;
+    localStorage.removeItem('lpg-licence-draft');
   });
-  buildTileMap('recall-map', markers, { height: 380, zoom: 6, center: { lat: -6.0, lng: 35.5 } });
+})();
 
-  // Cylinder list
-  const listEl = $('recall-cylinder-list');
-  if (listEl) {
-    const statusLbls = {'in-refill':'In Refill','in-circulation':'In Circulation','in-use':'In Use','revalidation':'Revalidation'};
-    listEl.innerHTML = cylsInBatch.map(cyl => {
-      const ev       = lastEvMap[cyl.id];
-      const loc      = ev ? (ev.location || ev.company || '—') : '—';
-      const evLabel  = ev ? (EVENT_LABELS[ev.type] || ev.type) : '—';
-      const evDate   = ev ? ev.timestamp.slice(0,10) : '—';
-      const recBadge = cyl.recalled
-        ? `<span style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px">RECALL</span>`
-        : '';
-      return `<li class="network-item" style="cursor:default${cyl.recalled ? ';border-left:3px solid #ef4444' : ''}">
-        <div class="network-item-header">
-          <span class="network-item-name">${escapeHtml(cyl.serial || cyl.id)}${recBadge}</span>
-          <span class="network-type-badge">${escapeHtml(statusLbls[cyl.status] || cyl.status)}</span>
-        </div>
-        <div class="network-item-meta">
-          🏭 ${escapeHtml(cyl.company)} · 📍 ${escapeHtml(loc)}<br>
-          Last event: ${escapeHtml(evLabel)} · ${escapeHtml(evDate)}
-        </div>
-      </li>`;
-    }).join('');
+// ══════════════════════════════════════════════════════════════════════════════
+// MARKET INTELLIGENCE (EWURA)
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function renderMarketIntel() {
+  const el = $('view-market-intel');
+  if (!el) return;
+  const cyls = await txGetAll('cylinders');
+  const events = await txGetAll('events');
+
+  const regions = ['Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Mbeya', 'Tanga'];
+  const regCounts = {};
+  regions.forEach(r => { regCounts[r] = 0; });
+  DEMO_NETWORK.forEach(n => { if (regCounts[n.region] !== undefined) regCounts[n.region] += (n.cylinders || 0); });
+  const maxReg = Math.max(...Object.values(regCounts), 1);
+  const regionBars = regions.map(r => {
+    const pct = Math.round((regCounts[r] / maxReg) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(r)}</span>
+      <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)"><span>${regCounts[r]}</span></div></div>
+    </div>`;
+  }).join('');
+
+  const opShare = LPGMC_COMPANIES.map(c => ({ name: c, count: cyls.filter(cy => cy.company === c).length }));
+  const maxOp = Math.max(...opShare.map(o => o.count), 1);
+  const totalCyls = cyls.length || 1;
+  const opColors = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
+  const opBars = opShare.map((o, i) => {
+    const pct = Math.round((o.count / maxOp) * 100);
+    const share = Math.round((o.count / totalCyls) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(o.name)}</span>
+      <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${opColors[i % opColors.length]}"><span>${o.count} (${share}%)</span></div></div>
+    </div>`;
+  }).join('');
+
+  const statusCounts = { 'in-refill': 0, 'in-circulation': 0, 'revalidation': 0, 'in-use': 0 };
+  cyls.forEach(c => { if (statusCounts[c.status] !== undefined) statusCounts[c.status]++; });
+  const statusColors2 = { 'in-refill':'var(--green)', 'in-circulation':'var(--blue)', 'revalidation':'var(--teal,#0d9488)', 'in-use':'var(--purple)' };
+  const statusLabels2 = { 'in-refill':t('marketIntel.atRefill'), 'in-circulation':t('marketIntel.inDist'), 'revalidation':t('marketIntel.inReval'), 'in-use':t('marketIntel.withConsumer') };
+  const maxStat = Math.max(...Object.values(statusCounts), 1);
+  const statBars = Object.entries(statusCounts).map(([k, v]) => {
+    const pct = Math.round((v / maxStat) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label" style="min-width:130px">${escapeHtml(statusLabels2[k])}</span>
+      <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${statusColors2[k]}"><span>${v}</span></div></div>
+    </div>`;
+  }).join('');
+
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('default', { month: 'short' });
+    const count = events.filter(ev => {
+      const ed = new Date(ev.timestamp);
+      return ed.getFullYear() === d.getFullYear() && ed.getMonth() === d.getMonth();
+    }).length;
+    months.push({ label, count });
   }
-});
+  const maxScan = Math.max(...months.map(m => m.count), 1);
+  const scanBars = months.map(m => {
+    const pct = Math.round((m.count / maxScan) * 100);
+    return `<div class="mgmt-bar-row">
+      <span class="mgmt-bar-label" style="min-width:40px">${escapeHtml(m.label)}</span>
+      <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:var(--blue)"><span>${m.count}</span></div></div>
+    </div>`;
+  }).join('');
 
-// ── Refill Batch Modal (LPGMC) ────────────────────────────────────────────
-let _refillBatchCyls = [];
+  const activeOps = DEMO_NETWORK.filter(n => n.status === 'active').length;
+  const licActive = (await txGetAll('licenses')).filter(l => l.status === 'active').length;
 
-function _updateRefillBatchList() {
-  const listEl  = $('refill-batch-cylinder-list');
-  const countEl = $('refill-batch-count');
-  if (!listEl) return;
-  if (_refillBatchCyls.length === 0) {
-    listEl.innerHTML = '<p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>';
-    if (countEl) countEl.textContent = '';
-    return;
-  }
-  if (countEl) countEl.textContent = `${_refillBatchCyls.length} cylinder${_refillBatchCyls.length === 1 ? '' : 's'}`;
-  listEl.innerHTML = _refillBatchCyls.map(c => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border)">
-      <div>
-        <span class="font-mono" style="font-size:12px;font-weight:600">${escapeHtml(c.id)}</span>
-        <span style="margin-left:8px;font-size:12px;color:var(--dim)">${escapeHtml(c.serial || '')} · ${escapeHtml(c.company || '')}</span>
+  const body = el.querySelector('#market-intel-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="mgmt-grid">
+      <div class="mgmt-card" style="grid-column:span 2">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">${t('marketIntel.summary')}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--blue)">${cyls.length}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.totalCyls')}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--green)">${activeOps}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.activeOps')}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--amber)">${licActive}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.activeLic')}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--purple)">${events.length}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.totalEvents')}</div>
+          </div>
+        </div>
       </div>
-      <button data-rfb-remove="${escapeHtml(c.id)}" style="background:none;border:none;color:var(--danger,#ef4444);cursor:pointer;font-size:18px;line-height:1;padding:0 4px" title="Remove">×</button>
-    </div>`).join('');
-  listEl.querySelectorAll('[data-rfb-remove]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _refillBatchCyls = _refillBatchCyls.filter(c => c.id !== btn.dataset.rfbRemove);
-      _updateRefillBatchList();
-    });
+      <div class="mgmt-card">
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.byRegion')}</div></div>
+        ${regionBars}
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.opShare')}</div></div>
+        ${opBars}
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.scanVolume')}</div></div>
+        ${scanBars}
+      </div>
+      <div class="mgmt-card">
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.statusBreakdown')}</div></div>
+        ${statBars}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FIELD INSPECTIONS (EWURA)
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _demoInspections = [...DEMO_INSPECTIONS];
+
+function renderInspections() {
+  const listEl = $('inspections-list');
+  if (!listEl) return;
+  const statusOrder = { overdue: 0, scheduled: 1, completed: 2 };
+  const sorted = [..._demoInspections].sort((a, b) => {
+    const so = (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
+    if (so !== 0) return so;
+    return new Date(a.scheduledDate) - new Date(b.scheduledDate);
   });
+  const statusPill = s => {
+    const colors = { overdue: 'background:#fef2f2;color:#dc2626;border:1px solid #fca5a5', scheduled: 'background:#eff6ff;color:#2563eb;border:1px solid #93c5fd', completed: 'background:#f0fdf4;color:#16a34a;border:1px solid #86efac' };
+    const label = t('insp.status.' + s) || s;
+    return `<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;${colors[s] || ''}">${escapeHtml(label)}</span>`;
+  };
+  listEl.innerHTML = sorted.map(ins => `
+    <li style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;list-style:none;display:flex;gap:12px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:4px">${escapeHtml(ins.company)} <span style="color:var(--muted);font-weight:400">· ${escapeHtml(ins.region)}</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Auditor: ${escapeHtml(ins.auditor)} &nbsp;·&nbsp; Date: ${escapeHtml(ins.scheduledDate)}</div>
+        <div style="font-size:12px;color:var(--dim)">${escapeHtml(ins.notes)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusPill(ins.status)}<span style="font-size:11px;color:var(--muted)">${escapeHtml(ins.id)}</span></div>
+    </li>`).join('');
 }
 
-async function _addToRefillBatch(tagId) {
-  tagId = tagId.trim().toUpperCase();
-  if (!tagId) return;
-  if (_refillBatchCyls.find(c => c.id === tagId)) { showSnackbar('Already in list.', 'warning'); return; }
-  const cyl = await txGet('cylinders', tagId);
-  if (!cyl) { showSnackbar(`Cylinder ${tagId} not found.`, 'error'); return; }
-  if (Auth.session && cyl.company !== Auth.session.company) { showSnackbar(`Belongs to ${cyl.company} — not your company.`, 'error'); return; }
-  _refillBatchCyls.push(cyl);
-  _updateRefillBatchList();
-  const inp = $('refill-batch-scan-input');
-  if (inp) { inp.value = ''; inp.focus(); }
+$('new-inspection-btn')?.addEventListener('click', () => { openModal('modal-new-inspection'); });
+
+$('save-inspection-btn')?.addEventListener('click', () => {
+  const company  = $('insp-company')?.value.trim();
+  const region   = $('insp-region')?.value.trim();
+  const auditor  = $('insp-auditor')?.value.trim();
+  const date     = $('insp-date')?.value;
+  const notes    = $('insp-notes')?.value.trim();
+  if (!company || !date) { showSnackbar('Company and date are required.', 'error'); return; }
+  _demoInspections.push({
+    id: 'INS-' + String(_demoInspections.length + 1).padStart(3, '0'),
+    company, region, auditor, scheduledDate: date, status: 'scheduled', notes: notes || '',
+  });
+  closeModal('modal-new-inspection');
+  renderInspections();
+  showSnackbar(t('insp.scheduledOk'), 'success');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BULK CYLINDER REGISTRATION (LPGMC)
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('bulk-register-btn')?.addEventListener('click', () => {
+  const textarea = $('bulk-register-ids');
+  if (textarea) textarea.value = '';
+  const preview = $('bulk-register-preview');
+  if (preview) preview.textContent = '';
+  openModal('modal-bulk-register');
+});
+
+function parseBulkIds(text) {
+  return [...new Set(
+    text.split(/[\r\n,;\t ]+/).map(s => s.trim()).filter(s => s.length === 22 && s.startsWith('E280116060'))
+  )];
 }
 
-function openRefillBatchModal() {
-  _refillBatchCyls = [];
+$('bulk-register-ids')?.addEventListener('input', function() {
+  const ids = parseBulkIds(this.value);
+  const preview = $('bulk-register-preview');
+  if (preview) preview.textContent = ids.length ? `${ids.length} ${t('bulk.validIds')}` : t('bulk.noValidIds');
+});
+
+$('bulk-register-file')?.addEventListener('change', async function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const ta = $('bulk-register-ids');
+  if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
+});
+
+$('bulk-register-confirm-btn')?.addEventListener('click', async () => {
+  const ta = $('bulk-register-ids');
+  const ids = parseBulkIds(ta?.value || '');
+  if (!ids.length) { showSnackbar('No valid cylinder IDs found.', 'error'); return; }
   const today = new Date().toISOString().slice(0, 10);
-  const dateInp = $('refill-batch-date');
-  if (dateInp) dateInp.value = today;
-  const siteInp = $('refill-batch-site');
-  if (siteInp && Auth.session) siteInp.value = Auth.session.company;
-  const numInp = $('refill-batch-number');
-  if (numInp) numInp.value = `BATCH-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`;
-  const notesInp = $('refill-batch-notes');
-  if (notesInp) notesInp.value = '';
-  _updateRefillBatchList();
-  openModal('modal-refill-batch');
-  const scanInp = $('refill-batch-scan-input');
-  if (scanInp) { scanInp.value = ''; scanInp.focus(); }
-}
-
-const _rfbBtn = $('refill-batch-btn');
-if (_rfbBtn) _rfbBtn.addEventListener('click', openRefillBatchModal);
-
-const _rfbAddBtn = $('refill-batch-add-btn');
-if (_rfbAddBtn) _rfbAddBtn.addEventListener('click', () => {
-  const inp = $('refill-batch-scan-input');
-  if (inp) _addToRefillBatch(inp.value);
-});
-
-const _rfbScanInp = $('refill-batch-scan-input');
-if (_rfbScanInp) _rfbScanInp.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); _addToRefillBatch(_rfbScanInp.value); }
-});
-
-const _rfbConfirmBtn = $('refill-batch-confirm-btn');
-if (_rfbConfirmBtn) _rfbConfirmBtn.addEventListener('click', async () => {
-  if (_refillBatchCyls.length === 0) { showSnackbar('Scan at least one cylinder.', 'error'); return; }
-  const batchNum = ($('refill-batch-number') || {}).value?.trim();
-  if (!batchNum) { showSnackbar('Enter a batch number.', 'error'); return; }
-  const batchDate  = ($('refill-batch-date')  || {}).value || new Date().toISOString().slice(0, 10);
-  const shift      = ($('refill-batch-shift') || {}).value || 'morning';
-  const site       = ($('refill-batch-site')  || {}).value?.trim() || Auth.session.company;
-  const notes      = ($('refill-batch-notes') || {}).value?.trim() || '';
-  const session    = Auth.session;
-  const ts         = new Date(batchDate + 'T12:00:00').toISOString();
-  for (const cyl of _refillBatchCyls) {
-    await txPut('events', {
-      cylinderId: cyl.id, type: 'refilled', timestamp: ts,
-      operatorId: session.operatorId, company: session.company,
-      location: site, stampCode: batchNum, shift, notes,
-    });
-    await txPut('cylinders', { ...cyl, fillCount: (cyl.fillCount || 0) + 1, status: 'in-refill', lastStampCode: batchNum });
+  let registered = 0;
+  for (const id of ids) {
+    const existing = await txGet('cylinders', id);
+    if (existing) continue;
+    const serial = 'CYL-' + id.slice(-8);
+    await txPut('cylinders', { id, serial, company: Auth.session?.company || 'LPGMC', size: '13kg', status: 'in-refill', fillCount: 0, manufactureDate: today });
+    await txPut('events', { cylinderId: id, type: 'registered', timestamp: nowISO(), operatorId: Auth.session?.operatorId, company: Auth.session?.company, notes: 'Bulk registered via CSV' });
+    registered++;
   }
-  showSnackbar(`Batch ${batchNum}: ${_refillBatchCyls.length} cylinder(s) refilled.`, 'success');
-  closeModal('modal-refill-batch');
+  closeModal('modal-bulk-register');
+  showSnackbar(`${registered} cylinder${registered !== 1 ? 's' : ''} registered`, 'success');
   renderCylinders();
 });
 
@@ -5272,6 +5317,43 @@ async function init() {
   await openDB();
   await seedDemoData();
 
+  // Consumer QR code scan — handle ?cylinder=ID without login
+  const urlParams = new URLSearchParams(window.location.search);
+  const consumerCylId = urlParams.get('cylinder');
+  if (consumerCylId) {
+    const overlay = $('consumer-scan-overlay');
+    const contentEl = $('consumer-scan-content');
+    if (overlay && contentEl) {
+      const cyl = await txGet('cylinders', consumerCylId);
+      const events = cyl ? await txGetIndex('events', 'cylinderId', cyl.id) : [];
+      const lastEv = events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+      if (cyl) {
+        contentEl.innerHTML = `
+          <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
+            <div style="font-size:36px;margin-bottom:8px">✅</div>
+            <div style="font-size:18px;font-weight:700;color:#15803d;margin-bottom:12px">${t('consumer.registered')}</div>
+            <div style="text-align:left;font-size:13px;color:#374151">
+              <div style="margin-bottom:6px"><strong>ID:</strong> ${escapeHtml(cyl.id)}</div>
+              <div style="margin-bottom:6px"><strong>Serial:</strong> ${escapeHtml(cyl.serial)}</div>
+              <div style="margin-bottom:6px"><strong>Size:</strong> ${escapeHtml(cyl.size || 'N/A')}</div>
+              <div style="margin-bottom:6px"><strong>Company:</strong> ${escapeHtml(cyl.company || 'N/A')}</div>
+              <div style="margin-bottom:6px"><strong>Status:</strong> ${escapeHtml(cyl.status || 'N/A')}</div>
+              ${lastEv ? `<div><strong>Last Scan:</strong> ${escapeHtml(lastEv.timestamp.slice(0,10))}</div>` : ''}
+            </div>
+          </div>`;
+      } else {
+        contentEl.innerHTML = `
+          <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
+            <div style="font-size:36px;margin-bottom:8px">⚠️</div>
+            <div style="font-size:18px;font-weight:700;color:#dc2626;margin-bottom:12px">${t('consumer.notRegistered')}</div>
+            <div style="font-size:13px;color:#374151">${t('kpi.total').replace('Total','Cylinder').replace('Jumla','Mtungi') || 'Cylinder'} <strong>${escapeHtml(consumerCylId)}</strong> ${t('consumer.notRegisteredDesc')}</div>
+          </div>`;
+      }
+      overlay.style.display = 'flex';
+    }
+    return;
+  }
+
   Auth.load();
 
   if (Auth.session) {
@@ -5288,238 +5370,3 @@ init().catch(err => {
   console.error('LPG Tracer init error:', err);
   showSnackbar('Startup error. Please reload.', 'error');
 });
-
-// ══════════════════════════════════════════════════════════════════════════════
-// LPG DISTRIBUTION LICENCE APPLICATION
-// ══════════════════════════════════════════════════════════════════════════════
-
-(function initLicenceApp() {
-  const overlay   = document.getElementById('license-apply-overlay');
-  const openBtn   = document.getElementById('license-apply-open-btn');
-  const backBtn   = document.getElementById('license-apply-back-btn');
-  const backBtn2  = document.getElementById('license-apply-back-btn2');
-  const saveBtn   = document.getElementById('license-apply-save-btn');
-  const submitBtn = document.getElementById('license-apply-submit-btn');
-  if (!overlay) return;
-
-  // ── Document definitions per section ─────────────────────────────────────
-  const SECTIONS = {
-    'la-docs-corp': [
-      { id:'corp-biz',    label:'Business Licence',                          required:true  },
-      { id:'corp-inc',    label:'Certificate of Incorporation',               required:true  },
-      { id:'corp-comp',   label:'Certificate of Compliance',                  required:false, note:'Required for foreign companies' },
-      { id:'corp-maa',    label:'Memorandum and Articles of Association',     required:true  },
-      { id:'corp-tin',    label:'TIN Certificate',                            required:true  },
-      { id:'corp-vat',    label:'VAT Certificate',                            required:true  },
-    ],
-    'la-docs-land': [
-      { id:'land-permit', label:'Building Permit',                            required:true  },
-      { id:'land-title',  label:'Land Title Deed',                            required:true  },
-      { id:'land-lease',  label:'Lease Agreement',                            required:false, note:'Required if applicant is not the land owner' },
-    ],
-    'la-docs-tech': [
-      { id:'tech-plant',  label:'Proof of Ownership or Hospitality Agreement for Filling Plant & Storage Depot', required:true  },
-      { id:'tech-staff',  label:'Personnel Profile (demonstrating adequate skilled personnel)',                   required:true  },
-      { id:'tech-deal',   label:'Dealership Agreement with a licensed LPG Wholesaler',                           required:true  },
-      { id:'tech-list',   label:'List of LPG Dealers with Dealership Agreements',                                required:true  },
-    ],
-    'la-docs-fin': [
-      { id:'fin-audit',   label:'Audited Financial Statement (annual gross turnover ≥ TZS 1.5 billion)',         required:false },
-      { id:'fin-bank',    label:'Bank Statement (credit balance ≥ TZS 1.5 billion)',                             required:false },
-      { id:'fin-guar',    label:'Bank Guarantee or Credit Facility (≥ TZS 1.5 billion)',                         required:false },
-      { id:'fin-letter',  label:'Letter of Comfort from Licensed Bank / Financial Institution',                  required:false },
-    ],
-    'la-docs-hse': [
-      { id:'hse-eia',     label:'EIA Certificate from NEMC (Environmental Impact Assessment)',                   required:true  },
-      { id:'hse-osha',    label:'OSHA Certificate',                                                              required:true  },
-      { id:'hse-fire',    label:'Fire Safety Certificate (from Fire Department)',                                 required:true  },
-    ],
-    'la-docs-admin': [
-      { id:'adm-pledge',  label:'Integrity Pledge Form — Form No. 3 (duly filled and signed)',                   required:true  },
-      { id:'adm-fee',     label:'Proof of Payment of non-refundable Application Fee',                            required:true  },
-      { id:'adm-mou',     label:'Memoranda of Understanding (governing commercial transactions)',                 required:false, note:'If applicable' },
-    ],
-  };
-
-  // ── Render doc upload rows ────────────────────────────────────────────────
-  function buildDocRow(doc) {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9';
-    row.innerHTML = `
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${doc.note ? '2px' : '0'}">
-          <span style="font-size:13px;font-weight:500;color:#1e293b">${doc.label}</span>
-          ${doc.required ? '<span style="color:#ef4444;font-size:11px;font-weight:600">*</span>' : '<span style="font-size:10px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:4px">optional</span>'}
-        </div>
-        ${doc.note ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${doc.note}</div>` : ''}
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <label style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;color:#475569;white-space:nowrap">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Attach file
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" data-doc-id="${doc.id}" class="la-file-input" />
-          </label>
-          <span class="la-file-name" data-for="${doc.id}" style="font-size:11px;color:#94a3b8;font-style:italic">No file selected</span>
-        </div>
-      </div>
-      <div style="flex-shrink:0;width:22px;height:22px;margin-top:2px">
-        <svg class="la-doc-check" data-doc="${doc.id}" width="22" height="22" viewBox="0 0 22 22" style="display:none">
-          <circle cx="11" cy="11" r="10" fill="#22c55e" opacity="0.15"/>
-          <circle cx="11" cy="11" r="10" fill="none" stroke="#22c55e" stroke-width="1.5"/>
-          <polyline points="6,11 10,15 16,7" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <svg class="la-doc-empty" data-doc="${doc.id}" width="22" height="22" viewBox="0 0 22 22">
-          <circle cx="11" cy="11" r="10" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
-        </svg>
-      </div>`;
-    return row;
-  }
-
-  Object.entries(SECTIONS).forEach(([containerId, docs]) => {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    docs.forEach(doc => el.appendChild(buildDocRow(doc)));
-  });
-
-  // ── File selection handler ────────────────────────────────────────────────
-  overlay.addEventListener('change', e => {
-    const inp = e.target;
-    if (!inp.classList.contains('la-file-input')) return;
-    const docId = inp.dataset.docId;
-    const nameEl = overlay.querySelector(`.la-file-name[data-for="${docId}"]`);
-    const checkEl = overlay.querySelector(`.la-doc-check[data-doc="${docId}"]`);
-    const emptyEl = overlay.querySelector(`.la-doc-empty[data-doc="${docId}"]`);
-    if (inp.files && inp.files[0]) {
-      if (nameEl) { nameEl.textContent = inp.files[0].name; nameEl.style.color = '#22c55e'; nameEl.style.fontStyle = 'normal'; nameEl.style.fontWeight = '500'; }
-      if (checkEl) checkEl.style.display = '';
-      if (emptyEl) emptyEl.style.display = 'none';
-    } else {
-      if (nameEl) { nameEl.textContent = 'No file selected'; nameEl.style.color = '#94a3b8'; nameEl.style.fontStyle = 'italic'; nameEl.style.fontWeight = ''; }
-      if (checkEl) checkEl.style.display = 'none';
-      if (emptyEl) emptyEl.style.display = '';
-    }
-    updateProgress();
-  });
-
-  // ── Text field change handler ─────────────────────────────────────────────
-  overlay.addEventListener('input', e => {
-    if (e.target.hasAttribute('data-la-required')) updateProgress();
-  });
-  overlay.addEventListener('change', e => {
-    if (e.target.hasAttribute('data-la-required')) updateProgress();
-  });
-
-  // ── Progress calculation ──────────────────────────────────────────────────
-  function updateProgress() {
-    // Required text/select fields
-    const reqFields = overlay.querySelectorAll('[data-la-required]');
-    let filledFields = 0;
-    reqFields.forEach(f => { if (f.value && f.value.trim()) filledFields++; });
-
-    // Required document uploads (only sections where at least 1 required doc exists)
-    // Financial section: at least 1 of 4
-    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
-    let finAttached = 0;
-    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
-
-    // All other required docs
-    let reqDocs = 0, attachedDocs = 0;
-    Object.entries(SECTIONS).forEach(([, docs]) => {
-      docs.filter(d => d.required).forEach(doc => {
-        if (doc.id.startsWith('fin-')) return; // handled separately
-        reqDocs++;
-        const inp = overlay.querySelector(`input[data-doc-id="${doc.id}"]`);
-        if (inp && inp.files && inp.files[0]) attachedDocs++;
-      });
-    });
-
-    const total = reqFields.length + reqDocs + 1; // +1 for financial section
-    const done  = filledFields + attachedDocs + (finAttached > 0 ? 1 : 0);
-    const pct   = Math.round(done / total * 100);
-
-    const bar = document.getElementById('license-apply-bar');
-    const pctEl = document.getElementById('license-apply-pct');
-    if (bar) bar.style.width = pct + '%';
-    if (bar) bar.style.background = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6';
-    if (pctEl) pctEl.textContent = pct + '%';
-    if (pctEl) pctEl.style.color = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6';
-  }
-
-  // ── Show / hide ───────────────────────────────────────────────────────────
-  function openOverlay() {
-    overlay.style.display = 'block';
-    overlay.scrollTop = 0;
-    updateProgress();
-  }
-  function closeOverlay() {
-    overlay.style.display = 'none';
-  }
-
-  if (openBtn) openBtn.addEventListener('click', openOverlay);
-  if (backBtn) backBtn.addEventListener('click', closeOverlay);
-  if (backBtn2) backBtn2.addEventListener('click', closeOverlay);
-
-  // ── Save Draft ────────────────────────────────────────────────────────────
-  if (saveBtn) saveBtn.addEventListener('click', () => {
-    const draft = {};
-    overlay.querySelectorAll('[id^="la-"]').forEach(el => {
-      if (el.type !== 'file' && el.id) draft[el.id] = el.value || '';
-    });
-    localStorage.setItem('lpg-licence-draft', JSON.stringify(draft));
-    // Show brief confirmation
-    const orig = saveBtn.textContent;
-    saveBtn.textContent = '✓ Draft saved';
-    saveBtn.style.color = '#22c55e';
-    setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.color = ''; }, 2000);
-  });
-
-  // ── Restore draft on open ─────────────────────────────────────────────────
-  const savedDraft = localStorage.getItem('lpg-licence-draft');
-  if (savedDraft) {
-    try {
-      const draft = JSON.parse(savedDraft);
-      Object.entries(draft).forEach(([id, val]) => {
-        const el = document.getElementById(id);
-        if (el && el.type !== 'file') el.value = val;
-      });
-    } catch {}
-  }
-
-  // ── Submit ────────────────────────────────────────────────────────────────
-  if (submitBtn) submitBtn.addEventListener('click', () => {
-    const company = (document.getElementById('la-company') || {}).value?.trim();
-    if (!company) {
-      alert('Please enter your company name before submitting.');
-      document.getElementById('la-company')?.focus();
-      return;
-    }
-
-    // Check at least one financial document
-    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
-    let finAttached = 0;
-    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
-    if (finAttached === 0) {
-      alert('Please attach at least one financial proof document (Section 5).');
-      document.getElementById('la-docs-fin')?.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
-
-    // Show success overlay
-    overlay.innerHTML = `
-      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
-        <div style="max-width:520px;text-align:center">
-          <div style="font-size:56px;margin-bottom:20px">✅</div>
-          <h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 12px">Application Submitted</h2>
-          <p style="font-size:14px;color:#475569;margin:0 0 8px">Your LPG Distribution Licence application for <strong>${company.replace(/</g,'&lt;')}</strong> has been received.</p>
-          <p style="font-size:13px;color:#64748b;margin:0 0 28px">EWURA will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.</p>
-          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 18px;font-size:12px;color:#1d4ed8;margin-bottom:28px;text-align:left">
-            <strong>Next step:</strong> Submit your physical application documents to EWURA's LOIS portal at <strong>lois.ewura.go.tz</strong> or visit the EWURA offices in Dar es Salaam.
-          </div>
-          <button type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#3b82f6;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">
-            Back to Login
-          </button>
-        </div>
-      </div>`;
-    overlay.scrollTop = 0;
-    localStorage.removeItem('lpg-licence-draft');
-  });
-})();

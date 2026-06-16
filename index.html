@@ -8,6 +8,7 @@
   <title>LPG Traceability Platform</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -253,8 +254,8 @@
         </div>
 
         <div style="margin-top:20px;padding-top:18px;border-top:1px solid #e2e8f0;text-align:center">
-          <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">New to the platform?</p>
-          <button id="license-apply-open-btn" type="button" onclick="document.getElementById('license-apply-overlay').style.display='block';document.getElementById('license-apply-overlay').scrollTop=0" style="background:#1e40af;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.01em">
+          <p style="font-size:12px;color:#94a3b8;margin-bottom:10px" data-i18n="licApp.newUser">New to the platform?</p>
+          <button id="license-apply-open-btn" type="button" style="background:#1e40af;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.01em" data-i18n="licApp.btnLabel">
             📋 Apply for LPG Distribution Licence
           </button>
         </div>
@@ -265,25 +266,27 @@
       </div>
     </div>
 
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- LPG DISTRIBUTION LICENCE APPLICATION OVERLAY (inside login-overlay)    -->
+  <!-- LPG DISTRIBUTION LICENCE APPLICATION OVERLAY                           -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="license-apply-overlay" style="display:none;position:fixed;inset:0;z-index:1001;background:#f1f5f9;overflow-y:auto">
     <div style="max-width:860px;margin:0 auto;padding:24px 20px 80px">
 
     <!-- Header -->
     <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #e2e8f0">
-      <button id="license-apply-back-btn" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="flex-shrink:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:#475569;margin-top:2px">← Back</button>
+      <button id="license-apply-back-btn" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="flex-shrink:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:#475569;margin-top:2px" data-i18n="licApp.back">← Back</button>
       <div>
-        <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 4px">LPG Distribution Licence Application</h2>
-        <p style="font-size:12px;color:#64748b;margin:0">EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825) &nbsp;·&nbsp; All fields marked <span style="color:#ef4444">*</span> are required</p>
+        <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 4px" data-i18n="licApp.title">LPG Distribution Licence Application</h2>
+        <p style="font-size:12px;color:#64748b;margin:0"><span data-i18n="licApp.subtitle">EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825)</span> &nbsp;·&nbsp; <span data-i18n="licApp.allRequired">All fields marked <span style="color:#ef4444">*</span> are required</span></p>
       </div>
     </div>
 
     <!-- Progress bar -->
     <div style="margin-bottom:28px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:600;color:#475569">Application completeness</span>
+        <span style="font-size:12px;font-weight:600;color:#475569" data-i18n="licApp.completeness">Application completeness</span>
         <span id="license-apply-pct" style="font-size:12px;font-weight:700;color:#3b82f6">0%</span>
       </div>
       <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
@@ -291,46 +294,46 @@
       </div>
     </div>
 
-    <!-- SECTION: Applicant Information -->
+    <!-- SECTION 1: Applicant Information -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">1. Applicant Information</h3>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec1">1. Applicant Information</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div style="grid-column:span 2">
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Company Name (as registered) <span style="color:#ef4444">*</span></label>
-          <input id="la-company" type="text" class="form-control" placeholder="Full legal name of the company" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.companyName">Company Name (as registered) <span style="color:#ef4444">*</span></label>
+          <input id="la-company" type="text" class="form-control" data-i18n-placeholder="licApp.companyNamePlh" placeholder="Full legal name of the company" data-la-required />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">TIN Number <span style="color:#ef4444">*</span></label>
-          <input id="la-tin" type="text" class="form-control" placeholder="e.g. 100-123-456" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.tin">TIN Number <span style="color:#ef4444">*</span></label>
+          <input id="la-tin" type="text" class="form-control" data-i18n-placeholder="licApp.tinPlh" placeholder="e.g. 100-123-456" data-la-required />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">VAT Registration Number</label>
-          <input id="la-vat" type="text" class="form-control" placeholder="If registered for VAT" />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.vat">VAT Registration Number</label>
+          <input id="la-vat" type="text" class="form-control" data-i18n-placeholder="licApp.vatPlh" placeholder="If registered for VAT" />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Contact Person <span style="color:#ef4444">*</span></label>
-          <input id="la-contact" type="text" class="form-control" placeholder="Full name" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.contact">Contact Person <span style="color:#ef4444">*</span></label>
+          <input id="la-contact" type="text" class="form-control" data-i18n-placeholder="licApp.contactPlh" placeholder="Full name" data-la-required />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Designation / Title</label>
-          <input id="la-title" type="text" class="form-control" placeholder="e.g. Managing Director" />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.designation">Designation / Title</label>
+          <input id="la-title" type="text" class="form-control" data-i18n-placeholder="licApp.designationPlh" placeholder="e.g. Managing Director" />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Email Address <span style="color:#ef4444">*</span></label>
-          <input id="la-email" type="email" class="form-control" placeholder="official@company.com" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.email">Email Address <span style="color:#ef4444">*</span></label>
+          <input id="la-email" type="email" class="form-control" data-i18n-placeholder="licApp.emailPlh" placeholder="official@company.com" data-la-required />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Phone Number <span style="color:#ef4444">*</span></label>
-          <input id="la-phone" type="tel" class="form-control" placeholder="+255 …" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.phone">Phone Number <span style="color:#ef4444">*</span></label>
+          <input id="la-phone" type="tel" class="form-control" data-i18n-placeholder="licApp.phonePlh" placeholder="+255 …" data-la-required />
         </div>
         <div style="grid-column:span 2">
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Physical / Registered Address <span style="color:#ef4444">*</span></label>
-          <input id="la-address" type="text" class="form-control" placeholder="Street address, city" data-la-required />
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.address">Physical / Registered Address <span style="color:#ef4444">*</span></label>
+          <input id="la-address" type="text" class="form-control" data-i18n-placeholder="licApp.addressPlh" placeholder="Street address, city" data-la-required />
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Region <span style="color:#ef4444">*</span></label>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.region">Region <span style="color:#ef4444">*</span></label>
           <select id="la-region" class="form-control" data-la-required>
-            <option value="">Select region…</option>
+            <option value="" data-i18n="licApp.selectRegion">Select region…</option>
             <option>Dar es Salaam</option><option>Arusha</option><option>Mwanza</option>
             <option>Dodoma</option><option>Mbeya</option><option>Morogoro</option>
             <option>Tanga</option><option>Kilimanjaro</option><option>Iringa</option>
@@ -343,87 +346,85 @@
           </select>
         </div>
         <div>
-          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Company Type</label>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.companyType">Company Type</label>
           <select id="la-type" class="form-control">
-            <option value="local">Local Company</option>
-            <option value="foreign">Foreign Company</option>
+            <option value="local" data-i18n="licApp.local">Local Company</option>
+            <option value="foreign" data-i18n="licApp.foreign">Foreign Company</option>
           </select>
         </div>
       </div>
     </div>
 
-    <!-- SECTION: Corporate / Registration Documents -->
+    <!-- SECTION 2: Corporate Documents -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">2. Corporate / Registration Documents</h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Certified copies in PDF or image format (max 10 MB each)</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec2">2. Corporate / Registration Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec2sub">Certified copies in PDF or image format (max 10 MB each)</p>
       <div id="la-docs-corp" class="la-doc-list"></div>
     </div>
 
-    <!-- SECTION: Land & Facility Documents -->
+    <!-- SECTION 3: Land & Facility -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">3. Land &amp; Facility Documents</h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Documents for the premises where LPG operations will be conducted</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec3">3. Land &amp; Facility Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec3sub">Documents for the premises where LPG operations will be conducted</p>
       <div id="la-docs-land" class="la-doc-list"></div>
     </div>
 
-    <!-- SECTION: Technical Requirements -->
+    <!-- SECTION 4: Technical Requirements -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">4. Technical Requirements</h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Operational and commercial capability documentation</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec4">4. Technical Requirements</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec4sub">Operational and commercial capability documentation</p>
       <div id="la-docs-tech" class="la-doc-list"></div>
     </div>
 
-    <!-- SECTION: Financial Proof -->
+    <!-- SECTION 5: Financial Proof -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">5. Financial Proof <span style="font-size:12px;font-weight:400;color:#64748b">(at least one required — minimum TZS 1.5 billion)</span></h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Submit at least one of the following documents demonstrating sufficient financial capacity</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9"><span data-i18n="licApp.sec5">5. Financial Proof</span> <span style="font-size:12px;font-weight:400;color:#64748b" data-i18n="licApp.sec5note">(at least one required — minimum TZS 1.5 billion)</span></h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec5sub">Submit at least one of the following documents demonstrating sufficient financial capacity</p>
       <div id="la-docs-fin" class="la-doc-list"></div>
     </div>
 
-    <!-- SECTION: Health, Safety & Environment -->
+    <!-- SECTION 6: Health, Safety & Environment -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">6. Health, Safety &amp; Environment</h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Valid certificates from the relevant regulatory bodies</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec6">6. Health, Safety &amp; Environment</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec6sub">Valid certificates from the relevant regulatory bodies</p>
       <div id="la-docs-hse" class="la-doc-list"></div>
     </div>
 
-    <!-- SECTION: Administrative / Compliance -->
+    <!-- SECTION 7: Administrative / Compliance -->
     <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">7. Administrative &amp; Compliance Documents</h3>
-      <p style="font-size:12px;color:#64748b;margin:0 0 16px">Declarations, pledges and proof of payment</p>
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec7">7. Administrative &amp; Compliance Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec7sub">Declarations, pledges and proof of payment</p>
       <div id="la-docs-admin" class="la-doc-list"></div>
     </div>
 
     <!-- Process Info Banner -->
     <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 18px;margin-bottom:24px">
-      <div style="font-size:13px;font-weight:600;color:#1d4ed8;margin-bottom:8px">ℹ EWURA Application Process</div>
-      <ul style="font-size:12px;color:#1e40af;margin:0;padding-left:18px;line-height:1.8">
-        <li>Applications are submitted online via EWURA's LOIS (Licence and Order Information System)</li>
-        <li>EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong></li>
-        <li>EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back</li>
-        <li>A pre-licensing facility inspection is conducted before the licence is granted</li>
-        <li>Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable</li>
+      <div style="font-size:13px;font-weight:600;color:#1d4ed8;margin-bottom:8px" data-i18n="licApp.processTitle">ℹ EWURA Application Process</div>
+      <ul style="font-size:12px;color:#1e40af;margin:0;padding-left:18px;line-height:1.8" id="licapp-process-list">
+        <li data-i18n="licApp.proc1">Applications are submitted online via EWURA's LOIS (Licence and Order Information System)</li>
+        <li data-i18n="licApp.proc2">EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong></li>
+        <li data-i18n="licApp.proc3">EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back</li>
+        <li data-i18n="licApp.proc4">A pre-licensing facility inspection is conducted before the licence is granted</li>
+        <li data-i18n="licApp.proc5">Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable</li>
       </ul>
     </div>
 
     <!-- Submit footer -->
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:12px">
-      <button id="license-apply-save-btn" type="button" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+      <button id="license-apply-save-btn" type="button" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer" data-i18n="licApp.saveDraft">
         💾 Save Draft
       </button>
       <div style="display:flex;gap:10px">
-        <button id="license-apply-back-btn2" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+        <button id="license-apply-back-btn2" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer" data-i18n="licApp.cancel">
           Cancel
         </button>
-        <button id="license-apply-submit-btn" type="button" style="background:#3b82f6;color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+        <button id="license-apply-submit-btn" type="button" style="background:#3b82f6;color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" data-i18n="licApp.submit">
           Submit Application →
         </button>
       </div>
     </div>
 
     </div>
-  </div>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
@@ -457,33 +458,35 @@
       <!-- ── Left Sidebar Nav ──────────────────────────────────────────── -->
       <nav id="app-sidebar">
         <div class="sidebar-nav" id="app-nav">
-          <button class="nav-tab nav-tab-dashboard" data-view="reports">
+          <button class="nav-tab" data-view="reports">
             <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
           </button>
-          <div class="nav-divider"></div>
-          <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
-            <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
-          </button>
-          <button class="nav-tab" data-view="bulk-monitor" id="nav-bulk-monitor" style="display:none">
-            <span class="nav-label" data-i18n="nav.bulletTanks">Bullet Tanks</span>
+          <button class="nav-tab" data-view="scan">
+            <span class="nav-label" data-i18n="nav.scan">Scan</span>
           </button>
           <button class="nav-tab" data-view="cylinders">
             <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
           </button>
-          <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
-            <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
-          </button>
           <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
             <span class="nav-label" data-i18n="nav.network">Network</span>
           </button>
-          <button class="nav-tab" data-view="recall" id="nav-recall" style="display:none">
-            <span class="nav-label" data-i18n="nav.recall">Recall</span>
+          <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
+            <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
+          </button>
+          <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
+            <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
           </button>
           <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
             <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
-          <button class="nav-tab" data-view="scan">
-            <span class="nav-label" data-i18n="nav.scan">Scan</span>
+          <button class="nav-tab" data-view="bulk-monitor" id="nav-bulk-monitor" style="display:none">
+            <span class="nav-label" data-i18n="nav.bulletTanks">Bullet Tanks</span>
+          </button>
+          <button class="nav-tab" data-view="inspections" id="nav-inspections" style="display:none">
+            <span class="nav-label" data-i18n="nav.inspections">Inspections</span>
+          </button>
+          <button class="nav-tab" data-view="market-intel" id="nav-market-intel" style="display:none">
+            <span class="nav-label" data-i18n="nav.marketIntel">Market Intel</span>
           </button>
         </div>
       </nav>
@@ -558,9 +561,9 @@
             <h2 class="page-title" data-i18n="page.cylinders">🔥 Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.register">Register</button>
+              <button id="bulk-register-btn" class="btn btn-outline" type="button" style="display:none" data-i18n="btn.bulkRegister">Bulk Register</button>
               <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.shipment">Shipment</button>
               <button id="reception-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.reception">Reception</button>
-              <button id="refill-batch-btn" class="btn btn-primary" type="button" style="display:none">Refill Batch</button>
             </div>
           </div>
 
@@ -771,38 +774,21 @@
           <ul id="bulk-tanker-list" class="network-list" style="max-height:none"></ul>
         </div>
 
-        <!-- ── RECALL VIEW (EWURA only) ──────────────────────────────────────── -->
-        <div id="view-recall" class="view">
+        <!-- ── INSPECTIONS VIEW ───────────────────────────────────────────── -->
+        <div id="view-inspections" class="view">
           <div class="page-header">
-            <h2 class="page-title">🔍 Batch Recall</h2>
+            <h2 class="page-title" data-i18n="page.inspections">🔍 Field Inspections</h2>
+            <button id="new-inspection-btn" class="btn btn-primary" type="button" data-i18n="btn.newInspection">+ New Inspection</button>
           </div>
-          <div class="view-toolbar" style="flex-direction:column;gap:10px;align-items:stretch">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-              <div>
-                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">LPGMC Operator <span style="color:var(--danger,#ef4444)">*</span></label>
-                <select id="recall-company-sel" class="filter-select" style="width:100%">
-                  <option value="">Select operator…</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">Refill Date <span style="font-size:10px;color:var(--dim)">(optional)</span></label>
-                <input id="recall-date-input" type="date" class="form-control" />
-              </div>
-              <div>
-                <label style="font-size:12px;color:var(--dim);display:block;margin-bottom:4px">Manufacture Date <span style="font-size:10px;color:var(--dim)">(optional)</span></label>
-                <input id="recall-mfg-date-input" type="date" class="form-control" />
-              </div>
-            </div>
-            <div style="display:flex;justify-content:flex-end">
-              <button id="recall-search-btn" class="btn btn-primary" type="button">Search</button>
-            </div>
+          <ul id="inspections-list" style="padding:0;margin:0"></ul>
+        </div>
+
+        <!-- ── MARKET INTEL VIEW ──────────────────────────────────────────── -->
+        <div id="view-market-intel" class="view">
+          <div class="page-header">
+            <h2 class="page-title" data-i18n="page.marketIntel">📊 Market Intelligence</h2>
           </div>
-          <p id="recall-empty" class="list-empty" style="display:none">No cylinders found matching those criteria.</p>
-          <div id="recall-results" style="display:none">
-            <div id="recall-summary" style="margin:12px 0;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)"></div>
-            <div id="recall-map" style="margin-bottom:16px"></div>
-            <ul id="recall-cylinder-list" class="network-list" style="max-height:none"></ul>
-          </div>
+          <div id="market-intel-body"></div>
         </div>
 
       </main><!-- /content-area -->
@@ -1065,59 +1051,6 @@
     </div>
   </div>
 
-  <!-- Refill Batch modal (LPGMC only) -->
-  <div id="modal-refill-batch" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Refill Batch">
-    <div class="modal modal-wide">
-      <div class="modal-header">
-        <h2>🔄 Refill Batch</h2>
-        <button class="modal-close" data-close="modal-refill-batch" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div class="form-group" style="margin:0">
-            <label>Batch Number</label>
-            <input id="refill-batch-number" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-099" />
-          </div>
-          <div class="form-group" style="margin:0">
-            <label>Date</label>
-            <input id="refill-batch-date" type="date" class="form-control" />
-          </div>
-          <div class="form-group" style="margin:0">
-            <label>Shift</label>
-            <select id="refill-batch-shift" class="form-control">
-              <option value="morning">Morning (06:00–14:00)</option>
-              <option value="afternoon">Afternoon (14:00–22:00)</option>
-              <option value="night">Night (22:00–06:00)</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label>Refilling Site</label>
-            <input id="refill-batch-site" type="text" class="form-control" readonly style="background:var(--surface2)" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Scan Cylinders <span style="font-size:11px;color:var(--dim)">— scan or type each RFID tag, press Enter</span></label>
-          <div style="display:flex;gap:8px">
-            <input id="refill-batch-scan-input" type="text" class="form-control font-mono" placeholder="Scan RFID tag…" autocomplete="off" maxlength="24" />
-            <button id="refill-batch-add-btn" class="btn btn-primary" type="button">Add</button>
-          </div>
-        </div>
-        <div id="refill-batch-cylinder-list" style="margin-top:4px;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;min-height:52px">
-          <p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>
-        </div>
-        <div class="form-group" style="margin-top:12px">
-          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
-          <textarea id="refill-batch-notes" class="form-control" rows="2" placeholder="Additional notes for this refill batch…" style="resize:vertical"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <span id="refill-batch-count" style="font-size:13px;color:var(--dim);margin-right:auto"></span>
-        <button class="btn btn-outline" data-close="modal-refill-batch" type="button">Cancel</button>
-        <button id="refill-batch-confirm-btn" class="btn btn-primary" type="button">Confirm Refill Batch</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Partner detail modal -->
   <div id="modal-partner" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Partner Details">
     <div class="modal modal-wide">
@@ -1202,6 +1135,78 @@
     </div>
   </div>
 
+  <!-- New Inspection modal (EWURA) -->
+  <div id="modal-new-inspection" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Schedule Inspection">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="insp.newTitle">Schedule Inspection</h2>
+        <button class="modal-close" data-close="modal-new-inspection" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="insp.company">Company / Operator</label>
+          <input id="insp-company" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="insp.region">Region</label>
+          <input id="insp-region" type="text" class="form-control" placeholder="e.g. Dar es Salaam" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="insp.auditor">Auditor</label>
+          <input id="insp-auditor" type="text" class="form-control" placeholder="Auditor name" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="insp.date">Scheduled Date</label>
+          <input id="insp-date" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="insp.notes">Notes</label>
+          <textarea id="insp-notes" class="form-control" rows="2" placeholder="Optional notes…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-inspection-btn" class="btn btn-primary" type="button" data-i18n="btn.scheduleInspection">Schedule</button>
+        <button class="btn btn-outline" data-close="modal-new-inspection" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Register modal (LPGMC) -->
+  <div id="modal-bulk-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Bulk Cylinder Registration">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="bulk.title">Bulk Cylinder Registration</h2>
+        <button class="modal-close" data-close="modal-bulk-register" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="bulk.uploadLabel">Upload CSV / TXT file</label>
+          <input id="bulk-register-file" type="file" accept=".csv,.txt" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="bulk.pasteLabel">Or paste cylinder IDs (one per line, 22-char E280116060… format)</label>
+          <textarea id="bulk-register-ids" class="form-control font-mono" rows="6" placeholder="E280116060XXXXXXXXXXXX&#10;E280116060XXXXXXXXXXXX"></textarea>
+        </div>
+        <div id="bulk-register-preview" style="font-size:13px;color:var(--muted);min-height:20px"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="bulk-register-confirm-btn" class="btn btn-primary" type="button" data-i18n="btn.registerCylinders">Register Cylinders</button>
+        <button class="btn btn-outline" data-close="modal-bulk-register" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumer QR Scan overlay (public, no login) -->
+  <div id="consumer-scan-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+    <div style="max-width:400px;width:100%;text-align:center">
+      <div style="font-size:14px;color:#6b7280;margin-bottom:8px" data-i18n="consumer.subtitle">Tanzania LPG Cylinder Verification</div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:20px" data-i18n="consumer.title">Cylinder Status Check</h2>
+      <div id="consumer-scan-content"></div>
+      <button onclick="document.getElementById('consumer-scan-overlay').style.display='none';init();" style="margin-top:20px;background:#1e40af;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px" data-i18n="consumer.closeLogin">Close &amp; Login</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>
