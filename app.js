@@ -5211,3 +5211,238 @@ init().catch(err => {
   console.error('LPG Tracer init error:', err);
   showSnackbar('Startup error. Please reload.', 'error');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LPG DISTRIBUTION LICENCE APPLICATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+(function initLicenceApp() {
+  const overlay   = document.getElementById('license-apply-overlay');
+  const openBtn   = document.getElementById('license-apply-open-btn');
+  const backBtn   = document.getElementById('license-apply-back-btn');
+  const backBtn2  = document.getElementById('license-apply-back-btn2');
+  const saveBtn   = document.getElementById('license-apply-save-btn');
+  const submitBtn = document.getElementById('license-apply-submit-btn');
+  if (!overlay) return;
+
+  // ── Document definitions per section ─────────────────────────────────────
+  const SECTIONS = {
+    'la-docs-corp': [
+      { id:'corp-biz',    label:'Business Licence',                          required:true  },
+      { id:'corp-inc',    label:'Certificate of Incorporation',               required:true  },
+      { id:'corp-comp',   label:'Certificate of Compliance',                  required:false, note:'Required for foreign companies' },
+      { id:'corp-maa',    label:'Memorandum and Articles of Association',     required:true  },
+      { id:'corp-tin',    label:'TIN Certificate',                            required:true  },
+      { id:'corp-vat',    label:'VAT Certificate',                            required:true  },
+    ],
+    'la-docs-land': [
+      { id:'land-permit', label:'Building Permit',                            required:true  },
+      { id:'land-title',  label:'Land Title Deed',                            required:true  },
+      { id:'land-lease',  label:'Lease Agreement',                            required:false, note:'Required if applicant is not the land owner' },
+    ],
+    'la-docs-tech': [
+      { id:'tech-plant',  label:'Proof of Ownership or Hospitality Agreement for Filling Plant & Storage Depot', required:true  },
+      { id:'tech-staff',  label:'Personnel Profile (demonstrating adequate skilled personnel)',                   required:true  },
+      { id:'tech-deal',   label:'Dealership Agreement with a licensed LPG Wholesaler',                           required:true  },
+      { id:'tech-list',   label:'List of LPG Dealers with Dealership Agreements',                                required:true  },
+    ],
+    'la-docs-fin': [
+      { id:'fin-audit',   label:'Audited Financial Statement (annual gross turnover ≥ TZS 1.5 billion)',         required:false },
+      { id:'fin-bank',    label:'Bank Statement (credit balance ≥ TZS 1.5 billion)',                             required:false },
+      { id:'fin-guar',    label:'Bank Guarantee or Credit Facility (≥ TZS 1.5 billion)',                         required:false },
+      { id:'fin-letter',  label:'Letter of Comfort from Licensed Bank / Financial Institution',                  required:false },
+    ],
+    'la-docs-hse': [
+      { id:'hse-eia',     label:'EIA Certificate from NEMC (Environmental Impact Assessment)',                   required:true  },
+      { id:'hse-osha',    label:'OSHA Certificate',                                                              required:true  },
+      { id:'hse-fire',    label:'Fire Safety Certificate (from Fire Department)',                                 required:true  },
+    ],
+    'la-docs-admin': [
+      { id:'adm-pledge',  label:'Integrity Pledge Form — Form No. 3 (duly filled and signed)',                   required:true  },
+      { id:'adm-fee',     label:'Proof of Payment of non-refundable Application Fee',                            required:true  },
+      { id:'adm-mou',     label:'Memoranda of Understanding (governing commercial transactions)',                 required:false, note:'If applicable' },
+    ],
+  };
+
+  // ── Render doc upload rows ────────────────────────────────────────────────
+  function buildDocRow(doc) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${doc.note ? '2px' : '0'}">
+          <span style="font-size:13px;font-weight:500;color:#1e293b">${doc.label}</span>
+          ${doc.required ? '<span style="color:#ef4444;font-size:11px;font-weight:600">*</span>' : '<span style="font-size:10px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:4px">optional</span>'}
+        </div>
+        ${doc.note ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${doc.note}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <label style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;color:#475569;white-space:nowrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Attach file
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" data-doc-id="${doc.id}" class="la-file-input" />
+          </label>
+          <span class="la-file-name" data-for="${doc.id}" style="font-size:11px;color:#94a3b8;font-style:italic">No file selected</span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;width:22px;height:22px;margin-top:2px">
+        <svg class="la-doc-check" data-doc="${doc.id}" width="22" height="22" viewBox="0 0 22 22" style="display:none">
+          <circle cx="11" cy="11" r="10" fill="#22c55e" opacity="0.15"/>
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+          <polyline points="6,11 10,15 16,7" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="la-doc-empty" data-doc="${doc.id}" width="22" height="22" viewBox="0 0 22 22">
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+        </svg>
+      </div>`;
+    return row;
+  }
+
+  Object.entries(SECTIONS).forEach(([containerId, docs]) => {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    docs.forEach(doc => el.appendChild(buildDocRow(doc)));
+  });
+
+  // ── File selection handler ────────────────────────────────────────────────
+  overlay.addEventListener('change', e => {
+    const inp = e.target;
+    if (!inp.classList.contains('la-file-input')) return;
+    const docId = inp.dataset.docId;
+    const nameEl = overlay.querySelector(`.la-file-name[data-for="${docId}"]`);
+    const checkEl = overlay.querySelector(`.la-doc-check[data-doc="${docId}"]`);
+    const emptyEl = overlay.querySelector(`.la-doc-empty[data-doc="${docId}"]`);
+    if (inp.files && inp.files[0]) {
+      if (nameEl) { nameEl.textContent = inp.files[0].name; nameEl.style.color = '#22c55e'; nameEl.style.fontStyle = 'normal'; nameEl.style.fontWeight = '500'; }
+      if (checkEl) checkEl.style.display = '';
+      if (emptyEl) emptyEl.style.display = 'none';
+    } else {
+      if (nameEl) { nameEl.textContent = 'No file selected'; nameEl.style.color = '#94a3b8'; nameEl.style.fontStyle = 'italic'; nameEl.style.fontWeight = ''; }
+      if (checkEl) checkEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = '';
+    }
+    updateProgress();
+  });
+
+  // ── Text field change handler ─────────────────────────────────────────────
+  overlay.addEventListener('input', e => {
+    if (e.target.hasAttribute('data-la-required')) updateProgress();
+  });
+  overlay.addEventListener('change', e => {
+    if (e.target.hasAttribute('data-la-required')) updateProgress();
+  });
+
+  // ── Progress calculation ──────────────────────────────────────────────────
+  function updateProgress() {
+    // Required text/select fields
+    const reqFields = overlay.querySelectorAll('[data-la-required]');
+    let filledFields = 0;
+    reqFields.forEach(f => { if (f.value && f.value.trim()) filledFields++; });
+
+    // Required document uploads (only sections where at least 1 required doc exists)
+    // Financial section: at least 1 of 4
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+
+    // All other required docs
+    let reqDocs = 0, attachedDocs = 0;
+    Object.entries(SECTIONS).forEach(([, docs]) => {
+      docs.filter(d => d.required).forEach(doc => {
+        if (doc.id.startsWith('fin-')) return; // handled separately
+        reqDocs++;
+        const inp = overlay.querySelector(`input[data-doc-id="${doc.id}"]`);
+        if (inp && inp.files && inp.files[0]) attachedDocs++;
+      });
+    });
+
+    const total = reqFields.length + reqDocs + 1; // +1 for financial section
+    const done  = filledFields + attachedDocs + (finAttached > 0 ? 1 : 0);
+    const pct   = Math.round(done / total * 100);
+
+    const bar = document.getElementById('license-apply-bar');
+    const pctEl = document.getElementById('license-apply-pct');
+    if (bar) bar.style.width = pct + '%';
+    if (bar) bar.style.background = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (pctEl) pctEl.style.color = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6';
+  }
+
+  // ── Show / hide ───────────────────────────────────────────────────────────
+  function openOverlay() {
+    overlay.style.display = '';
+    overlay.scrollTop = 0;
+    updateProgress();
+  }
+  function closeOverlay() {
+    overlay.style.display = 'none';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openOverlay);
+  if (backBtn) backBtn.addEventListener('click', closeOverlay);
+  if (backBtn2) backBtn2.addEventListener('click', closeOverlay);
+
+  // ── Save Draft ────────────────────────────────────────────────────────────
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const draft = {};
+    overlay.querySelectorAll('[id^="la-"]').forEach(el => {
+      if (el.type !== 'file' && el.id) draft[el.id] = el.value || '';
+    });
+    localStorage.setItem('lpg-licence-draft', JSON.stringify(draft));
+    // Show brief confirmation
+    const orig = saveBtn.textContent;
+    saveBtn.textContent = '✓ Draft saved';
+    saveBtn.style.color = '#22c55e';
+    setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.color = ''; }, 2000);
+  });
+
+  // ── Restore draft on open ─────────────────────────────────────────────────
+  const savedDraft = localStorage.getItem('lpg-licence-draft');
+  if (savedDraft) {
+    try {
+      const draft = JSON.parse(savedDraft);
+      Object.entries(draft).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && el.type !== 'file') el.value = val;
+      });
+    } catch {}
+  }
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  if (submitBtn) submitBtn.addEventListener('click', () => {
+    const company = (document.getElementById('la-company') || {}).value?.trim();
+    if (!company) {
+      alert('Please enter your company name before submitting.');
+      document.getElementById('la-company')?.focus();
+      return;
+    }
+
+    // Check at least one financial document
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+    if (finAttached === 0) {
+      alert('Please attach at least one financial proof document (Section 5).');
+      document.getElementById('la-docs-fin')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    // Show success overlay
+    overlay.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+        <div style="max-width:520px;text-align:center">
+          <div style="font-size:56px;margin-bottom:20px">✅</div>
+          <h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 12px">Application Submitted</h2>
+          <p style="font-size:14px;color:#475569;margin:0 0 8px">Your LPG Distribution Licence application for <strong>${company.replace(/</g,'&lt;')}</strong> has been received.</p>
+          <p style="font-size:13px;color:#64748b;margin:0 0 28px">EWURA will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.</p>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 18px;font-size:12px;color:#1d4ed8;margin-bottom:28px;text-align:left">
+            <strong>Next step:</strong> Submit your physical application documents to EWURA's LOIS portal at <strong>lois.ewura.go.tz</strong> or visit the EWURA offices in Dar es Salaam.
+          </div>
+          <button type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#3b82f6;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">
+            Back to Login
+          </button>
+        </div>
+      </div>`;
+    overlay.scrollTop = 0;
+    localStorage.removeItem('lpg-licence-draft');
+  });
+})();
