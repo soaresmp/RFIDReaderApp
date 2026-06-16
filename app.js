@@ -1288,6 +1288,8 @@ function showLoginOverlay() {
 
 function hideLoginOverlay() {
   loginOverlay.classList.add('hidden');
+  const licOv = document.getElementById('license-apply-overlay');
+  if (licOv) licOv.style.display = 'none';
 }
 
 function selectRole(role) {
