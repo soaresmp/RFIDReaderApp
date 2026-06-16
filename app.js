@@ -149,6 +149,54 @@ const TRANSLATIONS = {
     'consumer.notRegisteredDesc':'is not registered in the national LPG database. This may be a counterfeit or unregistered cylinder — do not use and report to EWURA.',
     'consumer.closeLogin':'Close & Login',
     'insp.scheduledOk':'Inspection scheduled.',
+    'licApp.newUser':'New to the platform?',
+    'licApp.btnLabel':'📋 Apply for LPG Distribution Licence',
+    'licApp.title':'LPG Distribution Licence Application',
+    'licApp.subtitle':'EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825)',
+    'licApp.allRequired':'All fields marked * are required',
+    'licApp.completeness':'Application completeness',
+    'licApp.back':'← Back','licApp.cancel':'Cancel',
+    'licApp.saveDraft':'💾 Save Draft','licApp.draftSaved':'✓ Draft saved',
+    'licApp.submit':'Submit Application →',
+    'licApp.sec1':'1. Applicant Information',
+    'licApp.sec2':'2. Corporate / Registration Documents',
+    'licApp.sec2sub':'Certified copies in PDF or image format (max 10 MB each)',
+    'licApp.sec3':'3. Land & Facility Documents',
+    'licApp.sec3sub':'Documents for the premises where LPG operations will be conducted',
+    'licApp.sec4':'4. Technical Requirements',
+    'licApp.sec4sub':'Operational and commercial capability documentation',
+    'licApp.sec5':'5. Financial Proof',
+    'licApp.sec5note':'(at least one required — minimum TZS 1.5 billion)',
+    'licApp.sec5sub':'Submit at least one of the following documents demonstrating sufficient financial capacity',
+    'licApp.sec6':'6. Health, Safety & Environment',
+    'licApp.sec6sub':'Valid certificates from the relevant regulatory bodies',
+    'licApp.sec7':'7. Administrative & Compliance Documents',
+    'licApp.sec7sub':'Declarations, pledges and proof of payment',
+    'licApp.companyName':'Company Name (as registered)',
+    'licApp.companyNamePlh':'Full legal name of the company',
+    'licApp.tin':'TIN Number','licApp.tinPlh':'e.g. 100-123-456',
+    'licApp.vat':'VAT Registration Number','licApp.vatPlh':'If registered for VAT',
+    'licApp.contact':'Contact Person','licApp.contactPlh':'Full name',
+    'licApp.designation':'Designation / Title','licApp.designationPlh':'e.g. Managing Director',
+    'licApp.email':'Email Address','licApp.emailPlh':'official@company.com',
+    'licApp.phone':'Phone Number','licApp.phonePlh':'+255 …',
+    'licApp.address':'Physical / Registered Address','licApp.addressPlh':'Street address, city',
+    'licApp.region':'Region','licApp.selectRegion':'Select region…',
+    'licApp.companyType':'Company Type','licApp.local':'Local Company','licApp.foreign':'Foreign Company',
+    'licApp.optional':'optional','licApp.attachFile':'Attach file','licApp.noFile':'No file selected',
+    'licApp.processTitle':'ℹ EWURA Application Process',
+    'licApp.proc1':'Applications are submitted online via EWURA\'s LOIS (Licence and Order Information System)',
+    'licApp.proc2':'EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong>',
+    'licApp.proc3':'EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back',
+    'licApp.proc4':'A pre-licensing facility inspection is conducted before the licence is granted',
+    'licApp.proc5':'Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable',
+    'licApp.successTitle':'Application Submitted',
+    'licApp.successMsg1':'Your LPG Distribution Licence application for <strong>{{company}}</strong> has been received.',
+    'licApp.successMsg2':'EWURA will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.',
+    'licApp.successNext':'<strong>Next step:</strong> Submit your physical application documents to EWURA\'s LOIS portal at <strong>lois.ewura.go.tz</strong> or visit the EWURA offices in Dar es Salaam.',
+    'licApp.backToLogin':'Back to Login',
+    'licApp.noCompany':'Please enter your company name before submitting.',
+    'licApp.noFinancial':'Please attach at least one financial proof document (Section 5).',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -289,6 +337,54 @@ const TRANSLATIONS = {
     'consumer.notRegisteredDesc':'haujasajiliwa katika hifadhidata ya kitaifa ya LPG. Hii inaweza kuwa mtungi bandia — usitumie na ripoti kwa EWURA.',
     'consumer.closeLogin':'Funga na Ingia',
     'insp.scheduledOk':'Ukaguzi umepangwa.',
+    'licApp.newUser':'Mgeni kwenye jukwaa?',
+    'licApp.btnLabel':'📋 Omba Leseni ya Usambazaji wa LPG',
+    'licApp.title':'Maombi ya Leseni ya Usambazaji wa LPG',
+    'licApp.subtitle':'EWURA Fomu Na. 2 — Kanuni za Petroli (Uendeshaji wa LPG), 2020 (GN Na. 825)',
+    'licApp.allRequired':'Sehemu zote zenye alama * zinahitajika',
+    'licApp.completeness':'Ukamilishaji wa maombi',
+    'licApp.back':'← Rudi','licApp.cancel':'Ghairi',
+    'licApp.saveDraft':'💾 Hifadhi Rasimu','licApp.draftSaved':'✓ Rasimu imehifadhiwa',
+    'licApp.submit':'Wasilisha Maombi →',
+    'licApp.sec1':'1. Taarifa za Mwombaji',
+    'licApp.sec2':'2. Hati za Kampuni / Usajili',
+    'licApp.sec2sub':'Nakala zilizoidhinishwa katika muundo wa PDF au picha (hadi MB 10 kila moja)',
+    'licApp.sec3':'3. Hati za Ardhi na Jengo',
+    'licApp.sec3sub':'Hati za eneo ambapo shughuli za LPG zitafanyika',
+    'licApp.sec4':'4. Mahitaji ya Kiufundi',
+    'licApp.sec4sub':'Nyaraka za uwezo wa uendeshaji na biashara',
+    'licApp.sec5':'5. Uthibitisho wa Fedha',
+    'licApp.sec5note':'(angalau moja inahitajika — kiwango cha chini TZS bilioni 1.5)',
+    'licApp.sec5sub':'Wasilisha angalau moja ya hati zifuatazo zinazoonyesha uwezo wa kutosha wa fedha',
+    'licApp.sec6':'6. Afya, Usalama na Mazingira',
+    'licApp.sec6sub':'Vyeti halali kutoka kwa mamlaka husika za udhibiti',
+    'licApp.sec7':'7. Hati za Kiutawala na Uzingatiaji',
+    'licApp.sec7sub':'Tangazo, ahadi na uthibitisho wa malipo',
+    'licApp.companyName':'Jina la Kampuni (kama ilivyosajiliwa)',
+    'licApp.companyNamePlh':'Jina kamili la kisheria la kampuni',
+    'licApp.tin':'Nambari ya TIN','licApp.tinPlh':'mfano: 100-123-456',
+    'licApp.vat':'Nambari ya Usajili wa VAT','licApp.vatPlh':'Ikiwa imesajiliwa kwa VAT',
+    'licApp.contact':'Mtu wa Kuwasiliana Naye','licApp.contactPlh':'Jina kamili',
+    'licApp.designation':'Cheo / Wadhifa','licApp.designationPlh':'mfano: Mkurugenzi Mtendaji',
+    'licApp.email':'Anwani ya Barua Pepe','licApp.emailPlh':'rasmi@kampuni.com',
+    'licApp.phone':'Nambari ya Simu','licApp.phonePlh':'+255 …',
+    'licApp.address':'Anwani ya Makao Makuu / Iliyosajiliwa','licApp.addressPlh':'Mtaa, mji',
+    'licApp.region':'Mkoa','licApp.selectRegion':'Chagua mkoa…',
+    'licApp.companyType':'Aina ya Kampuni','licApp.local':'Kampuni ya Ndani','licApp.foreign':'Kampuni ya Kigeni',
+    'licApp.optional':'ya hiari','licApp.attachFile':'Ambatanisha faili','licApp.noFile':'Hakuna faili lililochaguliwa',
+    'licApp.processTitle':'ℹ Mchakato wa Maombi wa EWURA',
+    'licApp.proc1':'Maombi yanawasilishwa mtandaoni kupitia mfumo wa LOIS wa EWURA (Mfumo wa Taarifa za Leseni na Agizo)',
+    'licApp.proc2':'EWURA huchapisha tangazo katika gazeti linalofikia watu wengi kupata maoni ya umma ndani ya <strong>siku 14</strong>',
+    'licApp.proc3':'EWURA lazima ifanye uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili kutoa, kukataa, au kurudisha',
+    'licApp.proc4':'Ukaguzi wa awali wa kituo unafanywa kabla ya kutoa leseni',
+    'licApp.proc5':'Muda wa leseni: <strong>miaka 5</strong> &nbsp;·&nbsp; Ada ya maombi hairejeshe',
+    'licApp.successTitle':'Maombi Yamewasilishwa',
+    'licApp.successMsg1':'Maombi yako ya Leseni ya Usambazaji wa LPG kwa <strong>{{company}}</strong> yamepokelewa.',
+    'licApp.successMsg2':'EWURA itachapisha tangazo la umma ndani ya <strong>siku 14</strong> na kutoa uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili. Ukaguzi wa awali wa kituo utaratibiwa.',
+    'licApp.successNext':'<strong>Hatua inayofuata:</strong> Wasilisha hati zako za maombi ya kimwili kwenye tovuti ya LOIS ya EWURA kwenye <strong>lois.ewura.go.tz</strong> au tembelea ofisi za EWURA Dar es Salaam.',
+    'licApp.backToLogin':'Rudi kwenye Kuingia',
+    'licApp.noCompany':'Tafadhali ingiza jina la kampuni yako kabla ya kuwasilisha.',
+    'licApp.noFinancial':'Tafadhali ambatanisha angalau hati moja ya uthibitisho wa fedha (Sehemu ya 5).',
   },
 };
 
@@ -301,6 +397,9 @@ const FLAG_SVG_TZ = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14'
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
     btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
@@ -4791,6 +4890,196 @@ async function renderBulkMonitor() {
   mapEl.style.borderRadius = '0';
   mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:16px">${termCard}${tankerCards}</div>`;
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LPG DISTRIBUTION LICENCE APPLICATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+(function initLicenceApp() {
+  const overlay   = document.getElementById('license-apply-overlay');
+  const openBtn   = document.getElementById('license-apply-open-btn');
+  const backBtn   = document.getElementById('license-apply-back-btn');
+  const backBtn2  = document.getElementById('license-apply-back-btn2');
+  const saveBtn   = document.getElementById('license-apply-save-btn');
+  const submitBtn = document.getElementById('license-apply-submit-btn');
+  if (!overlay) return;
+
+  const SECTIONS = {
+    'la-docs-corp': [
+      { id:'corp-biz',  label:'Business Licence',                                    required:true  },
+      { id:'corp-inc',  label:'Certificate of Incorporation',                         required:true  },
+      { id:'corp-comp', label:'Certificate of Compliance',                            required:false, note:'Required for foreign companies' },
+      { id:'corp-maa',  label:'Memorandum and Articles of Association',               required:true  },
+      { id:'corp-tin',  label:'TIN Certificate',                                      required:true  },
+      { id:'corp-vat',  label:'VAT Certificate',                                      required:true  },
+    ],
+    'la-docs-land': [
+      { id:'land-permit',label:'Building Permit',                                     required:true  },
+      { id:'land-title', label:'Land Title Deed',                                     required:true  },
+      { id:'land-lease', label:'Lease Agreement',                                     required:false, note:'Required if applicant is not the land owner' },
+    ],
+    'la-docs-tech': [
+      { id:'tech-plant', label:'Proof of Ownership or Hospitality Agreement for Filling Plant & Storage Depot', required:true  },
+      { id:'tech-staff', label:'Personnel Profile (demonstrating adequate skilled personnel)',                   required:true  },
+      { id:'tech-deal',  label:'Dealership Agreement with a licensed LPG Wholesaler',                           required:true  },
+      { id:'tech-list',  label:'List of LPG Dealers with Dealership Agreements',                                required:true  },
+    ],
+    'la-docs-fin': [
+      { id:'fin-audit',  label:'Audited Financial Statement (annual gross turnover ≥ TZS 1.5 billion)',         required:false },
+      { id:'fin-bank',   label:'Bank Statement (credit balance ≥ TZS 1.5 billion)',                             required:false },
+      { id:'fin-guar',   label:'Bank Guarantee or Credit Facility (≥ TZS 1.5 billion)',                         required:false },
+      { id:'fin-letter', label:'Letter of Comfort from Licensed Bank / Financial Institution',                  required:false },
+    ],
+    'la-docs-hse': [
+      { id:'hse-eia',    label:'EIA Certificate from NEMC (Environmental Impact Assessment)',                   required:true  },
+      { id:'hse-osha',   label:'OSHA Certificate',                                                              required:true  },
+      { id:'hse-fire',   label:'Fire Safety Certificate (from Fire Department)',                                 required:true  },
+    ],
+    'la-docs-admin': [
+      { id:'adm-pledge', label:'Integrity Pledge Form — Form No. 3 (duly filled and signed)',                   required:true  },
+      { id:'adm-fee',    label:'Proof of Payment of non-refundable Application Fee',                            required:true  },
+      { id:'adm-mou',    label:'Memoranda of Understanding (governing commercial transactions)',                 required:false, note:'If applicable' },
+    ],
+  };
+
+  function buildDocRow(doc) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${doc.note ? '2px' : '0'}">
+          <span style="font-size:13px;font-weight:500;color:#1e293b">${escapeHtml(doc.label)}</span>
+          ${doc.required ? '<span style="color:#ef4444;font-size:11px;font-weight:600">*</span>' : `<span style="font-size:10px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:4px">${t('licApp.optional')}</span>`}
+        </div>
+        ${doc.note ? `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${escapeHtml(doc.note)}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <label style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;color:#475569;white-space:nowrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            ${t('licApp.attachFile')}
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" data-doc-id="${escapeHtml(doc.id)}" class="la-file-input" />
+          </label>
+          <span class="la-file-name" data-for="${escapeHtml(doc.id)}" style="font-size:11px;color:#94a3b8;font-style:italic">${t('licApp.noFile')}</span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;width:22px;height:22px;margin-top:2px">
+        <svg class="la-doc-check" data-doc="${escapeHtml(doc.id)}" width="22" height="22" viewBox="0 0 22 22" style="display:none">
+          <circle cx="11" cy="11" r="10" fill="#22c55e" opacity="0.15"/>
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+          <polyline points="6,11 10,15 16,7" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="la-doc-empty" data-doc="${escapeHtml(doc.id)}" width="22" height="22" viewBox="0 0 22 22">
+          <circle cx="11" cy="11" r="10" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+        </svg>
+      </div>`;
+    return row;
+  }
+
+  Object.entries(SECTIONS).forEach(([containerId, docs]) => {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    docs.forEach(doc => el.appendChild(buildDocRow(doc)));
+  });
+
+  overlay.addEventListener('change', e => {
+    const inp = e.target;
+    if (!inp.classList.contains('la-file-input')) return;
+    const docId = inp.dataset.docId;
+    const nameEl = overlay.querySelector(`.la-file-name[data-for="${docId}"]`);
+    const checkEl = overlay.querySelector(`.la-doc-check[data-doc="${docId}"]`);
+    const emptyEl = overlay.querySelector(`.la-doc-empty[data-doc="${docId}"]`);
+    if (inp.files && inp.files[0]) {
+      if (nameEl) { nameEl.textContent = inp.files[0].name; nameEl.style.color = '#22c55e'; nameEl.style.fontStyle = 'normal'; nameEl.style.fontWeight = '500'; }
+      if (checkEl) checkEl.style.display = '';
+      if (emptyEl) emptyEl.style.display = 'none';
+    } else {
+      if (nameEl) { nameEl.textContent = t('licApp.noFile'); nameEl.style.color = '#94a3b8'; nameEl.style.fontStyle = 'italic'; nameEl.style.fontWeight = ''; }
+      if (checkEl) checkEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = '';
+    }
+    updateProgress();
+  });
+
+  overlay.addEventListener('input', e => { if (e.target.hasAttribute('data-la-required')) updateProgress(); });
+
+  function updateProgress() {
+    const reqFields = overlay.querySelectorAll('[data-la-required]');
+    let filledFields = 0;
+    reqFields.forEach(f => { if (f.value && f.value.trim()) filledFields++; });
+
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+
+    let reqDocs = 0, attachedDocs = 0;
+    Object.entries(SECTIONS).forEach(([, docs]) => {
+      docs.filter(d => d.required).forEach(doc => {
+        if (doc.id.startsWith('fin-')) return;
+        reqDocs++;
+        const inp = overlay.querySelector(`input[data-doc-id="${doc.id}"]`);
+        if (inp && inp.files && inp.files[0]) attachedDocs++;
+      });
+    });
+
+    const total = reqFields.length + reqDocs + 1;
+    const done  = filledFields + attachedDocs + (finAttached > 0 ? 1 : 0);
+    const pct   = Math.round(done / total * 100);
+    const bar   = document.getElementById('license-apply-bar');
+    const pctEl = document.getElementById('license-apply-pct');
+    if (bar) { bar.style.width = pct + '%'; bar.style.background = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6'; }
+    if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6'; }
+  }
+
+  function openOverlay() { overlay.style.display = 'block'; overlay.scrollTop = 0; updateProgress(); applyLang(); }
+  function closeOverlay() { overlay.style.display = 'none'; }
+
+  if (openBtn)  openBtn.addEventListener('click', openOverlay);
+  if (backBtn)  backBtn.addEventListener('click', closeOverlay);
+  if (backBtn2) backBtn2.addEventListener('click', closeOverlay);
+
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const draft = {};
+    overlay.querySelectorAll('[id^="la-"]').forEach(el => { if (el.type !== 'file' && el.id) draft[el.id] = el.value || ''; });
+    localStorage.setItem('lpg-licence-draft', JSON.stringify(draft));
+    const orig = saveBtn.textContent;
+    saveBtn.textContent = t('licApp.draftSaved');
+    saveBtn.style.color = '#22c55e';
+    setTimeout(() => { saveBtn.textContent = t('licApp.saveDraft'); saveBtn.style.color = ''; }, 2000);
+  });
+
+  const savedDraft = localStorage.getItem('lpg-licence-draft');
+  if (savedDraft) {
+    try {
+      const draft = JSON.parse(savedDraft);
+      Object.entries(draft).forEach(([id, val]) => { const el = document.getElementById(id); if (el && el.type !== 'file') el.value = val; });
+    } catch {}
+  }
+
+  if (submitBtn) submitBtn.addEventListener('click', () => {
+    const company = (document.getElementById('la-company') || {}).value?.trim();
+    if (!company) { alert(t('licApp.noCompany')); document.getElementById('la-company')?.focus(); return; }
+    const finInputs = overlay.querySelectorAll('#la-docs-fin .la-file-input');
+    let finAttached = 0;
+    finInputs.forEach(i => { if (i.files && i.files[0]) finAttached++; });
+    if (finAttached === 0) { alert(t('licApp.noFinancial')); document.getElementById('la-docs-fin')?.scrollIntoView({ behavior: 'smooth' }); return; }
+
+    const safeCompany = escapeHtml(company);
+    overlay.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+        <div style="max-width:520px;text-align:center">
+          <div style="font-size:56px;margin-bottom:20px">✅</div>
+          <h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 12px" data-i18n="licApp.successTitle">${t('licApp.successTitle')}</h2>
+          <p style="font-size:14px;color:#475569;margin:0 0 8px">${t('licApp.successMsg1').replace('{{company}}', safeCompany)}</p>
+          <p style="font-size:13px;color:#64748b;margin:0 0 28px">${t('licApp.successMsg2')}</p>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 18px;font-size:12px;color:#1d4ed8;margin-bottom:28px;text-align:left">${t('licApp.successNext')}</div>
+          <button type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#3b82f6;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">
+            ${t('licApp.backToLogin')}
+          </button>
+        </div>
+      </div>`;
+    overlay.scrollTop = 0;
+    localStorage.removeItem('lpg-licence-draft');
+  });
+})();
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MARKET INTELLIGENCE (EWURA)

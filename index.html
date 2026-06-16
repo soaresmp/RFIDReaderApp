@@ -253,12 +253,178 @@
           </form>
         </div>
 
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid #e2e8f0;text-align:center">
+          <p style="font-size:12px;color:#94a3b8;margin-bottom:10px" data-i18n="licApp.newUser">New to the platform?</p>
+          <button id="license-apply-open-btn" type="button" style="background:#1e40af;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.01em" data-i18n="licApp.btnLabel">
+            📋 Apply for LPG Distribution Licence
+          </button>
+        </div>
+
         <div class="login-panel-footer">
           &copy; 2025 LPG Traceability Platform · Tanzania
         </div>
       </div>
     </div>
 
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- LPG DISTRIBUTION LICENCE APPLICATION OVERLAY                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="license-apply-overlay" style="display:none;position:fixed;inset:0;z-index:1001;background:#f1f5f9;overflow-y:auto">
+    <div style="max-width:860px;margin:0 auto;padding:24px 20px 80px">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #e2e8f0">
+      <button id="license-apply-back-btn" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="flex-shrink:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:#475569;margin-top:2px" data-i18n="licApp.back">← Back</button>
+      <div>
+        <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 4px" data-i18n="licApp.title">LPG Distribution Licence Application</h2>
+        <p style="font-size:12px;color:#64748b;margin:0"><span data-i18n="licApp.subtitle">EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825)</span> &nbsp;·&nbsp; <span data-i18n="licApp.allRequired">All fields marked <span style="color:#ef4444">*</span> are required</span></p>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div style="margin-bottom:28px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:600;color:#475569" data-i18n="licApp.completeness">Application completeness</span>
+        <span id="license-apply-pct" style="font-size:12px;font-weight:700;color:#3b82f6">0%</span>
+      </div>
+      <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+        <div id="license-apply-bar" style="height:100%;width:0%;background:#3b82f6;border-radius:3px;transition:width 0.3s"></div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: Applicant Information -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec1">1. Applicant Information</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="grid-column:span 2">
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.companyName">Company Name (as registered) <span style="color:#ef4444">*</span></label>
+          <input id="la-company" type="text" class="form-control" data-i18n-placeholder="licApp.companyNamePlh" placeholder="Full legal name of the company" data-la-required />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.tin">TIN Number <span style="color:#ef4444">*</span></label>
+          <input id="la-tin" type="text" class="form-control" data-i18n-placeholder="licApp.tinPlh" placeholder="e.g. 100-123-456" data-la-required />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.vat">VAT Registration Number</label>
+          <input id="la-vat" type="text" class="form-control" data-i18n-placeholder="licApp.vatPlh" placeholder="If registered for VAT" />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.contact">Contact Person <span style="color:#ef4444">*</span></label>
+          <input id="la-contact" type="text" class="form-control" data-i18n-placeholder="licApp.contactPlh" placeholder="Full name" data-la-required />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.designation">Designation / Title</label>
+          <input id="la-title" type="text" class="form-control" data-i18n-placeholder="licApp.designationPlh" placeholder="e.g. Managing Director" />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.email">Email Address <span style="color:#ef4444">*</span></label>
+          <input id="la-email" type="email" class="form-control" data-i18n-placeholder="licApp.emailPlh" placeholder="official@company.com" data-la-required />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.phone">Phone Number <span style="color:#ef4444">*</span></label>
+          <input id="la-phone" type="tel" class="form-control" data-i18n-placeholder="licApp.phonePlh" placeholder="+255 …" data-la-required />
+        </div>
+        <div style="grid-column:span 2">
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.address">Physical / Registered Address <span style="color:#ef4444">*</span></label>
+          <input id="la-address" type="text" class="form-control" data-i18n-placeholder="licApp.addressPlh" placeholder="Street address, city" data-la-required />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.region">Region <span style="color:#ef4444">*</span></label>
+          <select id="la-region" class="form-control" data-la-required>
+            <option value="" data-i18n="licApp.selectRegion">Select region…</option>
+            <option>Dar es Salaam</option><option>Arusha</option><option>Mwanza</option>
+            <option>Dodoma</option><option>Mbeya</option><option>Morogoro</option>
+            <option>Tanga</option><option>Kilimanjaro</option><option>Iringa</option>
+            <option>Tabora</option><option>Shinyanga</option><option>Kagera</option>
+            <option>Mara</option><option>Singida</option><option>Lindi</option>
+            <option>Mtwara</option><option>Ruvuma</option><option>Pwani</option>
+            <option>Rukwa</option><option>Kigoma</option><option>Katavi</option>
+            <option>Njombe</option><option>Simiyu</option><option>Geita</option>
+            <option>Songwe</option><option>Kaskazini Unguja</option><option>Kusini Unguja</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px" data-i18n="licApp.companyType">Company Type</label>
+          <select id="la-type" class="form-control">
+            <option value="local" data-i18n="licApp.local">Local Company</option>
+            <option value="foreign" data-i18n="licApp.foreign">Foreign Company</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Corporate Documents -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec2">2. Corporate / Registration Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec2sub">Certified copies in PDF or image format (max 10 MB each)</p>
+      <div id="la-docs-corp" class="la-doc-list"></div>
+    </div>
+
+    <!-- SECTION 3: Land & Facility -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec3">3. Land &amp; Facility Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec3sub">Documents for the premises where LPG operations will be conducted</p>
+      <div id="la-docs-land" class="la-doc-list"></div>
+    </div>
+
+    <!-- SECTION 4: Technical Requirements -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec4">4. Technical Requirements</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec4sub">Operational and commercial capability documentation</p>
+      <div id="la-docs-tech" class="la-doc-list"></div>
+    </div>
+
+    <!-- SECTION 5: Financial Proof -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9"><span data-i18n="licApp.sec5">5. Financial Proof</span> <span style="font-size:12px;font-weight:400;color:#64748b" data-i18n="licApp.sec5note">(at least one required — minimum TZS 1.5 billion)</span></h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec5sub">Submit at least one of the following documents demonstrating sufficient financial capacity</p>
+      <div id="la-docs-fin" class="la-doc-list"></div>
+    </div>
+
+    <!-- SECTION 6: Health, Safety & Environment -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec6">6. Health, Safety &amp; Environment</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec6sub">Valid certificates from the relevant regulatory bodies</p>
+      <div id="la-docs-hse" class="la-doc-list"></div>
+    </div>
+
+    <!-- SECTION 7: Administrative / Compliance -->
+    <div class="lic-app-section" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px 22px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid #f1f5f9" data-i18n="licApp.sec7">7. Administrative &amp; Compliance Documents</h3>
+      <p style="font-size:12px;color:#64748b;margin:0 0 16px" data-i18n="licApp.sec7sub">Declarations, pledges and proof of payment</p>
+      <div id="la-docs-admin" class="la-doc-list"></div>
+    </div>
+
+    <!-- Process Info Banner -->
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 18px;margin-bottom:24px">
+      <div style="font-size:13px;font-weight:600;color:#1d4ed8;margin-bottom:8px" data-i18n="licApp.processTitle">ℹ EWURA Application Process</div>
+      <ul style="font-size:12px;color:#1e40af;margin:0;padding-left:18px;line-height:1.8" id="licapp-process-list">
+        <li data-i18n="licApp.proc1">Applications are submitted online via EWURA's LOIS (Licence and Order Information System)</li>
+        <li data-i18n="licApp.proc2">EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong></li>
+        <li data-i18n="licApp.proc3">EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back</li>
+        <li data-i18n="licApp.proc4">A pre-licensing facility inspection is conducted before the licence is granted</li>
+        <li data-i18n="licApp.proc5">Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable</li>
+      </ul>
+    </div>
+
+    <!-- Submit footer -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:12px">
+      <button id="license-apply-save-btn" type="button" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer" data-i18n="licApp.saveDraft">
+        💾 Save Draft
+      </button>
+      <div style="display:flex;gap:10px">
+        <button id="license-apply-back-btn2" type="button" onclick="document.getElementById('license-apply-overlay').style.display='none'" style="background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer" data-i18n="licApp.cancel">
+          Cancel
+        </button>
+        <button id="license-apply-submit-btn" type="button" style="background:#3b82f6;color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" data-i18n="licApp.submit">
+          Submit Application →
+        </button>
+      </div>
+    </div>
+
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
