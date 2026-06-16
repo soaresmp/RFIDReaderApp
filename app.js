@@ -4171,6 +4171,33 @@ async function renderMgmtReports() {
         <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
       </div>
       ${opRankHtml}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">Licences by Status</div>
+      </div>
+      ${(() => {
+        const counts = { active: 0, expired: 0, revoked: 0, pending: 0 };
+        DEMO_LICENSES.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
+        const total = DEMO_LICENSES.length;
+        const rows = [
+          { label: 'Valid / Active',  key: 'active',  color: 'var(--green)' },
+          { label: 'Expired',         key: 'expired', color: 'var(--amber)' },
+          { label: 'Revoked',         key: 'revoked', color: 'var(--red)'   },
+          { label: 'Pending Review',  key: 'pending', color: 'var(--blue)'  },
+        ];
+        return rows.map(r => {
+          const pct = total ? Math.round(counts[r.key] / total * 100) : 0;
+          return `<div class="mgmt-bar-row">
+            <span class="mgmt-bar-label">${r.label}</span>
+            <div class="mgmt-bar-track">
+              <div class="mgmt-bar-fill" style="width:${pct}%;background:${r.color}">
+                <span>${counts[r.key]}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('') + `<div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right">Total: ${total} licences</div>`;
+      })()}
     </div>` : ''}`;
 }
 
