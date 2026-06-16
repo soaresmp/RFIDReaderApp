@@ -5369,7 +5369,7 @@ init().catch(err => {
 
   // ── Show / hide ───────────────────────────────────────────────────────────
   function openOverlay() {
-    overlay.style.display = '';
+    overlay.style.display = 'block';
     overlay.scrollTop = 0;
     updateProgress();
   }
