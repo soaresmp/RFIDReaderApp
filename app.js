@@ -4198,6 +4198,28 @@ async function renderMgmtReports() {
           </div>`;
         }).join('') + `<div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right">Total: ${total} licences</div>`;
       })()}
+    </div>
+    <div class="mgmt-card">
+      <div class="mgmt-card-header">
+        <div class="mgmt-card-title">Supply Chain Dashboard</div>
+      </div>
+      ${(() => {
+        const refillerCount  = LPGMC_COMPANIES.length;
+        const distActive     = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
+        const distTotal      = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
+        const retailActive   = DEMO_NETWORK.filter(n => n.type === 'Retailer'   && n.status === 'active').length;
+        const retailTotal    = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
+        const rows = [
+          { label: 'LPG Refilling Companies', value: refillerCount, sub: '' },
+          { label: 'Active Distributors',      value: distActive,   sub: `${distTotal - distActive} inactive` },
+          { label: 'Active Retailers',          value: retailActive, sub: `${retailTotal - retailActive} inactive` },
+        ];
+        return rows.map(r => `<div class="mgmt-bar-row" style="align-items:center">
+          <span class="mgmt-bar-label">${r.label}</span>
+          <span style="font-size:22px;font-weight:700;color:var(--blue);min-width:40px;text-align:right">${r.value}</span>
+          ${r.sub ? `<span style="font-size:11px;color:var(--muted);margin-left:6px">${r.sub}</span>` : ''}
+        </div>`).join('');
+      })()}
     </div>` : ''}`;
 }
 

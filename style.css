@@ -157,6 +157,27 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   background: var(--surface2);
   color: var(--text);
 }
+.nav-tab-dashboard {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  border-left: 3px solid var(--blue);
+  background: rgba(0,68,179,0.07);
+}
+.nav-tab-dashboard.active {
+  background: rgba(245,158,11,0.15);
+  color: var(--amber);
+  border-left: 3px solid var(--amber);
+}
+.nav-tab-dashboard:hover:not(.active) {
+  background: rgba(0,68,179,0.13);
+  color: var(--text);
+}
+.nav-divider {
+  height: 1px;
+  background: var(--surface3);
+  margin: 6px 14px;
+}
 
 /* ── Main content area — light/white theme ───────────────────────────────── */
 #content-area {
