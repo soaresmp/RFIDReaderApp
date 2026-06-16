@@ -119,6 +119,36 @@ const TRANSLATIONS = {
     'scan.active':'Active','scan.unfocused':'Unfocused','status.idle':'Idle',
     'cyl.searchPlaceholder':'Search serial / tag…',
     'cyl.notFound':'No cylinders found.','alert.noneFound':'No alerts.',
+    'nav.inspections':'Inspections','nav.marketIntel':'Market Intel',
+    'page.inspections':'🔍 Field Inspections','page.marketIntel':'📊 Market Intelligence',
+    'btn.newInspection':'+ New Inspection','btn.bulkRegister':'Bulk Register',
+    'btn.scheduleInspection':'Schedule','btn.registerCylinders':'Register Cylinders',
+    'insp.company':'Company / Operator','insp.region':'Region','insp.auditor':'Auditor',
+    'insp.date':'Scheduled Date','insp.notes':'Notes','insp.newTitle':'Schedule Inspection',
+    'insp.status.overdue':'overdue','insp.status.scheduled':'scheduled','insp.status.completed':'completed',
+    'bulk.title':'Bulk Cylinder Registration','bulk.uploadLabel':'Upload CSV / TXT file',
+    'bulk.pasteLabel':'Or paste cylinder IDs (one per line, 22-char E280116060… format)',
+    'bulk.validIds':'valid IDs found','bulk.noValidIds':'No valid IDs found',
+    'counterfeit.title':'COUNTERFEIT ALERT','counterfeit.body':'is not registered in the national LPG database.',
+    'counterfeit.sub':'This may indicate a counterfeit or unregistered cylinder.',
+    'counterfeit.report':'Report to EWURA','counterfeit.reported':'Reported ✓',
+    'counterfeit.submitted':'Counterfeit report submitted to EWURA',
+    'alert.stockShortage':'Stock Shortage','alert.stockSurplus':'Stock Surplus',
+    'alert.counterfeit':'Counterfeit Alert',
+    'marketIntel.summary':'National Summary','marketIntel.totalCyls':'Total Cylinders',
+    'marketIntel.activeOps':'Active Operators','marketIntel.activeLic':'Active Licences',
+    'marketIntel.totalEvents':'Total Events','marketIntel.byRegion':'Cylinders by Region',
+    'marketIntel.opShare':'Operator Market Share','marketIntel.scanVolume':'Monthly Scan Volume (last 6 months)',
+    'marketIntel.statusBreakdown':'Cylinder Status Breakdown',
+    'marketIntel.atRefill':'At Refill Plant','marketIntel.inDist':'In Distribution',
+    'marketIntel.inReval':'In Revalidation','marketIntel.withConsumer':'With Consumer',
+    'returnRate.title':'Return Rate by Retailer','returnRate.noData':'No dispatch data available.',
+    'audit.exported':'Audit trail exported',
+    'consumer.title':'Cylinder Status Check','consumer.subtitle':'Tanzania LPG Cylinder Verification',
+    'consumer.registered':'Registered Cylinder','consumer.notRegistered':'Not Registered',
+    'consumer.notRegisteredDesc':'is not registered in the national LPG database. This may be a counterfeit or unregistered cylinder — do not use and report to EWURA.',
+    'consumer.closeLogin':'Close & Login',
+    'insp.scheduledOk':'Inspection scheduled.',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -229,6 +259,36 @@ const TRANSLATIONS = {
     'scan.active':'Inafanya kazi','scan.unfocused':'Haijalenga','status.idle':'Kimya',
     'cyl.searchPlaceholder':'Tafuta nambari / lebo…',
     'cyl.notFound':'Hakuna mitungi iliyopatikana.','alert.noneFound':'Hakuna tahadhari.',
+    'nav.inspections':'Ukaguzi','nav.marketIntel':'Akili ya Soko',
+    'page.inspections':'🔍 Ukaguzi wa Uwanjani','page.marketIntel':'📊 Akili ya Soko',
+    'btn.newInspection':'+ Ukaguzi Mpya','btn.bulkRegister':'Sajili Kwa Wingi',
+    'btn.scheduleInspection':'Panga Ratiba','btn.registerCylinders':'Sajili Mitungi',
+    'insp.company':'Kampuni / Mwendeshaji','insp.region':'Mkoa','insp.auditor':'Mkaguzi',
+    'insp.date':'Tarehe ya Ukaguzi','insp.notes':'Maelezo','insp.newTitle':'Panga Ukaguzi',
+    'insp.status.overdue':'imechelewa','insp.status.scheduled':'imepangwa','insp.status.completed':'imekamilika',
+    'bulk.title':'Usajili wa Mitungi kwa Wingi','bulk.uploadLabel':'Pakia faili la CSV / TXT',
+    'bulk.pasteLabel':'Au bandika vitambulisho vya mitungi (kimoja kwa mstari, muundo E280116060… wa herufi 22)',
+    'bulk.validIds':'vitambulisho sahihi vimepatikana','bulk.noValidIds':'Hakuna vitambulisho sahihi',
+    'counterfeit.title':'TAHADHARI YA BANDIA','counterfeit.body':'haijasajiliwa katika hifadhidata ya kitaifa ya LPG.',
+    'counterfeit.sub':'Hii inaweza kuashiria mtungi bandia au ambao haujasajiliwa.',
+    'counterfeit.report':'Ripoti kwa EWURA','counterfeit.reported':'Imeripotiwa ✓',
+    'counterfeit.submitted':'Ripoti ya mtungi bandia imetumwa kwa EWURA',
+    'alert.stockShortage':'Upungufu wa Hifadhi','alert.stockSurplus':'Ziada ya Hifadhi',
+    'alert.counterfeit':'Tahadhari ya Bandia',
+    'marketIntel.summary':'Muhtasari wa Kitaifa','marketIntel.totalCyls':'Jumla ya Mitungi',
+    'marketIntel.activeOps':'Waendeshaji Wanaofanya Kazi','marketIntel.activeLic':'Leseni Zinazofanya Kazi',
+    'marketIntel.totalEvents':'Jumla ya Matukio','marketIntel.byRegion':'Mitungi kwa Mkoa',
+    'marketIntel.opShare':'Sehemu ya Soko ya Waendeshaji','marketIntel.scanVolume':'Kiasi cha Uchanganuzi kwa Mwezi (miezi 6 iliyopita)',
+    'marketIntel.statusBreakdown':'Mgawanyo wa Hali za Mitungi',
+    'marketIntel.atRefill':'Kituo cha Kujaza','marketIntel.inDist':'Kwenye Usambazaji',
+    'marketIntel.inReval':'Kwenye Uthibitishaji','marketIntel.withConsumer':'Kwa Mnunuzi',
+    'returnRate.title':'Kiwango cha Urudishaji kwa Muuzaji','returnRate.noData':'Hakuna data ya usafirishaji.',
+    'audit.exported':'Rekodi ya ukaguzi imehamiishwa',
+    'consumer.title':'Ukaguzi wa Hali ya Mtungi','consumer.subtitle':'Uhakiki wa Mitungi ya LPG Tanzania',
+    'consumer.registered':'Mtungi Uliosajiliwa','consumer.notRegistered':'Haujasajiliwa',
+    'consumer.notRegisteredDesc':'haujasajiliwa katika hifadhidata ya kitaifa ya LPG. Hii inaweza kuwa mtungi bandia — usitumie na ripoti kwa EWURA.',
+    'consumer.closeLogin':'Funga na Ingia',
+    'insp.scheduledOk':'Ukaguzi umepangwa.',
   },
 };
 
@@ -1542,18 +1602,18 @@ async function handleScan(tagId) {
       lastScanResult.className = 'last-scan-result';
       lastScanResult.innerHTML = `
         <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:8px;padding:16px;text-align:center">
-          <div style="font-size:18px;font-weight:700;color:#dc2626">&#9888; COUNTERFEIT ALERT</div>
-          <div style="margin:8px 0">Cylinder <strong>${escapeHtml(tagId)}</strong> is not registered in the national LPG database.</div>
-          <div style="color:#6b7280;font-size:13px">This may indicate a counterfeit or unregistered cylinder.</div>
-          <button id="report-counterfeit-btn" style="margin-top:12px;background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px">Report to EWURA</button>
+          <div style="font-size:18px;font-weight:700;color:#dc2626">&#9888; ${t('counterfeit.title')}</div>
+          <div style="margin:8px 0">${t('scan.lastScan').replace('Scan','').trim() || 'Cylinder'} <strong>${escapeHtml(tagId)}</strong> ${t('counterfeit.body')}</div>
+          <div style="color:#6b7280;font-size:13px">${t('counterfeit.sub')}</div>
+          <button id="report-counterfeit-btn" style="margin-top:12px;background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px">${t('counterfeit.report')}</button>
         </div>`;
       document.getElementById('report-counterfeit-btn')?.addEventListener('click', () => {
         const reports = JSON.parse(localStorage.getItem('lpg-counterfeits') || '[]');
         reports.push({ tagId, timestamp: nowISO(), reportedBy: Auth.session?.company || 'unknown', role: Auth.session?.role || 'unknown' });
         localStorage.setItem('lpg-counterfeits', JSON.stringify(reports));
-        showSnackbar('Counterfeit report submitted to EWURA', 'success');
+        showSnackbar(t('counterfeit.submitted'), 'success');
         document.getElementById('report-counterfeit-btn').disabled = true;
-        document.getElementById('report-counterfeit-btn').textContent = 'Reported ✓';
+        document.getElementById('report-counterfeit-btn').textContent = t('counterfeit.reported');
       });
     }
     return;
@@ -2240,7 +2300,7 @@ passportExportBtn.addEventListener('click', async () => {
   a.download = `audit-trail-${cyl.serial}-${today}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
-  showSnackbar('Audit trail exported', 'success');
+  showSnackbar(t('audit.exported'), 'success');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2345,11 +2405,11 @@ async function renderAlerts() {
       const total = myCyls.length;
       if (total < 15) {
         _alertsData.unshift({ severity:'warning', type:'stock-shortage', cylinder:{ id:'stock-shortage', serial:'Stock', company, status:'in-circulation' },
-          title:`Stock Shortage — only ${total} cylinders at ${company}`,
+          title:`${t('alert.stockShortage')} — only ${total} cylinders at ${company}`,
           desc:`Current stock is below the minimum threshold of 15 cylinders. Consider placing a replenishment order.` });
       } else if (total > 120) {
         _alertsData.unshift({ severity:'info', type:'stock-surplus', cylinder:{ id:'stock-surplus', serial:'Stock', company, status:'in-circulation' },
-          title:`Stock Surplus — ${total} cylinders at ${company}`,
+          title:`${t('alert.stockSurplus')} — ${total} cylinders at ${company}`,
           desc:`Current stock exceeds 120 cylinders. Consider redistributing to other network partners.` });
       }
     } else if (stockRole === 'lpgmc') {
@@ -2357,7 +2417,7 @@ async function renderAlerts() {
       const inRefill = cyls.filter(c => c.status === 'in-refill').length;
       if (inRefill < 30) {
         _alertsData.unshift({ severity:'warning', type:'stock-shortage', cylinder:{ id:'stock-inrefill', serial:'In-Refill', company, status:'in-refill' },
-          title:`Low In-Refill Stock — only ${inRefill} cylinders in refill at ${company}`,
+          title:`${t('alert.stockShortage')} — only ${inRefill} cylinders in refill at ${company}`,
           desc:`In-refill inventory is below the minimum threshold of 30 cylinders.` });
       }
     }
@@ -2368,7 +2428,7 @@ async function renderAlerts() {
     const reports = JSON.parse(localStorage.getItem('lpg-counterfeits') || '[]');
     reports.slice().reverse().forEach(r => {
       _alertsData.unshift({ severity:'critical', type:'counterfeit', cylinder:{ id:r.tagId, serial:r.tagId, company:r.reportedBy || 'Unknown', status:'in-circulation' },
-        title:`Counterfeit Alert — Tag ${r.tagId}`,
+        title:`${t('alert.counterfeit')} — Tag ${r.tagId}`,
         desc:`Unregistered cylinder reported by ${r.reportedBy || 'unknown'} (${r.role || ''}) on ${r.timestamp ? r.timestamp.slice(0,10) : ''}` });
     });
   }
@@ -3551,7 +3611,7 @@ async function renderMgmtReports() {
           if (ev.type === 'dist-returned-empty') returnedMap[ev.location || ''] = (returnedMap[ev.location || ''] || 0) + 1;
         });
         const retailers = Object.keys(sentMap).filter(r => r);
-        if (!retailers.length) return '<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">Return Rate by Retailer</div></div><p style="font-size:13px;color:var(--dim);padding:8px 0">No dispatch data available.</p></div>';
+        if (!retailers.length) return `<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">${t('returnRate.title')}</div></div><p style="font-size:13px;color:var(--dim);padding:8px 0">${t('returnRate.noData')}</p></div>`;
         const rrData = retailers.map(r => ({
           name: r,
           sent: sentMap[r] || 0,
@@ -3566,7 +3626,7 @@ async function renderMgmtReports() {
             <span style="font-size:11px;color:var(--muted);min-width:50px;text-align:right">${r.returned}/${r.sent}</span>
           </div>`;
         }).join('');
-        return `<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">Return Rate by Retailer</div></div>${rrBars}</div>`;
+        return `<div class="mgmt-card"><div class="mgmt-card-header"><div class="mgmt-card-title">${t('returnRate.title')}</div></div>${rrBars}</div>`;
       })() : ''}`;
     return;
   }
@@ -4771,7 +4831,7 @@ async function renderMarketIntel() {
   const statusCounts = { 'in-refill': 0, 'in-circulation': 0, 'revalidation': 0, 'in-use': 0 };
   cyls.forEach(c => { if (statusCounts[c.status] !== undefined) statusCounts[c.status]++; });
   const statusColors2 = { 'in-refill':'var(--green)', 'in-circulation':'var(--blue)', 'revalidation':'var(--teal,#0d9488)', 'in-use':'var(--purple)' };
-  const statusLabels2 = { 'in-refill':'At Refill Plant', 'in-circulation':'In Distribution', 'revalidation':'In Revalidation', 'in-use':'With Consumer' };
+  const statusLabels2 = { 'in-refill':t('marketIntel.atRefill'), 'in-circulation':t('marketIntel.inDist'), 'revalidation':t('marketIntel.inReval'), 'in-use':t('marketIntel.withConsumer') };
   const maxStat = Math.max(...Object.values(statusCounts), 1);
   const statBars = Object.entries(statusCounts).map(([k, v]) => {
     const pct = Math.round((v / maxStat) * 100);
@@ -4810,41 +4870,41 @@ async function renderMarketIntel() {
     <div class="mgmt-grid">
       <div class="mgmt-card" style="grid-column:span 2">
         <div class="mgmt-card-header">
-          <div class="mgmt-card-title">National Summary</div>
+          <div class="mgmt-card-title">${t('marketIntel.summary')}</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
           <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:28px;font-weight:700;color:var(--blue)">${cyls.length}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Total Cylinders</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.totalCyls')}</div>
           </div>
           <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:28px;font-weight:700;color:var(--green)">${activeOps}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Active Operators</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.activeOps')}</div>
           </div>
           <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:28px;font-weight:700;color:var(--amber)">${licActive}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Active Licences</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.activeLic')}</div>
           </div>
           <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:28px;font-weight:700;color:var(--purple)">${events.length}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Total Events</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${t('marketIntel.totalEvents')}</div>
           </div>
         </div>
       </div>
       <div class="mgmt-card">
-        <div class="mgmt-card-header"><div class="mgmt-card-title">Cylinders by Region</div></div>
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.byRegion')}</div></div>
         ${regionBars}
       </div>
       <div class="mgmt-card">
-        <div class="mgmt-card-header"><div class="mgmt-card-title">Operator Market Share</div></div>
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.opShare')}</div></div>
         ${opBars}
       </div>
       <div class="mgmt-card">
-        <div class="mgmt-card-header"><div class="mgmt-card-title">Monthly Scan Volume (last 6 months)</div></div>
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.scanVolume')}</div></div>
         ${scanBars}
       </div>
       <div class="mgmt-card">
-        <div class="mgmt-card-header"><div class="mgmt-card-title">Cylinder Status Breakdown</div></div>
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.statusBreakdown')}</div></div>
         ${statBars}
       </div>
     </div>`;
@@ -4867,7 +4927,8 @@ function renderInspections() {
   });
   const statusPill = s => {
     const colors = { overdue: 'background:#fef2f2;color:#dc2626;border:1px solid #fca5a5', scheduled: 'background:#eff6ff;color:#2563eb;border:1px solid #93c5fd', completed: 'background:#f0fdf4;color:#16a34a;border:1px solid #86efac' };
-    return `<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;${colors[s] || ''}">${escapeHtml(s)}</span>`;
+    const label = t('insp.status.' + s) || s;
+    return `<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;${colors[s] || ''}">${escapeHtml(label)}</span>`;
   };
   listEl.innerHTML = sorted.map(ins => `
     <li style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;list-style:none;display:flex;gap:12px;align-items:flex-start">
@@ -4895,7 +4956,7 @@ $('save-inspection-btn')?.addEventListener('click', () => {
   });
   closeModal('modal-new-inspection');
   renderInspections();
-  showSnackbar('Inspection scheduled.', 'success');
+  showSnackbar(t('insp.scheduledOk'), 'success');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4919,7 +4980,7 @@ function parseBulkIds(text) {
 $('bulk-register-ids')?.addEventListener('input', function() {
   const ids = parseBulkIds(this.value);
   const preview = $('bulk-register-preview');
-  if (preview) preview.textContent = ids.length ? `${ids.length} valid ID${ids.length !== 1 ? 's' : ''} found` : 'No valid IDs found';
+  if (preview) preview.textContent = ids.length ? `${ids.length} ${t('bulk.validIds')}` : t('bulk.noValidIds');
 });
 
 $('bulk-register-file')?.addEventListener('change', async function() {
@@ -4981,7 +5042,7 @@ async function init() {
         contentEl.innerHTML = `
           <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
             <div style="font-size:36px;margin-bottom:8px">✅</div>
-            <div style="font-size:18px;font-weight:700;color:#15803d;margin-bottom:12px">Registered Cylinder</div>
+            <div style="font-size:18px;font-weight:700;color:#15803d;margin-bottom:12px">${t('consumer.registered')}</div>
             <div style="text-align:left;font-size:13px;color:#374151">
               <div style="margin-bottom:6px"><strong>ID:</strong> ${escapeHtml(cyl.id)}</div>
               <div style="margin-bottom:6px"><strong>Serial:</strong> ${escapeHtml(cyl.serial)}</div>
@@ -4995,8 +5056,8 @@ async function init() {
         contentEl.innerHTML = `
           <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
             <div style="font-size:36px;margin-bottom:8px">⚠️</div>
-            <div style="font-size:18px;font-weight:700;color:#dc2626;margin-bottom:12px">Not Registered</div>
-            <div style="font-size:13px;color:#374151">Cylinder <strong>${escapeHtml(consumerCylId)}</strong> is not registered in the national LPG database.<br><br>This may be a counterfeit or unregistered cylinder — do not use and report to EWURA.</div>
+            <div style="font-size:18px;font-weight:700;color:#dc2626;margin-bottom:12px">${t('consumer.notRegistered')}</div>
+            <div style="font-size:13px;color:#374151">${t('kpi.total').replace('Total','Cylinder').replace('Jumla','Mtungi') || 'Cylinder'} <strong>${escapeHtml(consumerCylId)}</strong> ${t('consumer.notRegisteredDesc')}</div>
           </div>`;
       }
       overlay.style.display = 'flex';
