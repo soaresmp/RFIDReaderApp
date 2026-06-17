@@ -3124,10 +3124,26 @@ async function renderReports() {
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
         const inspRateD = inspEvsD.length ? Math.round(inspCompD / inspEvsD.length * 100) : 0;
+        const opShareD = LPGMC_COMPANIES.map(c => ({ name: c, count: cyls.filter(cy => cy.company === c).length }));
+        const maxOpD = Math.max(...opShareD.map(o => o.count), 1);
+        const totalCylsD = cyls.length || 1;
+        const opColorsD = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
+        const opBarsD = opShareD.map((o, i) => {
+          const pct = Math.round((o.count / maxOpD) * 100);
+          const share = Math.round((o.count / totalCylsD) * 100);
+          return `<div class="mgmt-bar-row">
+            <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(o.name)}</span>
+            <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${opColorsD[i % opColorsD.length]}"><span>${o.count} (${share}%)</span></div></div>
+          </div>`;
+        }).join('');
         return `<div class="report-card">
           <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
           <div class="report-card-label">${t('dash.marketCompliance')}</div>
           <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')}</div>
+        </div>
+        <div class="report-card" style="grid-column:1/-1;padding:14px 16px">
+          <div class="report-card-label" style="font-size:13px;font-weight:600;margin-bottom:10px">${t('marketIntel.opShare')}</div>
+          ${opBarsD}
         </div>`;
       })() : ''}
       `;
@@ -5104,19 +5120,6 @@ async function renderMarketIntel() {
     </div>`;
   }).join('');
 
-  const opShare = LPGMC_COMPANIES.map(c => ({ name: c, count: cyls.filter(cy => cy.company === c).length }));
-  const maxOp = Math.max(...opShare.map(o => o.count), 1);
-  const totalCyls = cyls.length || 1;
-  const opColors = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
-  const opBars = opShare.map((o, i) => {
-    const pct = Math.round((o.count / maxOp) * 100);
-    const share = Math.round((o.count / totalCyls) * 100);
-    return `<div class="mgmt-bar-row">
-      <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(o.name)}</span>
-      <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${opColors[i % opColors.length]}"><span>${o.count} (${share}%)</span></div></div>
-    </div>`;
-  }).join('');
-
   const statusCounts = { 'in-refill': 0, 'in-circulation': 0, 'revalidation': 0, 'in-use': 0 };
   cyls.forEach(c => { if (statusCounts[c.status] !== undefined) statusCounts[c.status]++; });
   const statusColors2 = { 'in-refill':'var(--green)', 'in-circulation':'var(--blue)', 'revalidation':'var(--teal,#0d9488)', 'in-use':'var(--purple)' };
@@ -5183,10 +5186,6 @@ async function renderMarketIntel() {
       <div class="mgmt-card">
         <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.byRegion')}</div></div>
         ${regionBars}
-      </div>
-      <div class="mgmt-card">
-        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.opShare')}</div></div>
-        ${opBars}
       </div>
       <div class="mgmt-card">
         <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.scanVolume')}</div></div>
