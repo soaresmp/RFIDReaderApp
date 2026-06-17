@@ -621,7 +621,7 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'licenses', 'market-intel', 'mgmt-reports', 'network', 'bulk-monitor'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'licenses', 'mgmt-reports', 'network', 'bulk-monitor'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
@@ -3124,26 +3124,10 @@ async function renderReports() {
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
         const inspRateD = inspEvsD.length ? Math.round(inspCompD / inspEvsD.length * 100) : 0;
-        const opShareD = LPGMC_COMPANIES.map(c => ({ name: c, count: cyls.filter(cy => cy.company === c).length }));
-        const maxOpD = Math.max(...opShareD.map(o => o.count), 1);
-        const totalCylsD = cyls.length || 1;
-        const opColorsD = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
-        const opBarsD = opShareD.map((o, i) => {
-          const pct = Math.round((o.count / maxOpD) * 100);
-          const share = Math.round((o.count / totalCylsD) * 100);
-          return `<div class="mgmt-bar-row">
-            <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(o.name)}</span>
-            <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${opColorsD[i % opColorsD.length]}"><span>${o.count} (${share}%)</span></div></div>
-          </div>`;
-        }).join('');
         return `<div class="report-card">
           <span class="report-card-value" style="color:${inspRateD >= 80 ? 'var(--green)' : inspRateD >= 60 ? 'var(--amber)' : 'var(--red)'}">${inspRateD}%</span>
           <div class="report-card-label">${t('dash.marketCompliance')}</div>
           <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('mgmt.complianceRate')}</div>
-        </div>
-        <div class="report-card" style="grid-column:1/-1;padding:14px 16px">
-          <div class="report-card-label" style="font-size:13px;font-weight:600;margin-bottom:10px">${t('marketIntel.opShare')}</div>
-          ${opBarsD}
         </div>`;
       })() : ''}
       `;
@@ -4120,13 +4104,31 @@ async function renderMgmtReports() {
       </div>
       ${alertRegionBarsHtml}
     </div>
-    ${role === 'ewura' ? `<div class="mgmt-card">
-      <div class="mgmt-card-header">
-        <div class="mgmt-card-title">${t('mgmt.opComplianceRanking')}</div>
-        <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
+    ${role === 'ewura' ? (() => {
+      const opShareM = LPGMC_COMPANIES.map(c => ({ name: c, count: allCyls.filter(cy => cy.company === c).length }));
+      const maxOpM = Math.max(...opShareM.map(o => o.count), 1);
+      const totalCylsM = allCyls.length || 1;
+      const opColorsM = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
+      const opBarsM = opShareM.map((o, i) => {
+        const pct = Math.round((o.count / maxOpM) * 100);
+        const share = Math.round((o.count / totalCylsM) * 100);
+        return `<div class="mgmt-bar-row">
+          <span class="mgmt-bar-label" style="min-width:110px">${escapeHtml(o.name)}</span>
+          <div class="mgmt-bar-track"><div class="mgmt-bar-fill" style="width:${pct}%;background:${opColorsM[i % opColorsM.length]}"><span>${o.count} (${share}%)</span></div></div>
+        </div>`;
+      }).join('');
+      return `<div class="mgmt-card">
+        <div class="mgmt-card-header">
+          <div class="mgmt-card-title">${t('mgmt.opComplianceRanking')}</div>
+          <button class="mgmt-card-export-btn" data-export="compliance-ranking" type="button">↓ CSV</button>
+        </div>
+        ${opRankHtml}
       </div>
-      ${opRankHtml}
-    </div>` : ''}`;
+      <div class="mgmt-card">
+        <div class="mgmt-card-header"><div class="mgmt-card-title">${t('marketIntel.opShare')}</div></div>
+        ${opBarsM}
+      </div>`;
+    })() : ''}`;
 }
 
 // Per-card CSV export buttons
@@ -4871,40 +4873,12 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  const TERMINAL = { lat:-6.7924, lng:39.2083 };
-
-  const termCard = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-    <div style="background:#f59e0b;padding:6px 10px">
-      <span style="font-size:11px;font-weight:600;color:#000">🏭 Dar es Salaam Import Terminal</span>
-    </div>
-    <div style="height:180px">${buildOsmEmbed(TERMINAL.lat, TERMINAL.lng)}</div>
-    <div style="padding:6px 10px;font-size:11px;color:var(--muted)">Main LPG import &amp; loading facility — bulk supply origin for Tanzania</div>
-  </div>`;
-
-  const tankerCards = DEMO_BULK_TANKERS.map(tk => {
-    const col = tankerHexColor[tk.status] || '#64748b';
-    const progressHtml = tk.routePct > 0 && tk.routePct < 100
-      ? `<div style="background:#e2e8f0;border-radius:3px;height:4px;margin-top:4px"><div style="width:${tk.routePct}%;height:100%;border-radius:3px;background:${col}"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${tk.routePct}% route complete</div>`
-      : '';
-    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-      <div style="background:${col};padding:6px 10px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:12px;font-weight:600;color:#fff">🚛 ${escapeHtml(tk.plate)}</span>
-        <span style="font-size:11px;color:rgba(255,255,255,0.85)">${statusLbl(tk.status)}</span>
-      </div>
-      <div style="height:180px">${buildOsmEmbed(tk.lat, tk.lng)}</div>
-      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
-        <strong>${escapeHtml(tk.operator)}</strong> · ${escapeHtml(tk.capacity)}<br>
-        📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}<br>
-        ${tk.speed > 0 ? `🚀 ${tk.speed} km/h · ` : ''}Updated: ${escapeHtml(tk.lastUpdate)}
-        ${progressHtml}
-      </div>
-    </div>`;
-  }).join('');
-
-  mapEl.style.height = 'auto';
-  mapEl.style.border = 'none';
-  mapEl.style.borderRadius = '0';
-  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:16px">${termCard}${tankerCards}</div>`;
+  // Single overview map centred on Tanzania
+  mapEl.style.height = '320px';
+  mapEl.style.border = '1px solid var(--border)';
+  mapEl.style.borderRadius = '10px';
+  mapEl.style.overflow = 'hidden';
+  mapEl.innerHTML = buildOsmEmbed(-6.3690, 34.8888, 5);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
