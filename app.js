@@ -2871,28 +2871,11 @@ function renderAlertsMap() {
     return;
   }
 
-  const cards = _alertsData.map(al => {
-    const [lat, lng] = _resolveAlertLatLng(al);
-    const isCrit = al.severity === 'critical';
-    const color  = isCrit ? '#dc2626' : '#f59e0b';
-    const cyl    = al.cylinder;
-    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
-      <div style="background:${color};padding:6px 10px">
-        <span style="font-size:11px;font-weight:600;color:#fff">${isCrit ? '🚨' : '⚠️'} ${escapeHtml(al.title)}</span>
-      </div>
-      <div style="height:160px">${buildOsmEmbed(lat, lng)}</div>
-      <div style="padding:6px 10px;font-size:11px;color:var(--muted)">
-        ${escapeHtml(al.desc || '')}
-        ${cyl ? `<br><span style="color:var(--text)">Cyl <b>${escapeHtml(cyl.serial || '')}</b></span> · ${escapeHtml(cyl.company || '')}` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  mapEl.style.height = 'auto';
-  mapEl.style.border = 'none';
-  mapEl.style.borderRadius = '0';
-  mapEl.style.overflow = 'visible';
-  mapEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px">${cards}</div>`;
+  mapEl.style.height = '320px';
+  mapEl.style.border = '1px solid var(--border)';
+  mapEl.style.borderRadius = '10px';
+  mapEl.style.overflow = 'hidden';
+  mapEl.innerHTML = buildOsmEmbed(-6.3690, 34.8888);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
