@@ -536,12 +536,18 @@ const DEMO_NETWORK = [
 ];
 
 const DEMO_BULK_TANKERS = [
-  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42 },
-  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',     lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28 },
-  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',      lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0  },
-  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',    from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',    lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100},
-  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',      from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',   lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0  },
-  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',  lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65 },
+  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',        lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42  },
+  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',          lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28  },
+  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',           lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0   },
+  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',    from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',         lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100 },
+  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',      from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',        lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0   },
+  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',       lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65  },
+  { id:'BT-007', plate:'T 310 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'delivered',    from:'Arusha Distribution Hub',       to:'Shell Gas Kilimanjaro Depot',      lat:-3.3534, lng:37.3380, speed:0,  lastUpdate:'2 hr ago',   routePct:100 },
+  { id:'BT-008', plate:'T 440 DOD', operator:'Lake Gas',       capacity:'22,000L', status:'in-transit',   from:'Dodoma Central Depot',          to:'Lake Gas Tabora Plant',            lat:-5.0220, lng:33.9980, speed:58, lastUpdate:'9 min ago',  routePct:51  },
+  { id:'BT-009', plate:'T 071 TNG', operator:'Vivo LPG',       capacity:'25,000L', status:'at-terminal',  from:'Tanga Port Terminal',           to:'Vivo LPG Tanga Plant',             lat:-5.0693, lng:39.0997, speed:0,  lastUpdate:'18 min ago', routePct:0   },
+  { id:'BT-010', plate:'T 625 IRG', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Iringa Depot',      lat:-7.7669, lng:35.6940, speed:66, lastUpdate:'11 min ago', routePct:78  },
+  { id:'BT-011', plate:'T 282 MOR', operator:'Shell Gas',      capacity:'18,000L', status:'loading',      from:'Morogoro Depot',                to:'Shell Gas Dodoma Plant',           lat:-6.8218, lng:37.6595, speed:0,  lastUpdate:'30 min ago', routePct:0   },
+  { id:'BT-012', plate:'T 193 ZNZ', operator:'Lake Gas',       capacity:'15,000L', status:'delivered',    from:'Zanzibar Port',                 to:'Lake Gas Zanzibar Retail Hub',     lat:-6.1659, lng:39.2026, speed:0,  lastUpdate:'45 min ago', routePct:100 },
 ];
 
 const EVENT_LABELS = {
@@ -2871,11 +2877,28 @@ function renderAlertsMap() {
     return;
   }
 
+  if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
   mapEl.style.height = '320px';
   mapEl.style.border = '1px solid var(--border)';
   mapEl.style.borderRadius = '10px';
   mapEl.style.overflow = 'hidden';
-  mapEl.innerHTML = buildOsmEmbed(-6.3690, 34.8888);
+  mapEl.innerHTML = '';
+
+  _alertLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_alertLeafletMap);
+
+  _alertsData.forEach(al => {
+    const [lat, lng] = _resolveAlertLatLng(al);
+    const isCrit = al.severity === 'critical';
+    const color  = isCrit ? '#dc2626' : '#f59e0b';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>`,
+      iconSize: [14, 14], iconAnchor: [7, 7]
+    });
+    L.marker([lat, lng], { icon }).addTo(_alertLeafletMap)
+      .bindPopup(`<b>${escapeHtml(al.title)}</b><br><span style="font-size:11px;color:#666">${escapeHtml(al.desc || '')}</span>`);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4856,12 +4879,27 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  // Single overview map centred on Tanzania
+  if (_bulkLeafletMap) { _bulkLeafletMap.remove(); _bulkLeafletMap = null; }
   mapEl.style.height = '320px';
   mapEl.style.border = '1px solid var(--border)';
   mapEl.style.borderRadius = '10px';
   mapEl.style.overflow = 'hidden';
-  mapEl.innerHTML = buildOsmEmbed(-6.3690, 34.8888, 5);
+  mapEl.innerHTML = '';
+
+  _bulkLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_bulkLeafletMap);
+
+  DEMO_BULK_TANKERS.forEach(tk => {
+    const color = tankerHexColor[tk.status] || '#6b7280';
+    const sym   = tankerSym[tk.status]      || '●';
+    const icon  = L.divIcon({
+      className: '',
+      html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff">${sym}</div>`,
+      iconSize: [22, 22], iconAnchor: [11, 11]
+    });
+    L.marker([tk.lat, tk.lng], { icon }).addTo(_bulkLeafletMap)
+      .bindPopup(`<b>${escapeHtml(tk.plate)}</b><br>${escapeHtml(tk.operator)}<br><span style="font-size:11px;color:#666">${statusLbl(tk.status)} · ${escapeHtml(tk.capacity)}</span>`);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
