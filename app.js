@@ -5,8 +5,8 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 const DB_NAME    = 'lpg-tracer-db';
-const DB_VERSION = 2;
-const SEED_KEY   = 'seeded-v15';
+const DB_VERSION = 3;
+const SEED_KEY   = 'seeded-v16';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -33,6 +33,10 @@ const TRANSLATIONS = {
     'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
     'dash.totalAlerts':'Total Alerts','dash.refillingSites':'Refilling Sites',
     'dash.marketCompliance':'Field Inspection','mgmt.complianceRate':'Compliance Rate',
+    'mgmt.lifecycleFunnel':'Cylinder Lifecycle Funnel',
+    'funnel.registered':'Registered','funnel.inRefill':'In Refill','funnel.inCirculation':'In Circulation','funnel.inUse':'In Use','funnel.returned':'Returned',
+    'alert.recall':'⚠️ RECALL',
+    'recall.initiate':'Initiate Recall','recall.operator':'Operator','recall.dateFrom':'Manufacture From','recall.dateTo':'Manufacture To','recall.reason':'Reason / Safety Notice','recall.submit':'Issue Recall','recall.saved':'Recall issued — affected cylinders now flagged in alerts.',
     'dash.avgRefillCycle':'Avg Refill Cycle','dash.utilisationRate':'Utilisation Rate',
     'dash.daysLabel':'days received→refilled','dash.utilLabel':'in-use + in-circ / total',
     'kpi.filled':'filled','kpi.empty':'empty','kpi.full':'full',
@@ -221,6 +225,10 @@ const TRANSLATIONS = {
     'status.retReturnedEmpty':'Imerudishwa Tupu (Muuzaji)','status.distReturnedEmpty':'Imerudishwa Tupu (Msambazaji)','status.receivedEmpty':'Imepokelewa Tupu',
     'dash.totalAlerts':'Tahadhari Zote','dash.refillingSites':'Vituo vya Kujaza',
     'dash.marketCompliance':'Ukaguzi wa Uwanjani','mgmt.complianceRate':'Kiwango cha Kuzingatia',
+    'mgmt.lifecycleFunnel':'Mzunguko wa Silinda',
+    'funnel.registered':'Zilizosajiliwa','funnel.inRefill':'Zinajazwa','funnel.inCirculation':'Zinazunguka','funnel.inUse':'Zinatumika','funnel.returned':'Zilizorudishwa',
+    'alert.recall':'⚠️ RECALL',
+    'recall.initiate':'Anzisha Kumbukumbu','recall.operator':'Mwendeshaji','recall.dateFrom':'Tarehe ya Uzalishaji (Kutoka)','recall.dateTo':'Tarehe ya Uzalishaji (Hadi)','recall.reason':'Sababu / Taarifa ya Usalama','recall.submit':'Toa Recall','recall.saved':'Recall imetolewa — silinda zilizoathiriwa zimeonyeshwa katika tahadhari.',
     'dash.avgRefillCycle':'Wastani wa Kujaza','dash.utilisationRate':'Kiwango cha Matumizi',
     'dash.daysLabel':'siku (zilipokelewa→kujazwa)','dash.utilLabel':'inatumika + mzunguko / jumla',
     'kpi.filled':'imejazwa','kpi.empty':'tupu','kpi.full':'kamili',
@@ -536,18 +544,18 @@ const DEMO_NETWORK = [
 ];
 
 const DEMO_BULK_TANKERS = [
-  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',        lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42  },
-  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',          lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28  },
-  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal',  from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',           lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0   },
-  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',    from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',         lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100 },
-  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',      from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',        lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0   },
-  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',       lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65  },
-  { id:'BT-007', plate:'T 310 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'delivered',    from:'Arusha Distribution Hub',       to:'Shell Gas Kilimanjaro Depot',      lat:-3.3534, lng:37.3380, speed:0,  lastUpdate:'2 hr ago',   routePct:100 },
-  { id:'BT-008', plate:'T 440 DOD', operator:'Lake Gas',       capacity:'22,000L', status:'in-transit',   from:'Dodoma Central Depot',          to:'Lake Gas Tabora Plant',            lat:-5.0220, lng:33.9980, speed:58, lastUpdate:'9 min ago',  routePct:51  },
-  { id:'BT-009', plate:'T 071 TNG', operator:'Vivo LPG',       capacity:'25,000L', status:'at-terminal',  from:'Tanga Port Terminal',           to:'Vivo LPG Tanga Plant',             lat:-5.0693, lng:39.0997, speed:0,  lastUpdate:'18 min ago', routePct:0   },
-  { id:'BT-010', plate:'T 625 IRG', operator:'Total Energies', capacity:'20,000L', status:'in-transit',   from:'Dar es Salaam Import Terminal', to:'Total Energies Iringa Depot',      lat:-7.7669, lng:35.6940, speed:66, lastUpdate:'11 min ago', routePct:78  },
-  { id:'BT-011', plate:'T 282 MOR', operator:'Shell Gas',      capacity:'18,000L', status:'loading',      from:'Morogoro Depot',                to:'Shell Gas Dodoma Plant',           lat:-6.8218, lng:37.6595, speed:0,  lastUpdate:'30 min ago', routePct:0   },
-  { id:'BT-012', plate:'T 193 ZNZ', operator:'Lake Gas',       capacity:'15,000L', status:'delivered',    from:'Zanzibar Port',                 to:'Lake Gas Zanzibar Retail Hub',     lat:-6.1659, lng:39.2026, speed:0,  lastUpdate:'45 min ago', routePct:100 },
+  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200 },
+  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',         lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.4500, toLng:38.7000 },
+  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal', from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',          lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-3.3869, toLng:36.6830 },
+  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',        lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100, fromLat:-6.7924, fromLng:39.2083, toLat:-2.5164, toLng:32.9175 },
+  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200 },
+  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',      lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65,  fromLat:-6.7924, fromLng:39.2083, toLat:-8.9094, toLng:33.4607 },
+  { id:'BT-007', plate:'T 310 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'delivered',   from:'Arusha Distribution Hub',      to:'Shell Gas Kilimanjaro Depot',     lat:-3.3534, lng:37.3380, speed:0,  lastUpdate:'2 hr ago',   routePct:100, fromLat:-3.3869, fromLng:36.6830, toLat:-3.3534, toLng:37.3380 },
+  { id:'BT-008', plate:'T 440 DOD', operator:'Lake Gas',       capacity:'22,000L', status:'in-transit',  from:'Dodoma Central Depot',         to:'Lake Gas Tabora Plant',           lat:-5.0220, lng:33.9980, speed:58, lastUpdate:'9 min ago',  routePct:51,  fromLat:-6.1730, fromLng:35.7395, toLat:-5.0167, toLng:32.8000 },
+  { id:'BT-009', plate:'T 071 TNG', operator:'Vivo LPG',       capacity:'25,000L', status:'at-terminal', from:'Tanga Port Terminal',          to:'Vivo LPG Tanga Plant',            lat:-5.0693, lng:39.0997, speed:0,  lastUpdate:'18 min ago', routePct:0,   fromLat:-5.0693, fromLng:39.0997, toLat:-5.0600, toLng:39.0700 },
+  { id:'BT-010', plate:'T 625 IRG', operator:'Total Energies', capacity:'20,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Iringa Depot',     lat:-7.7669, lng:35.6940, speed:66, lastUpdate:'11 min ago', routePct:78,  fromLat:-6.7924, fromLng:39.2083, toLat:-7.7669, toLng:35.6940 },
+  { id:'BT-011', plate:'T 282 MOR', operator:'Shell Gas',      capacity:'18,000L', status:'loading',     from:'Morogoro Depot',               to:'Shell Gas Dodoma Plant',          lat:-6.8218, lng:37.6595, speed:0,  lastUpdate:'30 min ago', routePct:0,   fromLat:-6.8218, fromLng:37.6595, toLat:-6.1730, toLng:35.7395 },
+  { id:'BT-012', plate:'T 193 ZNZ', operator:'Lake Gas',       capacity:'15,000L', status:'delivered',   from:'Zanzibar Port',                to:'Lake Gas Zanzibar Retail Hub',    lat:-6.1659, lng:39.2026, speed:0,  lastUpdate:'45 min ago', routePct:100, fromLat:-6.1500, fromLng:39.3200, toLat:-6.1659, toLng:39.2026 },
 ];
 
 const EVENT_LABELS = {
@@ -805,6 +813,12 @@ function openDB() {
         const licStore = d.createObjectStore('licenses', { keyPath: 'id' });
         licStore.createIndex('companyType', 'companyType', { unique: false });
         licStore.createIndex('status',      'status',      { unique: false });
+      }
+
+      if (!d.objectStoreNames.contains('inspections')) {
+        const insStore = d.createObjectStore('inspections', { keyPath: 'id' });
+        insStore.createIndex('status',  'status',  { unique: false });
+        insStore.createIndex('company', 'company', { unique: false });
       }
     };
 
@@ -1172,6 +1186,10 @@ async function seedDemoData() {
     await txPut('licenses', lic);
   }
 
+  for (const ins of DEMO_INSPECTIONS) {
+    await txPut('inspections', ins);
+  }
+
   await txPut('meta', { key: SEED_KEY, value: true });
 }
 
@@ -1484,6 +1502,8 @@ function applySession() {
   // Bulk register button: LPGMC only
   const _bulkBtn = $('bulk-register-btn');
   if (_bulkBtn) _bulkBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+  const _recallBtn = $('recall-btn');
+  if (_recallBtn) _recallBtn.style.display = s.role === 'ewura' ? '' : 'none';
   // Reception button: LPGMC, distributor, retailer
   const _recBtn = $('reception-btn');
   if (_recBtn) _recBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
@@ -2016,6 +2036,80 @@ regSerialScanBtn.addEventListener('click', () => {
 
 let _cylAllData = [];
 let _cylLocations = {}; // cylinderId → { location, region }
+let _cylLeafletMap = null;
+
+function renderCylindersMap(cyls) {
+  const mapEl = $('cyl-map');
+  if (!mapEl) return;
+  const statusColor = { 'in-refill':'#3b82f6', 'in-circulation':'#22c55e', 'revalidation':'#f59e0b', 'in-use':'#a855f7' };
+  requestAnimationFrame(() => {
+    if (_cylLeafletMap) { _cylLeafletMap.remove(); _cylLeafletMap = null; }
+    mapEl.style.height = '280px';
+    mapEl.style.border = '1px solid var(--border)';
+    mapEl.style.borderRadius = '10px';
+    mapEl.style.overflow = 'hidden';
+    mapEl.innerHTML = '';
+    _cylLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_cylLeafletMap);
+    cyls.forEach(cyl => {
+      let lat, lng;
+      const locData = _cylLocations[cyl.id];
+      if (locData?.location) {
+        const net = DEMO_NETWORK.find(n => n.name === locData.location);
+        if (net) { lat = net.lat; lng = net.lng; }
+      }
+      if (!lat) {
+        const lpgmc = DEMO_LPGMC_INFO[cyl.company];
+        if (lpgmc) { lat = lpgmc.lat; lng = lpgmc.lng; }
+      }
+      if (!lat && locData?.region) {
+        const c = REGION_CENTROIDS[locData.region];
+        if (c) { lat = c[0]; lng = c[1]; }
+      }
+      if (!lat) return;
+      lat += (Math.random() - 0.5) * 0.06;
+      lng += (Math.random() - 0.5) * 0.06;
+      const color = statusColor[cyl.status] || '#6b7280';
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>`,
+        iconSize: [10, 10], iconAnchor: [5, 5]
+      });
+      L.marker([lat, lng], { icon }).addTo(_cylLeafletMap)
+        .bindPopup(`<b>${escapeHtml(cyl.serial)}</b><br>${escapeHtml(cyl.company)}<br><span style="font-size:11px;color:#666">${escapeHtml(cyl.status)}</span>`);
+    });
+    setTimeout(() => { if (_cylLeafletMap) _cylLeafletMap.invalidateSize(); }, 200);
+  });
+}
+
+function buildLifecycleFunnelHtml(allCyls, allEvents) {
+  const total    = allCyls.length || 1;
+  const inRefill = allCyls.filter(c => c.status === 'in-refill').length;
+  const inCirc   = allCyls.filter(c => c.status === 'in-circulation').length;
+  const inUse    = allCyls.filter(c => c.status === 'in-use').length;
+  const retIds   = new Set(allEvents.filter(e => e.type === 'ret-returned-empty' || e.type === 'dist-returned-empty').map(e => e.cylinderId));
+  const returned = retIds.size;
+  const stages = [
+    { key:'registered',   count: total,    color:'#3b82f6' },
+    { key:'inRefill',     count: inRefill, color:'#a855f7' },
+    { key:'inCirculation',count: inCirc,   color:'#22c55e' },
+    { key:'inUse',        count: inUse,    color:'#f59e0b' },
+    { key:'returned',     count: returned, color:'#14b8a6' },
+  ];
+  const stagesHtml = stages.map((s, i) => {
+    const pct = Math.round((s.count / total) * 100);
+    const arrow = i < stages.length - 1 ? `<div style="color:var(--muted);font-size:18px;align-self:center;padding:0 6px;padding-bottom:18px">→</div>` : '';
+    return `<div style="text-align:center;min-width:72px;flex:1">
+      <div style="font-size:22px;font-weight:700;color:${s.color}">${s.count}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${escapeHtml(t('funnel.' + s.key))}</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:1px">${pct}%</div>
+    </div>${arrow}`;
+  }).join('');
+  return `<div class="mgmt-card">
+    <div class="mgmt-card-header"><div class="mgmt-card-title">${t('mgmt.lifecycleFunnel')}</div></div>
+    <div style="display:flex;align-items:flex-start;overflow-x:auto;padding:10px 0 4px">${stagesHtml}</div>
+  </div>`;
+}
 
 async function renderCylinders() {
   _cylAllData = await txGetAll('cylinders');
@@ -2041,6 +2135,7 @@ async function renderCylinders() {
   buildCylLocations(_cylAllData, allEvents);
 
   applyCylFilters();
+  renderCylindersMap(_cylAllData);
 }
 
 function buildCylLocations(cyls, allEvents) {
@@ -2538,7 +2633,28 @@ async function renderAlerts() {
     });
   }
 
+  // Recall alerts — surface for all roles whose cylinders match a recall batch
+  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+  if (recalls.length) {
+    const existingIds = new Set(_alertsData.filter(a => a.type === 'recall').map(a => a.cylinder?.id));
+    cyls.forEach(cyl => {
+      if (existingIds.has(cyl.id)) return;
+      const matched = recalls.find(r =>
+        r.operator === cyl.company &&
+        (!cyl.manufactureDate || (cyl.manufactureDate >= r.dateFrom && cyl.manufactureDate <= r.dateTo))
+      );
+      if (matched) {
+        _alertsData.unshift({
+          severity:'critical', type:'recall', cylinder: cyl,
+          title:`${t('alert.recall')} — ${escapeHtml(cyl.serial)}`,
+          desc:`${escapeHtml(matched.operator)} recall issued by EWURA. Reason: ${escapeHtml(matched.reason)}. Recall ID: ${escapeHtml(matched.id)}`
+        });
+      }
+    });
+  }
+
   applyAlertFilters();
+  requestAnimationFrame(() => renderAlertsMap());
 }
 
 function applyAlertFilters() {
@@ -2608,17 +2724,7 @@ function applyAlertFilters() {
 alertFilterSeverity.addEventListener('change', () => { _alertPage = 1; applyAlertFilters(); });
 alertFilterType.addEventListener('change',     () => { _alertPage = 1; applyAlertFilters(); });
 
-// ── Alert view tab toggle ─────────────────────────────────────────────────
-document.querySelectorAll('[data-alert-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-alert-tab]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.alertTab;
-    $('alert-list-pane').style.display = tab === 'list' ? '' : 'none';
-    $('alert-map-pane').style.display  = tab === 'map'  ? '' : 'none';
-    if (tab === 'map') renderAlertsMap();
-  });
-});
+// Alert map is now always shown inline above the list (no tab toggle needed)
 
 const REGION_CENTROIDS = {
   'Dar es Salaam': [-6.7924, 39.2083], 'Arusha': [-3.3869, 36.6830],
@@ -2871,19 +2977,21 @@ function renderAlertsMap() {
   if (!mapEl) return;
 
   if (!_alertsData.length) {
+    if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
     mapEl.style.height = 'auto';
     mapEl.style.border = 'none';
-    mapEl.innerHTML = `<p style="color:var(--muted);padding:16px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
+    mapEl.style.borderRadius = '0';
+    mapEl.innerHTML = `<p style="color:var(--muted);padding:8px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
     return;
   }
 
-  if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
-  mapEl.style.height = '320px';
+  mapEl.style.height = '280px';
   mapEl.style.border = '1px solid var(--border)';
   mapEl.style.borderRadius = '10px';
   mapEl.style.overflow = 'hidden';
   mapEl.innerHTML = '';
 
+  if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
   _alertLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_alertLeafletMap);
 
@@ -2899,6 +3007,8 @@ function renderAlertsMap() {
     L.marker([lat, lng], { icon }).addTo(_alertLeafletMap)
       .bindPopup(`<b>${escapeHtml(al.title)}</b><br><span style="font-size:11px;color:#666">${escapeHtml(al.desc || '')}</span>`);
   });
+
+  setTimeout(() => { if (_alertLeafletMap) _alertLeafletMap.invalidateSize(); }, 200);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3577,6 +3687,8 @@ async function renderMgmtReports() {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
 
+  // ── Lifecycle funnel (all roles) ───────────────────────────────────────────
+  const lifecycleFunnelHtml = buildLifecycleFunnelHtml(cyls, allEvents);
 
   // Populate year filter from event data (first call only)
   const yearSel = $('mgmt-filter-year');
@@ -3982,6 +4094,7 @@ async function renderMgmtReports() {
     : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noInspPeriod')}</p>`;
 
   grid.innerHTML = `
+    ${lifecycleFunnelHtml}
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.status')}</div>
@@ -4879,26 +4992,46 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  if (_bulkLeafletMap) { _bulkLeafletMap.remove(); _bulkLeafletMap = null; }
-  mapEl.style.height = '320px';
+  mapEl.style.height = '380px';
   mapEl.style.border = '1px solid var(--border)';
   mapEl.style.borderRadius = '10px';
   mapEl.style.overflow = 'hidden';
   mapEl.innerHTML = '';
 
-  _bulkLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_bulkLeafletMap);
+  requestAnimationFrame(() => {
+    if (_bulkLeafletMap) { _bulkLeafletMap.remove(); _bulkLeafletMap = null; }
+    _bulkLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_bulkLeafletMap);
 
-  DEMO_BULK_TANKERS.forEach(tk => {
-    const color = tankerHexColor[tk.status] || '#6b7280';
-    const sym   = tankerSym[tk.status]      || '●';
-    const icon  = L.divIcon({
-      className: '',
-      html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff">${sym}</div>`,
-      iconSize: [22, 22], iconAnchor: [11, 11]
+    // Dashed route lines for in-transit tankers (origin → current → destination)
+    DEMO_BULK_TANKERS.filter(tk => tk.status === 'in-transit' && tk.fromLat != null).forEach(tk => {
+      const color = tankerHexColor[tk.status] || '#6b7280';
+      L.polyline([[tk.fromLat, tk.fromLng], [tk.lat, tk.lng], [tk.toLat, tk.toLng]], {
+        color, weight: 2.5, dashArray: '8 6', opacity: 0.7
+      }).addTo(_bulkLeafletMap);
     });
-    L.marker([tk.lat, tk.lng], { icon }).addTo(_bulkLeafletMap)
-      .bindPopup(`<b>${escapeHtml(tk.plate)}</b><br>${escapeHtml(tk.operator)}<br><span style="font-size:11px;color:#666">${statusLbl(tk.status)} · ${escapeHtml(tk.capacity)}</span>`);
+
+    // Faint completed route lines for delivered tankers
+    DEMO_BULK_TANKERS.filter(tk => tk.status === 'delivered' && tk.fromLat != null).forEach(tk => {
+      L.polyline([[tk.fromLat, tk.fromLng], [tk.toLat, tk.toLng]], {
+        color: '#22c55e', weight: 1.5, dashArray: '4 8', opacity: 0.3
+      }).addTo(_bulkLeafletMap);
+    });
+
+    // Tanker markers
+    DEMO_BULK_TANKERS.forEach(tk => {
+      const color = tankerHexColor[tk.status] || '#6b7280';
+      const sym   = tankerSym[tk.status]      || '●';
+      const icon  = L.divIcon({
+        className: '',
+        html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff">${sym}</div>`,
+        iconSize: [22, 22], iconAnchor: [11, 11]
+      });
+      L.marker([tk.lat, tk.lng], { icon }).addTo(_bulkLeafletMap)
+        .bindPopup(`<b>${escapeHtml(tk.plate)}</b><br>${escapeHtml(tk.operator)}<br><span style="font-size:11px;color:#666">${statusLbl(tk.status)} · ${escapeHtml(tk.capacity)}</span>`);
+    });
+
+    setTimeout(() => { if (_bulkLeafletMap) _bulkLeafletMap.invalidateSize(); }, 200);
   });
 }
 
@@ -5197,13 +5330,12 @@ async function renderMarketIntel() {
 // FIELD INSPECTIONS (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _demoInspections = [...DEMO_INSPECTIONS];
-
-function renderInspections() {
+async function renderInspections() {
   const listEl = $('inspections-list');
   if (!listEl) return;
+  const inspections = await txGetAll('inspections');
   const statusOrder = { overdue: 0, scheduled: 1, completed: 2 };
-  const sorted = [..._demoInspections].sort((a, b) => {
+  const sorted = [...inspections].sort((a, b) => {
     const so = (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
     if (so !== 0) return so;
     return new Date(a.scheduledDate) - new Date(b.scheduledDate);
@@ -5226,17 +5358,16 @@ function renderInspections() {
 
 $('new-inspection-btn')?.addEventListener('click', () => { openModal('modal-new-inspection'); });
 
-$('save-inspection-btn')?.addEventListener('click', () => {
+$('save-inspection-btn')?.addEventListener('click', async () => {
   const company  = $('insp-company')?.value.trim();
   const region   = $('insp-region')?.value.trim();
   const auditor  = $('insp-auditor')?.value.trim();
   const date     = $('insp-date')?.value;
   const notes    = $('insp-notes')?.value.trim();
   if (!company || !date) { showSnackbar('Company and date are required.', 'error'); return; }
-  _demoInspections.push({
-    id: 'INS-' + String(_demoInspections.length + 1).padStart(3, '0'),
-    company, region, auditor, scheduledDate: date, status: 'scheduled', notes: notes || '',
-  });
+  const all = await txGetAll('inspections');
+  const newId = 'INS-' + String(all.length + 1).padStart(3, '0');
+  await txPut('inspections', { id: newId, company, region, auditor, scheduledDate: date, status: 'scheduled', notes: notes || '' });
   closeModal('modal-new-inspection');
   renderInspections();
   showSnackbar(t('insp.scheduledOk'), 'success');
@@ -5291,6 +5422,29 @@ $('bulk-register-confirm-btn')?.addEventListener('click', async () => {
   closeModal('modal-bulk-register');
   showSnackbar(`${registered} cylinder${registered !== 1 ? 's' : ''} registered`, 'success');
   renderCylinders();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CYLINDER RECALL WORKFLOW (EWURA)
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('recall-btn')?.addEventListener('click', () => openModal('modal-recall'));
+
+$('recall-submit-btn')?.addEventListener('click', () => {
+  const operator  = $('recall-operator')?.value;
+  const dateFrom  = $('recall-date-from')?.value;
+  const dateTo    = $('recall-date-to')?.value;
+  const reason    = $('recall-reason')?.value.trim();
+  if (!operator || !dateFrom || !dateTo || !reason) {
+    showSnackbar('All fields are required.', 'error'); return;
+  }
+  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+  const id = 'RC-' + String(recalls.length + 1).padStart(3, '0');
+  recalls.push({ id, operator, dateFrom, dateTo, reason, timestamp: new Date().toISOString() });
+  localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
+  closeModal('modal-recall');
+  showSnackbar(t('recall.saved'), 'success');
+  renderAlerts().catch(() => {});
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
