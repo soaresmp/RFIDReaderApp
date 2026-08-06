@@ -3664,9 +3664,6 @@ async function renderMgmtReports() {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   }
 
-  // ── Lifecycle funnel (all roles) ───────────────────────────────────────────
-  const lifecycleFunnelHtml = buildLifecycleFunnelHtml(cyls, allEvents);
-
   // Populate year filter from event data (first call only)
   const yearSel = $('mgmt-filter-year');
   if (yearSel && yearSel.children.length <= 1) {
@@ -4071,7 +4068,6 @@ async function renderMgmtReports() {
     : `<p style="font-size:13px;color:var(--dim);padding:8px 0">${t('msg.noInspPeriod')}</p>`;
 
   grid.innerHTML = `
-    ${lifecycleFunnelHtml}
     <div class="mgmt-card">
       <div class="mgmt-card-header">
         <div class="mgmt-card-title">${t('mgmt.status')}</div>

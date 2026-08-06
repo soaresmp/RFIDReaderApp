@@ -1,4 +1,4 @@
-const CACHE = 'rfid-reader-v15';
+const CACHE = 'rfid-reader-v16';
 const ASSETS = ['/', '/index.html', '/style.css', '/app.js', '/manifest.json'];
 
 self.addEventListener('install', e => {
