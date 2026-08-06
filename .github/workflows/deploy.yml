@@ -22,7 +22,9 @@ jobs:
           # Copy site files to a temp folder
           mkdir /tmp/site
           cp index.html app.js style.css sw.js manifest.json .nojekyll /tmp/site/
+          cp leaflet.js leaflet.css /tmp/site/ 2>/dev/null || true
           cp -r icons /tmp/site/ 2>/dev/null || true
+          cp -r images /tmp/site/ 2>/dev/null || true
 
           # Create a clean orphan branch and force-push
           git checkout --orphan gh-pages

@@ -2169,7 +2169,37 @@ body.nav-open .nav-backdrop { display: block; }
   line-height: 1.45;
 }
 
-/* ── Leaflet custom markers & popups ────────────────────────────────────── */
+/* ── Leaflet popup theme override ───────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  font-family: inherit;
+  font-size: 13px;
+}
+.leaflet-popup-tip { background: var(--surface); }
+.leaflet-popup-content { margin: 10px 14px; }
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--muted);
+  font-size: 18px;
+  top: 6px; right: 8px;
+}
+.leaflet-container a.leaflet-popup-close-button:hover { color: var(--text); }
+.leaflet-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  padding: 4px 9px;
+}
+.leaflet-tooltip-top::before { border-top-color: var(--border); }
+
+/* ── Leaflet custom markers & popups (legacy) ───────────────────────────── */
 .lmap-dot {
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.85);

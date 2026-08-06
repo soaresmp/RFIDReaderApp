@@ -2720,21 +2720,8 @@ const REGION_CENTROIDS = {
   'Iringa': [-7.7676, 35.6938], 'Zanzibar': [-6.1367, 39.3497],
 };
 
-// ── Interactive Tanzania map (offline SVG) ─────────────────────────────────
-const _IMAP_OUTLINE = '250,20 340,18 433,22 490,60 550,98 530,130 510,155 505,180 513,200 513,223 511,247 525,268 543,286 553,340 559,385 520,420 395,440 340,440 293,413 230,390 147,343 90,320 50,285 30,252 17,210 17,155 40,110 71,66 130,42';
-const _IMAP_CITIES = [
-  { name:'Dar es Salaam', lat:-6.7924, lng:39.2083 },
-  { name:'Arusha',        lat:-3.3869, lng:36.6830 },
-  { name:'Mwanza',        lat:-2.5164, lng:32.9175 },
-  { name:'Dodoma',        lat:-6.1722, lng:35.7395 },
-  { name:'Mbeya',         lat:-8.9094, lng:33.4608 },
-  { name:'Tanga',         lat:-5.0690, lng:39.0997 },
-  { name:'Mtwara',        lat:-10.274, lng:40.183  },
-  { name:'Kigoma',        lat:-4.883,  lng:29.627  },
-  { name:'Tabora',        lat:-5.023,  lng:32.798  },
-  { name:'Morogoro',      lat:-6.824,  lng:37.660  },
-];
-const _imapControllers = new Map();
+// ── Interactive map (Leaflet + OpenStreetMap) ──────────────────────────────
+const _leafletMaps = new Map(); // mapId → L.map instance
 
 function _lngLatToImap(lat, lng) {
   return [
@@ -2744,207 +2731,77 @@ function _lngLatToImap(lat, lng) {
 }
 
 function buildInteractiveMap(mapId, markers, legend, height) {
-  const cityDots = _IMAP_CITIES.map(c => {
-    const [cx, cy] = _lngLatToImap(c.lat, c.lng);
-    return `<g>
-      <circle cx="${cx}" cy="${cy}" r="3" fill="#a08060" stroke="#f0e8d4" stroke-width="1.2"/>
-      <text x="${cx+5}" y="${cy+3.5}" font-size="8.5" fill="#6b5840" font-family="system-ui,sans-serif" font-weight="500" letter-spacing="0.01em">${c.name}</text>
-    </g>`;
-  }).join('');
-
-  const markersSvg = (markers || []).map((m, idx) => {
-    const [mx, my] = _lngLatToImap(m.lat, m.lng);
-    const fill = m.color || '#3b82f6';
-    const r = m.big ? 12 : 9;
-    const pulseRing = m.pulse
-      ? `<circle class="imap-pulse-ring" cx="${mx}" cy="${my}" r="${r + 9}" fill="none" stroke="${fill}" stroke-width="2.5" opacity="0.7"/>`
-      : '';
-    const sym = m.symbol
-      ? `<text x="${mx}" y="${my + 3.5}" font-size="9" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700" pointer-events="none">${m.symbol}</text>`
-      : '';
-    return `${pulseRing}<circle class="imap-marker" cx="${mx}" cy="${my}" r="${r}" fill="${fill}" stroke="white" stroke-width="2.5" filter="url(#imap-mshadow)" data-idx="${idx}" style="cursor:pointer"/>${sym}`;
-  }).join('');
-
   const legendHtml = (legend || []).map(l =>
     `<span class="imap-legend-item"><span class="imap-legend-dot" style="background:${l.color}"></span>${escapeHtml(l.label)}</span>`
   ).join('');
-
+  const count = markers ? markers.length : 0;
   const h = height || 380;
   return `<div class="imap-container" id="${mapId}_imap">
     <div class="imap-toolbar">
-      <div class="imap-zoom-group">
-        <button class="imap-btn" data-imap-action="zoom-in" type="button" title="Zoom in">+</button>
-        <button class="imap-btn" data-imap-action="zoom-out" type="button" title="Zoom out">−</button>
-        <button class="imap-btn" data-imap-action="reset" type="button" title="Reset view">⊙</button>
-      </div>
       <div class="imap-legend-row">${legendHtml}</div>
-      <span class="imap-hint">Scroll to zoom · Drag to pan · Click for details</span>
+      <span class="imap-hint">${count} location${count !== 1 ? 's' : ''} · Click marker for details</span>
     </div>
-    <div class="imap-body" id="${mapId}_imapbody">
-      <svg id="${mapId}_svg" viewBox="0 0 600 440"
-           style="width:100%;height:${h}px;display:block;cursor:grab"
-           xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="imap-sea-${mapId}" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#c2dff2"/>
-            <stop offset="100%" stop-color="#a6cce6"/>
-          </linearGradient>
-          <linearGradient id="imap-land-${mapId}" x1="0" y1="0" x2="0.3" y2="1">
-            <stop offset="0%" stop-color="#f0e8d4"/>
-            <stop offset="100%" stop-color="#ddd3b8"/>
-          </linearGradient>
-          <filter id="imap-mshadow" x="-40%" y="-40%" width="180%" height="180%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
-          </filter>
-          <filter id="imap-land-shadow">
-            <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="rgba(140,100,50,0.18)"/>
-          </filter>
-        </defs>
-        <rect width="600" height="440" fill="url(#imap-sea-${mapId})"/>
-        <polygon points="${_IMAP_OUTLINE}" fill="url(#imap-land-${mapId})" stroke="#c8a86a" stroke-width="1.5" stroke-linejoin="round" filter="url(#imap-land-shadow)"/>
-        ${cityDots}
-        ${markersSvg}
-      </svg>
-      <div class="imap-detail-panel" id="${mapId}_imapdetail" style="display:none">
-        <button class="imap-detail-close" data-imap-action="close-detail" type="button" title="Close">✕</button>
-        <div id="${mapId}_imapdetailbody" class="imap-detail-body"></div>
-      </div>
-    </div>
+    <div id="${mapId}_lmap" style="height:${h}px;width:100%"></div>
   </div>`;
 }
 
 function initInteractiveMap(mapId, markers) {
-  const container = $(`${mapId}_imap`);
-  const svg       = $(`${mapId}_svg`);
-  const detail    = $(`${mapId}_imapdetail`);
-  if (!container || !svg) return;
+  const el = document.getElementById(`${mapId}_lmap`);
+  if (!el) return;
 
-  // Abort previous listeners for this mapId
-  const prev = _imapControllers.get(mapId);
-  if (prev) prev.abort();
-  const controller = new AbortController();
-  _imapControllers.set(mapId, controller);
-  const { signal } = controller;
+  // Destroy previous instance if view was re-rendered
+  const prev = _leafletMaps.get(mapId);
+  if (prev) { prev.remove(); _leafletMaps.delete(mapId); }
 
-  // ViewBox state
-  let vx = 0, vy = 0, vw = 600, vh = 440;
-  const setView = (x, y, w, h) => {
-    vx = Math.max(-80, Math.min(530, x));
-    vy = Math.max(-50, Math.min(390, y));
-    vw = Math.max(90,  Math.min(750, w));
-    vh = Math.max(65,  Math.min(550, h));
-    svg.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`);
-  };
+  const map = L.map(`${mapId}_lmap`, { zoomControl: true, attributionControl: true });
 
-  // Zoom buttons & close
-  container.addEventListener('click', e => {
-    const action = e.target.closest('[data-imap-action]')?.dataset?.imapAction;
-    if (!action) return;
-    if (action === 'zoom-in') {
-      setView(vx + vw * 0.15, vy + vh * 0.15, vw * 0.7, vh * 0.7);
-    } else if (action === 'zoom-out') {
-      setView(vx - vw * 0.15, vy - vh * 0.15, vw * 1.3, vh * 1.3);
-    } else if (action === 'reset') {
-      setView(0, 0, 600, 440);
-    } else if (action === 'close-detail' && detail) {
-      detail.style.display = 'none';
-      svg.querySelectorAll('.imap-marker.imap-selected').forEach(el => el.classList.remove('imap-selected'));
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  const latlngs = [];
+  (markers || []).forEach(m => {
+    if (m.lat == null || m.lng == null) return;
+    latlngs.push([m.lat, m.lng]);
+    const fill  = m.color || '#3b82f6';
+    const r     = m.big ? 13 : 9;
+    const circle = L.circleMarker([m.lat, m.lng], {
+      radius: r,
+      fillColor: fill,
+      color: 'white',
+      weight: 2.5,
+      opacity: 1,
+      fillOpacity: 0.92
+    }).addTo(map);
+
+    const popupContent = m.detailHtml ||
+      `<div style="min-width:160px"><strong>${escapeHtml(m.label || '')}</strong></div>`;
+    circle.bindPopup(popupContent, { maxWidth: 320, className: 'imap-popup' });
+
+    if (m.label) circle.bindTooltip(escapeHtml(m.label), { direction: 'top', offset: [0, -r] });
+
+    if (m.pulse) {
+      const ring = L.circleMarker([m.lat, m.lng], {
+        radius: r + 10,
+        fillColor: 'transparent',
+        color: fill,
+        weight: 2,
+        opacity: 0.5,
+        className: 'imap-pulse-ring'
+      }).addTo(map);
     }
-  }, { signal });
+  });
 
-  // Scroll to zoom (mouse)
-  svg.addEventListener('wheel', e => {
-    e.preventDefault();
-    const rect = svg.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top)  / rect.height;
-    const f  = e.deltaY < 0 ? 0.8 : 1.25;
-    const nw = vw * f, nh = vh * f;
-    setView(vx + (vw - nw) * px, vy + (vh - nh) * py, nw, nh);
-  }, { passive: false, signal });
-
-  // Mouse drag to pan
-  let dragging = false, dragX0 = 0, dragY0 = 0, dragVX0 = 0, dragVY0 = 0;
-  svg.addEventListener('mousedown', e => {
-    if (e.button !== 0) return;
-    dragging = true;
-    dragX0 = e.clientX; dragY0 = e.clientY; dragVX0 = vx; dragVY0 = vy;
-    svg.style.cursor = 'grabbing';
-    e.preventDefault();
-  }, { signal });
-  window.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const rect = svg.getBoundingClientRect();
-    setView(dragVX0 - (e.clientX - dragX0) / rect.width * vw,
-            dragVY0 - (e.clientY - dragY0) / rect.height * vh, vw, vh);
-  }, { signal });
-  window.addEventListener('mouseup', () => {
-    if (dragging) { dragging = false; svg.style.cursor = 'grab'; }
-  }, { signal });
-
-  // Touch pan + pinch-zoom
-  let lastTouches = null;
-  svg.addEventListener('touchstart', e => { lastTouches = Array.from(e.touches); }, { passive: true, signal });
-  svg.addEventListener('touchmove', e => {
-    if (!lastTouches) return;
-    e.preventDefault();
-    const cur = Array.from(e.touches);
-    if (cur.length === 1 && lastTouches.length >= 1) {
-      const rect = svg.getBoundingClientRect();
-      const dx = (cur[0].clientX - lastTouches[0].clientX) / rect.width  * vw;
-      const dy = (cur[0].clientY - lastTouches[0].clientY) / rect.height * vh;
-      setView(vx - dx, vy - dy, vw, vh);
-    } else if (cur.length === 2 && lastTouches.length === 2) {
-      const prevD = Math.hypot(lastTouches[0].clientX - lastTouches[1].clientX, lastTouches[0].clientY - lastTouches[1].clientY);
-      const curD  = Math.hypot(cur[0].clientX - cur[1].clientX, cur[0].clientY - cur[1].clientY);
-      if (curD > 0) {
-        const f = prevD / curD;
-        const cx = (cur[0].clientX + cur[1].clientX) / 2;
-        const cy = (cur[0].clientY + cur[1].clientY) / 2;
-        const rect = svg.getBoundingClientRect();
-        const px = (cx - rect.left) / rect.width;
-        const py = (cy - rect.top)  / rect.height;
-        const nw = vw * f, nh = vh * f;
-        setView(vx + (vw - nw) * px, vy + (vh - nh) * py, nw, nh);
-      }
-    }
-    lastTouches = cur;
-  }, { passive: false, signal });
-
-  // Floating tooltip
-  let tip = document.getElementById('imap-global-tip');
-  if (!tip) {
-    tip = document.createElement('div');
-    tip.id = 'imap-global-tip';
-    tip.className = 'imap-tooltip';
-    document.body.appendChild(tip);
+  if (latlngs.length > 1) {
+    map.fitBounds(latlngs, { padding: [40, 40], maxZoom: 10 });
+  } else if (latlngs.length === 1) {
+    map.setView(latlngs[0], 9);
+  } else {
+    map.setView([-6.5, 35.0], 5);
   }
-  svg.addEventListener('mousemove', e => {
-    const circle = e.target.closest('.imap-marker');
-    if (!circle) { tip.hidden = true; return; }
-    const m = markers[+circle.dataset.idx];
-    if (!m) { tip.hidden = true; return; }
-    tip.textContent = m.label || '';
-    tip.hidden = false;
-    tip.style.left = (e.clientX + 14) + 'px';
-    tip.style.top  = (e.clientY - 10) + 'px';
-  }, { signal });
-  svg.addEventListener('mouseleave', () => { tip.hidden = true; }, { signal });
 
-  // Marker click → detail panel
-  svg.addEventListener('click', e => {
-    if (dragging) return;
-    const circle = e.target.closest('.imap-marker');
-    if (!circle || !detail) return;
-    const m = markers[+circle.dataset.idx];
-    if (!m) return;
-    const body = $(`${mapId}_imapdetailbody`);
-    if (body) body.innerHTML = m.detailHtml || `<strong>${escapeHtml(m.label || '')}</strong>`;
-    detail.style.display = '';
-    svg.querySelectorAll('.imap-marker.imap-selected').forEach(el => el.classList.remove('imap-selected'));
-    circle.classList.add('imap-selected');
-    tip.hidden = true;
-  }, { signal });
+  _leafletMaps.set(mapId, map);
 }
 
 function _resolveAlertLatLng(al) {
