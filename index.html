@@ -485,6 +485,9 @@
           <button class="nav-tab" data-view="inspections" id="nav-inspections" style="display:none">
             <span class="nav-label" data-i18n="nav.inspections">Inspections</span>
           </button>
+          <button class="nav-tab" data-view="recalls" id="nav-recalls" style="display:none">
+            <span class="nav-label">Recalls</span>
+          </button>
           <button class="nav-tab" data-view="market-intel" id="nav-market-intel" style="display:none">
             <span class="nav-label" data-i18n="nav.marketIntel">Market Intel</span>
           </button>
@@ -560,7 +563,6 @@
           <div class="page-header">
             <h2 class="page-title" data-i18n="page.cylinders">🔥 Cylinders</h2>
             <div class="page-actions">
-              <button id="recall-btn" class="btn btn-outline" type="button" style="display:none;color:var(--red)" data-i18n="recall.initiate">Initiate Recall</button>
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.register">Register</button>
               <button id="bulk-register-btn" class="btn btn-outline" type="button" style="display:none" data-i18n="btn.bulkRegister">Bulk Register</button>
               <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.shipment">Shipment</button>
@@ -698,6 +700,7 @@
               <option value="empty-desc">Empty: High → Low</option>
             </select>
           </div>
+          <div id="network-map" style="margin-bottom:12px"></div>
           <ul id="network-list" class="network-list" style="max-height:none"></ul>
           <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
           <div id="net-pagination"></div>
@@ -778,8 +781,21 @@
             <h2 class="page-title" data-i18n="page.inspections">🔍 Field Inspections</h2>
             <button id="new-inspection-btn" class="btn btn-primary" type="button" data-i18n="btn.newInspection">+ New Inspection</button>
           </div>
+          <div id="inspections-map" style="margin-bottom:12px"></div>
           <ul id="inspections-list" style="padding:0;margin:0"></ul>
         </div>
+
+        <!-- ── RECALLS VIEW (EWURA only) ─────────────────────────────────── -->
+        <div id="view-recalls" class="view">
+          <div class="page-header">
+            <h2 class="page-title">⚠️ Cylinder Recalls</h2>
+            <div class="page-actions">
+              <button id="recall-new-btn" class="btn btn-primary" type="button" style="background:var(--red)">+ Initiate Recall</button>
+            </div>
+          </div>
+          <div id="recalls-map" style="margin-bottom:12px"></div>
+          <div id="recalls-container"></div>
+        </div><!-- /view-recalls -->
 
         <!-- ── MARKET INTEL VIEW ──────────────────────────────────────────── -->
         <div id="view-market-intel" class="view">

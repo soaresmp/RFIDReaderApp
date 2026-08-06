@@ -635,7 +635,7 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'licenses', 'mgmt-reports', 'network', 'bulk-monitor'],
+  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'mgmt-reports', 'network', 'bulk-monitor'],
   'field-auditor': ['reports', 'scan', 'cylinders'],
   tra:             ['reports', 'scan', 'cylinders'],
   distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
@@ -1502,8 +1502,6 @@ function applySession() {
   // Bulk register button: LPGMC only
   const _bulkBtn = $('bulk-register-btn');
   if (_bulkBtn) _bulkBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
-  const _recallBtn = $('recall-btn');
-  if (_recallBtn) _recallBtn.style.display = s.role === 'ewura' ? '' : 'none';
   // Reception button: LPGMC, distributor, retailer
   const _recBtn = $('reception-btn');
   if (_recBtn) _recBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
@@ -1577,6 +1575,7 @@ function showView(name) {
     'bulk-monitor': 'Bullet Tanks',
     'market-intel': 'Market Intelligence',
     inspections:    'Field Inspections',
+    recalls:        'Cylinder Recalls',
   }[name] || name;
 
   // Lazy render
@@ -1589,6 +1588,7 @@ function showView(name) {
   if (name === 'bulk-monitor')  renderBulkMonitor();
   if (name === 'market-intel')  renderMarketIntel();
   if (name === 'inspections')   renderInspections();
+  if (name === 'recalls')       renderRecalls();
 }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -2036,50 +2036,35 @@ regSerialScanBtn.addEventListener('click', () => {
 
 let _cylAllData = [];
 let _cylLocations = {}; // cylinderId → { location, region }
-let _cylLeafletMap = null;
-
 function renderCylindersMap(cyls) {
   const mapEl = $('cyl-map');
   if (!mapEl) return;
   const statusColor = { 'in-refill':'#3b82f6', 'in-circulation':'#22c55e', 'revalidation':'#f59e0b', 'in-use':'#a855f7' };
-  requestAnimationFrame(() => {
-    if (_cylLeafletMap) { _cylLeafletMap.remove(); _cylLeafletMap = null; }
-    mapEl.style.height = '280px';
-    mapEl.style.border = '1px solid var(--border)';
-    mapEl.style.borderRadius = '10px';
-    mapEl.style.overflow = 'hidden';
-    mapEl.innerHTML = '';
-    _cylLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_cylLeafletMap);
-    cyls.forEach(cyl => {
-      let lat, lng;
-      const locData = _cylLocations[cyl.id];
-      if (locData?.location) {
-        const net = DEMO_NETWORK.find(n => n.name === locData.location);
-        if (net) { lat = net.lat; lng = net.lng; }
-      }
-      if (!lat) {
-        const lpgmc = DEMO_LPGMC_INFO[cyl.company];
-        if (lpgmc) { lat = lpgmc.lat; lng = lpgmc.lng; }
-      }
-      if (!lat && locData?.region) {
-        const c = REGION_CENTROIDS[locData.region];
-        if (c) { lat = c[0]; lng = c[1]; }
-      }
-      if (!lat) return;
-      lat += (Math.random() - 0.5) * 0.06;
-      lng += (Math.random() - 0.5) * 0.06;
-      const color = statusColor[cyl.status] || '#6b7280';
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>`,
-        iconSize: [10, 10], iconAnchor: [5, 5]
-      });
-      L.marker([lat, lng], { icon }).addTo(_cylLeafletMap)
-        .bindPopup(`<b>${escapeHtml(cyl.serial)}</b><br>${escapeHtml(cyl.company)}<br><span style="font-size:11px;color:#666">${escapeHtml(cyl.status)}</span>`);
-    });
-    setTimeout(() => { if (_cylLeafletMap) _cylLeafletMap.invalidateSize(); }, 200);
+  const markers = [];
+  cyls.forEach(cyl => {
+    let lat, lng;
+    const locData = _cylLocations[cyl.id];
+    if (locData?.location) {
+      const net = DEMO_NETWORK.find(n => n.name === locData.location);
+      if (net) { lat = net.lat; lng = net.lng; }
+    }
+    if (!lat) {
+      const lpgmc = DEMO_LPGMC_INFO[cyl.company];
+      if (lpgmc) { lat = lpgmc.lat; lng = lpgmc.lng; }
+    }
+    if (!lat && locData?.region) {
+      const c = REGION_CENTROIDS[locData.region];
+      if (c) { lat = c[0]; lng = c[1]; }
+    }
+    if (!lat) return;
+    markers.push({ lat, lng, color: statusColor[cyl.status] || '#6b7280', label: cyl.serial, tooltip: `${cyl.serial} · ${cyl.company} · ${cyl.status}` });
   });
+  const legend = [
+    { color:'#3b82f6', label:'In Refill' }, { color:'#22c55e', label:'In Circulation' },
+    { color:'#f59e0b', label:'Revalidation' }, { color:'#a855f7', label:'In Use' },
+  ];
+  mapEl.innerHTML = buildInteractiveMap('cylmap', markers, legend, 280);
+  initInteractiveMap('cylmap', markers);
 }
 
 function buildLifecycleFunnelHtml(allCyls, allEvents) {
@@ -2950,8 +2935,6 @@ function initInteractiveMap(mapId, markers) {
   }, { signal });
 }
 
-let _alertLeafletMap = null;
-
 function _resolveAlertLatLng(al) {
   const cyl = al.cylinder;
   let lat = -6.5, lng = 35.5;
@@ -2977,38 +2960,19 @@ function renderAlertsMap() {
   if (!mapEl) return;
 
   if (!_alertsData.length) {
-    if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
-    mapEl.style.height = 'auto';
-    mapEl.style.border = 'none';
-    mapEl.style.borderRadius = '0';
     mapEl.innerHTML = `<p style="color:var(--muted);padding:8px 0;font-size:13px">${t('msg.noActiveAlerts')}</p>`;
     return;
   }
 
-  mapEl.style.height = '280px';
-  mapEl.style.border = '1px solid var(--border)';
-  mapEl.style.borderRadius = '10px';
-  mapEl.style.overflow = 'hidden';
-  mapEl.innerHTML = '';
-
-  if (_alertLeafletMap) { _alertLeafletMap.remove(); _alertLeafletMap = null; }
-  _alertLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_alertLeafletMap);
-
-  _alertsData.forEach(al => {
+  const markers = _alertsData.map(al => {
     const [lat, lng] = _resolveAlertLatLng(al);
     const isCrit = al.severity === 'critical';
-    const color  = isCrit ? '#dc2626' : '#f59e0b';
-    const icon = L.divIcon({
-      className: '',
-      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>`,
-      iconSize: [14, 14], iconAnchor: [7, 7]
-    });
-    L.marker([lat, lng], { icon }).addTo(_alertLeafletMap)
-      .bindPopup(`<b>${escapeHtml(al.title)}</b><br><span style="font-size:11px;color:#666">${escapeHtml(al.desc || '')}</span>`);
+    return { lat, lng, color: isCrit ? '#dc2626' : '#f59e0b', pulse: isCrit,
+      tooltip: al.title, label: isCrit ? '!' : '⚠' };
   });
-
-  setTimeout(() => { if (_alertLeafletMap) _alertLeafletMap.invalidateSize(); }, 200);
+  const legend = [{ color:'#dc2626', label:'Critical' }, { color:'#f59e0b', label:'Warning' }];
+  mapEl.innerHTML = buildInteractiveMap('alertmap', markers, legend, 280);
+  initInteractiveMap('alertmap', markers);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3470,6 +3434,19 @@ async function renderNetwork() {
     _netPage = p;
     renderNetwork();
   });
+
+  const netMapEl = $('network-map');
+  if (netMapEl) {
+    const netMarkers = DEMO_NETWORK.map(n => ({
+      lat: n.lat, lng: n.lng,
+      color: n.type === 'Distributor' ? '#3b82f6' : '#22c55e',
+      pulse: n.status === 'inactive',
+      tooltip: `${n.name} · ${n.type} · ${n.city}`,
+    }));
+    const netLegend = [{ color:'#3b82f6', label:'Distributor' }, { color:'#22c55e', label:'Retailer' }];
+    netMapEl.innerHTML = buildInteractiveMap('netmap', netMarkers, netLegend, 300);
+    initInteractiveMap('netmap', netMarkers);
+  }
 }
 
 // Network filters — type dropdown + status dropdown + sort
@@ -4964,7 +4941,6 @@ if (_recConfirmBtn) _recConfirmBtn.addEventListener('click', async () => {
 // BULLET TANKS VIEW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _bulkLeafletMap = null;
 
 async function renderBulkMonitor() {
   const listEl = $('bulk-tanker-list');
@@ -4992,47 +4968,20 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  mapEl.style.height = '380px';
-  mapEl.style.border = '1px solid var(--border)';
-  mapEl.style.borderRadius = '10px';
-  mapEl.style.overflow = 'hidden';
-  mapEl.innerHTML = '';
-
-  requestAnimationFrame(() => {
-    if (_bulkLeafletMap) { _bulkLeafletMap.remove(); _bulkLeafletMap = null; }
-    _bulkLeafletMap = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([-6.37, 34.89], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(_bulkLeafletMap);
-
-    // Dashed route lines for in-transit tankers (origin → current → destination)
-    DEMO_BULK_TANKERS.filter(tk => tk.status === 'in-transit' && tk.fromLat != null).forEach(tk => {
-      const color = tankerHexColor[tk.status] || '#6b7280';
-      L.polyline([[tk.fromLat, tk.fromLng], [tk.lat, tk.lng], [tk.toLat, tk.toLng]], {
-        color, weight: 2.5, dashArray: '8 6', opacity: 0.7
-      }).addTo(_bulkLeafletMap);
-    });
-
-    // Faint completed route lines for delivered tankers
-    DEMO_BULK_TANKERS.filter(tk => tk.status === 'delivered' && tk.fromLat != null).forEach(tk => {
-      L.polyline([[tk.fromLat, tk.fromLng], [tk.toLat, tk.toLng]], {
-        color: '#22c55e', weight: 1.5, dashArray: '4 8', opacity: 0.3
-      }).addTo(_bulkLeafletMap);
-    });
-
-    // Tanker markers
-    DEMO_BULK_TANKERS.forEach(tk => {
-      const color = tankerHexColor[tk.status] || '#6b7280';
-      const sym   = tankerSym[tk.status]      || '●';
-      const icon  = L.divIcon({
-        className: '',
-        html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff">${sym}</div>`,
-        iconSize: [22, 22], iconAnchor: [11, 11]
-      });
-      L.marker([tk.lat, tk.lng], { icon }).addTo(_bulkLeafletMap)
-        .bindPopup(`<b>${escapeHtml(tk.plate)}</b><br>${escapeHtml(tk.operator)}<br><span style="font-size:11px;color:#666">${statusLbl(tk.status)} · ${escapeHtml(tk.capacity)}</span>`);
-    });
-
-    setTimeout(() => { if (_bulkLeafletMap) _bulkLeafletMap.invalidateSize(); }, 200);
-  });
+  const markers = DEMO_BULK_TANKERS.map(tk => ({
+    lat: tk.lat, lng: tk.lng,
+    color: tankerHexColor[tk.status] || '#6b7280',
+    symbol: tankerSym[tk.status] || '●',
+    pulse: tk.status === 'in-transit',
+    big: true,
+    tooltip: `${tk.plate} · ${tk.operator} · ${statusLbl(tk.status)} · ${tk.capacity}`,
+  }));
+  const legend = [
+    { color:'#3b82f6', label:'In Transit' }, { color:'#f59e0b', label:'At Terminal' },
+    { color:'#22c55e', label:'Delivered' },  { color:'#a855f7', label:'Loading' },
+  ];
+  mapEl.innerHTML = buildInteractiveMap('bulkmap', markers, legend, 360);
+  initInteractiveMap('bulkmap', markers);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -5354,6 +5303,23 @@ async function renderInspections() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusPill(ins.status)}<span style="font-size:11px;color:var(--muted)">${escapeHtml(ins.id)}</span></div>
     </li>`).join('');
+
+  const inspMapEl = $('inspections-map');
+  if (inspMapEl) {
+    const statusColor = { overdue:'#dc2626', scheduled:'#3b82f6', completed:'#22c55e' };
+    const inspMarkers = inspections.map(ins => {
+      const net = DEMO_NETWORK.find(n => n.name === ins.company || n.region === ins.region);
+      const rc  = REGION_CENTROIDS[ins.region];
+      if (!net && !rc) return null;
+      const lat = net ? net.lat : rc[0];
+      const lng = net ? net.lng : rc[1];
+      return { lat, lng, color: statusColor[ins.status] || '#6b7280', pulse: ins.status === 'overdue',
+        tooltip: `${ins.company} · ${ins.region} · ${ins.status} · ${ins.scheduledDate}` };
+    }).filter(Boolean);
+    const inspLegend = [{ color:'#dc2626', label:'Overdue' }, { color:'#3b82f6', label:'Scheduled' }, { color:'#22c55e', label:'Completed' }];
+    inspMapEl.innerHTML = buildInteractiveMap('inspmap', inspMarkers, inspLegend, 280);
+    initInteractiveMap('inspmap', inspMarkers);
+  }
 }
 
 $('new-inspection-btn')?.addEventListener('click', () => { openModal('modal-new-inspection'); });
@@ -5428,7 +5394,30 @@ $('bulk-register-confirm-btn')?.addEventListener('click', async () => {
 // CYLINDER RECALL WORKFLOW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
-$('recall-btn')?.addEventListener('click', () => openModal('modal-recall'));
+function renderRecalls() {
+  const container = $('recalls-container');
+  if (!container) return;
+  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+
+  // Compute impact counts
+  const impactHtml = recalls.length ? recalls.slice().reverse().map(r => {
+    const color = '#dc2626';
+    return `<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">${escapeHtml(r.id)} — ${escapeHtml(r.operator)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Manufacture: ${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}</div>
+          <div style="font-size:13px">${escapeHtml(r.reason)}</div>
+        </div>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;margin-left:12px">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
+      </div>
+    </div>`;
+  }).join('') : `<p style="color:var(--muted);font-size:13px">No recalls issued.</p>`;
+
+  container.innerHTML = impactHtml;
+}
+
+$('recall-new-btn')?.addEventListener('click', () => openModal('modal-recall'));
 
 $('recall-submit-btn')?.addEventListener('click', () => {
   const operator  = $('recall-operator')?.value;
@@ -5444,6 +5433,7 @@ $('recall-submit-btn')?.addEventListener('click', () => {
   localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
   closeModal('modal-recall');
   showSnackbar(t('recall.saved'), 'success');
+  renderRecalls();
   renderAlerts().catch(() => {});
 });
 
