@@ -8,7 +8,6 @@
   <title>LPG Traceability Platform</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -254,6 +253,10 @@
         </div>
 
         <div style="margin-top:20px;padding-top:18px;border-top:1px solid #e2e8f0;text-align:center">
+          <p style="font-size:12px;color:#94a3b8;margin-bottom:8px">Already licensed? Register your account credentials:</p>
+          <button id="signup-open-btn" type="button" style="background:#0f766e;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.01em;margin-bottom:10px">
+            🔑 Sign Up — Register Platform Credentials
+          </button>
           <p style="font-size:12px;color:#94a3b8;margin-bottom:10px" data-i18n="licApp.newUser">New to the platform?</p>
           <button id="license-apply-open-btn" type="button" style="background:#1e40af;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.01em" data-i18n="licApp.btnLabel">
             📋 Apply for LPG Distribution Licence
@@ -262,7 +265,7 @@
 
         <div class="login-panel-footer">
           &copy; 2025 LPG Traceability Platform · Tanzania
-          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.16</span>
+          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.17</span>
         </div>
       </div>
     </div>
@@ -816,6 +819,43 @@
   <!-- MODALS                                                                  -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
+  <!-- Sign Up modal (already-licensed users registering platform credentials) -->
+  <div id="modal-signup" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Sign Up">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🔑 Sign Up</h2>
+        <button class="modal-close" data-close="modal-signup" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Register your platform credentials using your existing EWURA licence number.</p>
+        <div class="form-group">
+          <label for="signup-license">Licence Number</label>
+          <input id="signup-license" type="text" class="form-control font-mono" placeholder="e.g. LIC-001" />
+        </div>
+        <div class="form-group">
+          <label for="signup-fullname">Full Name</label>
+          <input id="signup-fullname" type="text" class="form-control" placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <input id="signup-email" type="email" class="form-control" placeholder="you@company.com" />
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input id="signup-password" type="password" class="form-control" placeholder="Choose a strong password" />
+        </div>
+        <div class="form-group">
+          <label for="signup-password2">Confirm Password</label>
+          <input id="signup-password2" type="password" class="form-control" placeholder="Repeat password" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-signup" type="button">Cancel</button>
+        <button id="signup-submit-btn" class="btn btn-primary" type="button" style="background:#0f766e">Register Credentials</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Register cylinder modal -->
   <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
     <div class="modal">
@@ -1261,7 +1301,6 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -5434,6 +5434,39 @@ $('recall-submit-btn')?.addEventListener('click', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// SIGN UP (already-licensed users registering platform credentials)
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('signup-open-btn')?.addEventListener('click', () => openModal('modal-signup'));
+
+$('signup-submit-btn')?.addEventListener('click', () => {
+  const license  = $('signup-license')?.value.trim();
+  const fullname = $('signup-fullname')?.value.trim();
+  const email    = $('signup-email')?.value.trim();
+  const pw       = $('signup-password')?.value;
+  const pw2      = $('signup-password2')?.value;
+  if (!license || !fullname || !email || !pw) {
+    showSnackbar('All fields are required.', 'error'); return;
+  }
+  if (pw !== pw2) {
+    showSnackbar('Passwords do not match.', 'error'); return;
+  }
+  if (pw.length < 8) {
+    showSnackbar('Password must be at least 8 characters.', 'error'); return;
+  }
+  // Store registration (demo — no real auth backend)
+  const registrations = JSON.parse(localStorage.getItem('lpg-registrations') || '[]');
+  if (registrations.find(r => r.email === email)) {
+    showSnackbar('An account with this email already exists.', 'error'); return;
+  }
+  registrations.push({ license, fullname, email, timestamp: new Date().toISOString() });
+  localStorage.setItem('lpg-registrations', JSON.stringify(registrations));
+  closeModal('modal-signup');
+  ['signup-license','signup-fullname','signup-email','signup-password','signup-password2'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  showSnackbar('Registration submitted! Your account is pending EWURA approval.', 'success');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ══════════════════════════════════════════════════════════════════════════════
 
