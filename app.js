@@ -2746,20 +2746,23 @@ function _lngLatToImap(lat, lng) {
 function buildInteractiveMap(mapId, markers, legend, height) {
   const cityDots = _IMAP_CITIES.map(c => {
     const [cx, cy] = _lngLatToImap(c.lat, c.lng);
-    return `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#1e4a7a"/><text x="${cx+4}" y="${cy+3}" font-size="7.5" fill="#3a6494" font-family="system-ui,sans-serif">${c.name}</text>`;
+    return `<g>
+      <circle cx="${cx}" cy="${cy}" r="3" fill="#a08060" stroke="#f0e8d4" stroke-width="1.2"/>
+      <text x="${cx+5}" y="${cy+3.5}" font-size="8.5" fill="#6b5840" font-family="system-ui,sans-serif" font-weight="500" letter-spacing="0.01em">${c.name}</text>
+    </g>`;
   }).join('');
 
   const markersSvg = (markers || []).map((m, idx) => {
     const [mx, my] = _lngLatToImap(m.lat, m.lng);
     const fill = m.color || '#3b82f6';
-    const r = m.big ? 11 : 8;
+    const r = m.big ? 12 : 9;
     const pulseRing = m.pulse
-      ? `<circle class="imap-pulse-ring" cx="${mx}" cy="${my}" r="${r + 7}" fill="none" stroke="${fill}" stroke-width="1.5"/>`
+      ? `<circle class="imap-pulse-ring" cx="${mx}" cy="${my}" r="${r + 9}" fill="none" stroke="${fill}" stroke-width="2.5" opacity="0.7"/>`
       : '';
     const sym = m.symbol
-      ? `<text x="${mx}" y="${my + 3.5}" font-size="8" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700" pointer-events="none">${m.symbol}</text>`
+      ? `<text x="${mx}" y="${my + 3.5}" font-size="9" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700" pointer-events="none">${m.symbol}</text>`
       : '';
-    return `${pulseRing}<circle class="imap-marker" cx="${mx}" cy="${my}" r="${r}" fill="${fill}" stroke="white" stroke-width="2" data-idx="${idx}" style="cursor:pointer"/>${sym}`;
+    return `${pulseRing}<circle class="imap-marker" cx="${mx}" cy="${my}" r="${r}" fill="${fill}" stroke="white" stroke-width="2.5" filter="url(#imap-mshadow)" data-idx="${idx}" style="cursor:pointer"/>${sym}`;
   }).join('');
 
   const legendHtml = (legend || []).map(l =>
@@ -2775,21 +2778,30 @@ function buildInteractiveMap(mapId, markers, legend, height) {
         <button class="imap-btn" data-imap-action="reset" type="button" title="Reset view">⊙</button>
       </div>
       <div class="imap-legend-row">${legendHtml}</div>
-      <span class="imap-hint">Scroll/pinch to zoom · Drag to pan · Click marker for info</span>
+      <span class="imap-hint">Scroll to zoom · Drag to pan · Click for details</span>
     </div>
     <div class="imap-body" id="${mapId}_imapbody">
       <svg id="${mapId}_svg" viewBox="0 0 600 440"
-           style="width:100%;height:${h}px;background:#050f1e;display:block;cursor:grab"
+           style="width:100%;height:${h}px;display:block;cursor:grab"
            xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="imap-sea" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#060d1f"/>
-            <stop offset="100%" stop-color="#091428"/>
+          <linearGradient id="imap-sea-${mapId}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#c2dff2"/>
+            <stop offset="100%" stop-color="#a6cce6"/>
           </linearGradient>
-          <filter id="imap-glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="imap-land-${mapId}" x1="0" y1="0" x2="0.3" y2="1">
+            <stop offset="0%" stop-color="#f0e8d4"/>
+            <stop offset="100%" stop-color="#ddd3b8"/>
+          </linearGradient>
+          <filter id="imap-mshadow" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
+          </filter>
+          <filter id="imap-land-shadow">
+            <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="rgba(140,100,50,0.18)"/>
+          </filter>
         </defs>
-        <rect width="600" height="440" fill="url(#imap-sea)"/>
-        <polygon points="${_IMAP_OUTLINE}" fill="#0d2540" stroke="#1e4a7a" stroke-width="1.5" stroke-linejoin="round"/>
+        <rect width="600" height="440" fill="url(#imap-sea-${mapId})"/>
+        <polygon points="${_IMAP_OUTLINE}" fill="url(#imap-land-${mapId})" stroke="#c8a86a" stroke-width="1.5" stroke-linejoin="round" filter="url(#imap-land-shadow)"/>
         ${cityDots}
         ${markersSvg}
       </svg>
