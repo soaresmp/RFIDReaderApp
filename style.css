@@ -1555,15 +1555,17 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   border-top: 1px solid rgba(255,255,255,0.12);
   padding-top: 16px;
 }
-.login-brand-cylinders {
+.login-brand-hero {
   position: absolute;
-  bottom: -32px;
-  right: -36px;
-  width: 300px;
-  height: 380px;
+  bottom: -24px;
+  right: -28px;
+  width: 320px;
+  height: auto;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.85;
+  user-select: none;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 8px 32px rgba(0,20,80,0.5));
 }
 
 /* Right login panel */
@@ -1965,7 +1967,7 @@ body.nav-open .nav-backdrop { display: block; }
   .login-brand-features { display: none; }
   .login-brand-title { font-size: 18px; margin-bottom: 4px; }
   .login-brand-footer { display: none; }
-  .login-brand-cylinders { width: 160px; height: 200px; bottom: -16px; right: -16px; }
+  .login-brand-hero { width: 200px; bottom: -12px; right: -12px; }
   .login-panel { padding: 20px 16px; align-items: flex-start; overflow-y: auto; }
   .login-panel-inner { max-width: 100%; width: 100%; }
   .login-panel-title { font-size: 18px; }
