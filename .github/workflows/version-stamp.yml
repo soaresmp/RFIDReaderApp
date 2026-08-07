@@ -1,0 +1,33 @@
+name: Stamp Version
+
+on:
+  push:
+    branches: [claude/rfid-scanner-app-fKo2a]
+
+permissions:
+  contents: write
+
+jobs:
+  stamp:
+    # Skip the commit this workflow itself creates to avoid an infinite loop
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/rfid-scanner-app-fKo2a
+
+      - name: Stamp version into index.html
+        run: |
+          VERSION="v1.$(git rev-list --count HEAD)"
+          echo "Stamping $VERSION"
+          sed -i "s/v[0-9]\+\.[0-9]\+/$VERSION/" index.html
+
+      - name: Commit stamped version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="v1.$(git rev-list --count HEAD)"
+          git add index.html
+          git diff --cached --quiet || git commit -m "chore: stamp version $VERSION [skip ci]"
+          git push origin claude/rfid-scanner-app-fKo2a
