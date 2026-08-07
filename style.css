@@ -216,6 +216,17 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .role-distributor  { background: #b45309; color: #fff; }
 .role-retailer     { background: #0369a1; color: #fff; }
 
+.header-country-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
 .header-operator-pill {
   padding: 3px 10px;
   border-radius: 999px;

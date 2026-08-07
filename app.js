@@ -1965,6 +1965,8 @@ function showLoginOverlay() {
   loginCompSel.value  = '';
   loginCompText.value = '';
   _selectedRole = null;
+  const countryPill = $('header-country-pill');
+  if (countryPill) countryPill.hidden = true;
 }
 
 function hideLoginOverlay() {
@@ -2061,6 +2063,12 @@ function applySession() {
 
   headerOpPill.textContent = s.company;
   headerOpPill.hidden      = false;
+
+  const countryPill = $('header-country-pill');
+  if (countryPill) {
+    countryPill.textContent = _activeCountry === 'KE' ? '🇰🇪 Kenya' : '🇹🇿 Tanzania';
+    countryPill.hidden = false;
+  }
 
   logoutBtn.hidden = false;
   if (_hamburger) _hamburger.hidden = false;
