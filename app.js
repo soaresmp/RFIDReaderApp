@@ -1324,6 +1324,12 @@ function _idbGetIndex(storeName, indexName, value) {
   });
 }
 
+// ── In-memory cache for txGetAll — keyed by "storeName:country" ──────────────
+// Invalidated on every txPut / txDelete / txClearStore so reads stay consistent.
+const _txCache = {};
+function _cacheKey(storeName) { return storeName + ':' + _activeCountry; }
+function _cacheInvalidate(storeName) { delete _txCache[_cacheKey(storeName)]; }
+
 // ── Public tx* API — routes FS_STORES to Firestore under /countries/{_activeCountry}/ ──
 async function txGet(storeName, key) {
   if (_fdb && FS_STORES.has(storeName)) {
@@ -1335,13 +1341,17 @@ async function txGet(storeName, key) {
 
 async function txGetAll(storeName) {
   if (_fdb && FS_STORES.has(storeName)) {
+    const k = _cacheKey(storeName);
+    if (_txCache[k]) return _txCache[k];
     const snap = await _fsColl(storeName).get();
-    return snap.docs.map(d => d.data());
+    _txCache[k] = snap.docs.map(d => d.data());
+    return _txCache[k];
   }
   return _idbGetAll(storeName);
 }
 
 async function txPut(storeName, record) {
+  _cacheInvalidate(storeName);
   if (_fdb && FS_STORES.has(storeName)) {
     if (_seedBatch !== null) return _fsBatchAdd(storeName, record);
     if (record.id != null) {
@@ -1357,6 +1367,7 @@ async function txPut(storeName, record) {
 }
 
 async function txDelete(storeName, key) {
+  _cacheInvalidate(storeName);
   if (_fdb && FS_STORES.has(storeName)) {
     await _fsColl(storeName).doc(String(key)).delete();
     return;
@@ -1365,6 +1376,7 @@ async function txDelete(storeName, key) {
 }
 
 async function txClearStore(storeName) {
+  _cacheInvalidate(storeName);
   if (_fdb && FS_STORES.has(storeName)) {
     const snap = await _fsColl(storeName).get();
     for (let i = 0; i < snap.docs.length; i += 500) {
@@ -3091,25 +3103,30 @@ let _alertsData = [];
 
 async function renderAlerts() {
   let cyls = await txGetAll('cylinders');
+  // Fetch events once; build index by cylinderId (sorted ascending by timestamp)
+  const allEvents = await txGetAll('events');
+  const evsByCyl = {};
+  for (const ev of allEvents) {
+    (evsByCyl[ev.cylinderId] || (evsByCyl[ev.cylinderId] = [])).push(ev);
+  }
+  for (const id of Object.keys(evsByCyl)) {
+    evsByCyl[id].sort((a, b) => (a.timestamp < b.timestamp ? -1 : 1));
+  }
+
   const alertRole = Auth.session?.role;
   if (alertRole === 'lpgmc') {
     cyls = cyls.filter(c => c.company === Auth.session.company);
   } else if (alertRole === 'distributor' || alertRole === 'retailer') {
-    // Only show alerts for cylinders currently assigned to this partner
-    const allEvForFilter = await txGetAll('events');
-    const lastEvMap = {};
-    allEvForFilter.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      .forEach(ev => { lastEvMap[ev.cylinderId] = ev; });
     const partnerName = Auth.session.company;
     cyls = cyls.filter(c => {
-      const ev = lastEvMap[c.id];
-      if (!ev) return false;
-      return (ev.location || ev.company || '') === partnerName;
+      const evs = evsByCyl[c.id];
+      if (!evs || !evs.length) return false;
+      const last = evs[evs.length - 1];
+      return (last.location || last.company || '') === partnerName;
     });
   }
 
   const now = new Date();
-  const allEvents = await txGetAll('events');
   _alertsData = [];
 
   for (const cyl of cyls) {
@@ -3127,62 +3144,47 @@ async function renderAlerts() {
       }
     }
 
+    const cylEvents = evsByCyl[cyl.id] || [];
+
     // 2. Misplaced cylinder: shipped to X but received at Y
-    {
-      const cylEvents = allEvents
-        .filter(e => e.cylinderId === cyl.id)
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      for (let i = cylEvents.length - 1; i >= 0; i--) {
-        const ev = cylEvents[i];
-        if (ev.type === 'shipped' && ev.destinedFor) {
-          const recvEv = cylEvents.slice(i + 1).find(e =>
-            e.type === 'dist-received' || e.type === 'ret-received'
-          );
-          if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) {
-            _alertsData.push({
-              severity: 'critical', type: 'misplaced', cylinder: cyl,
-              title: `${cyl.serial} — Misplaced Cylinder`,
-              desc: `Shipped to "${ev.destinedFor}" but received by "${recvEv.company}".`,
-            });
-          }
-          break;
+    for (let i = cylEvents.length - 1; i >= 0; i--) {
+      const ev = cylEvents[i];
+      if (ev.type === 'shipped' && ev.destinedFor) {
+        const recvEv = cylEvents.slice(i + 1).find(e =>
+          e.type === 'dist-received' || e.type === 'ret-received'
+        );
+        if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) {
+          _alertsData.push({
+            severity: 'critical', type: 'misplaced', cylinder: cyl,
+            title: `${cyl.serial} — Misplaced Cylinder`,
+            desc: `Shipped to "${ev.destinedFor}" but received by "${recvEv.company}".`,
+          });
         }
+        break;
       }
     }
 
     // 3. Unreported: no movement reported in 90+ days
-    if (cyl.status === 'in-circulation') {
-      const cylEvents = allEvents.filter(e => e.cylinderId === cyl.id)
-        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-      const lastEv = cylEvents[0];
-      if (lastEv) {
-        const days = Math.floor((now - new Date(lastEv.timestamp)) / (24*60*60*1000));
-        if (days > 90) {
-          _alertsData.push({ severity:'warning', type:'stuck-in-circulation', cylinder:cyl,
-            title: `${cyl.serial} — Unreported (${days}d)`,
-            desc: `Cylinder has been in circulation for ${days} days without a movement report.` });
-        }
+    if (cyl.status === 'in-circulation' && cylEvents.length) {
+      const lastEv = cylEvents[cylEvents.length - 1];
+      const days = Math.floor((now - new Date(lastEv.timestamp)) / 86400000);
+      if (days > 90) {
+        _alertsData.push({ severity:'warning', type:'stuck-in-circulation', cylinder:cyl,
+          title: `${cyl.serial} — Unreported (${days}d)`,
+          desc: `Cylinder has been in circulation for ${days} days without a movement report.` });
       }
     }
-
   }
 
   buildCylLocations(cyls, allEvents);
 
-  // Shortage / Surplus stock alerts
+  // Shortage / Surplus stock alerts — reuse already-loaded data
   const stockRole = Auth.session?.role;
   if (stockRole === 'distributor' || stockRole === 'lpgmc') {
-    const allEvForStock = await txGetAll('events');
-    const lastEvMap2 = {};
-    allEvForStock.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      .forEach(ev => { lastEvMap2[ev.cylinderId] = ev; });
     if (stockRole === 'distributor') {
+      // cyls is already filtered to this distributor's cylinders above
       const company = Auth.session.company;
-      const myCyls = (await txGetAll('cylinders')).filter(c => {
-        const ev = lastEvMap2[c.id];
-        return ev && (ev.location || ev.company || '') === company;
-      });
-      const total = myCyls.length;
+      const total = cyls.length;
       if (total < 15) {
         _alertsData.unshift({ severity:'warning', type:'stock-shortage', cylinder:{ id:'stock-shortage', serial:'Stock', company, status:'in-circulation' },
           title:`${t('alert.stockShortage')} — only ${total} cylinders at ${company}`,
@@ -3573,6 +3575,14 @@ async function renderReports() {
     // Alerts — compute inline per type
     const now = new Date();
     let alertRequalOverdue = 0, alertStuck = 0, alertMisplaced = 0;
+    // Pre-index events by cylinderId (sorted ascending) to avoid O(N×M) scans
+    const _evsByCylR = {};
+    for (const ev of events) {
+      (_evsByCylR[ev.cylinderId] || (_evsByCylR[ev.cylinderId] = [])).push(ev);
+    }
+    for (const id of Object.keys(_evsByCylR)) {
+      _evsByCylR[id].sort((a, b) => (a.timestamp < b.timestamp ? -1 : 1));
+    }
     cyls.forEach(cyl => {
       const baseDate = cyl.lastRequalDate || cyl.manufactureDate;
       if (baseDate) {
@@ -3581,22 +3591,24 @@ async function renderReports() {
         if (due < now) alertRequalOverdue++;
       }
       if (cyl.status === 'in-circulation') {
-        const cylEvs = events.filter(e => e.cylinderId === cyl.id)
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        if (cylEvs.length) {
-          const days = Math.floor((now - new Date(cylEvs[0].timestamp)) / 86400000);
+        const cylEvs = _evsByCylR[cyl.id];
+        if (cylEvs && cylEvs.length) {
+          const days = Math.floor((now - new Date(cylEvs[cylEvs.length - 1].timestamp)) / 86400000);
           if (days > 90) alertStuck++;
         }
       }
     });
-    // Misplaced: shipped to X received by Y
-    const shipEvs = events.filter(e => e.type === 'shipped' && e.destinedFor);
-    shipEvs.forEach(ev => {
-      const cylEvs = events.filter(e => e.cylinderId === ev.cylinderId && new Date(e.timestamp) > new Date(ev.timestamp))
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      const recvEv = cylEvs.find(e => e.type === 'dist-received' || e.type === 'ret-received');
-      if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) alertMisplaced++;
-    });
+    // Misplaced: shipped to X received by Y — walk each cylinder's sorted events once
+    for (const [cylId, cylEvs] of Object.entries(_evsByCylR)) {
+      for (let i = cylEvs.length - 1; i >= 0; i--) {
+        const ev = cylEvs[i];
+        if (ev.type === 'shipped' && ev.destinedFor) {
+          const recvEv = cylEvs.slice(i + 1).find(e => e.type === 'dist-received' || e.type === 'ret-received');
+          if (recvEv && recvEv.company && recvEv.company !== ev.destinedFor) alertMisplaced++;
+          break;
+        }
+      }
+    }
 
     const totalAlerts = alertRequalOverdue + alertStuck + alertMisplaced;
 
@@ -5704,14 +5716,18 @@ async function renderMarketIntel() {
   }).join('');
 
   const now = new Date();
+  // Single-pass month bucketing instead of 6 separate filter calls
+  const _monthCounts = {};
+  for (const ev of events) {
+    const ed = new Date(ev.timestamp);
+    const k = ed.getFullYear() * 100 + ed.getMonth();
+    _monthCounts[k] = (_monthCounts[k] || 0) + 1;
+  }
   const months = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const label = d.toLocaleString('default', { month: 'short' });
-    const count = events.filter(ev => {
-      const ed = new Date(ev.timestamp);
-      return ed.getFullYear() === d.getFullYear() && ed.getMonth() === d.getMonth();
-    }).length;
+    const count = _monthCounts[d.getFullYear() * 100 + d.getMonth()] || 0;
     months.push({ label, count });
   }
   const maxScan = Math.max(...months.map(m => m.count), 1);
