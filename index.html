@@ -690,50 +690,50 @@
           <div id="network-map-pane" style="margin-bottom:12px"><div id="network-map"></div></div>
           <div class="network-filters">
             <select id="net-filter-type" class="filter-select">
-              <option value="">All Types</option>
-              <option value="Distributor">Distributors</option>
-              <option value="Retailer">Retailers</option>
+              <option value="" data-i18n="word.allTypes">All Types</option>
+              <option value="Distributor" data-i18n="net.distributor">Distributors</option>
+              <option value="Retailer" data-i18n="net.retailer">Retailers</option>
             </select>
             <select id="net-filter-status" class="filter-select" style="margin-left:8px">
-              <option value="">All statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="" data-i18n="word.allStatuses">All statuses</option>
+              <option value="active" data-i18n="word.active">Active</option>
+              <option value="inactive" data-i18n="word.inactive">Inactive</option>
             </select>
             <select id="net-sort" class="filter-select" style="margin-left:8px">
-              <option value="">Sort: Name A–Z</option>
-              <option value="stock-desc">Stock: High → Low</option>
-              <option value="stock-asc">Stock: Low → High</option>
-              <option value="full-desc">Full: High → Low</option>
-              <option value="empty-desc">Empty: High → Low</option>
+              <option value="" data-i18n="net.sortName">Sort: Name A–Z</option>
+              <option value="stock-desc" data-i18n="net.sortStockDesc">Stock: High → Low</option>
+              <option value="stock-asc" data-i18n="net.sortStockAsc">Stock: Low → High</option>
+              <option value="full-desc" data-i18n="net.sortFullDesc">Full: High → Low</option>
+              <option value="empty-desc" data-i18n="net.sortEmptyDesc">Empty: High → Low</option>
             </select>
           </div>
           <ul id="network-list" class="network-list" style="max-height:none"></ul>
-          <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
+          <p id="network-empty" class="list-empty" style="display:none" data-i18n="net.noPartners">No partners found.</p>
           <div id="net-pagination"></div>
         </div><!-- /view-network -->
 
         <!-- ── MGMT REPORTS VIEW (LPGMC only) ─────────────────────────── -->
         <div id="view-mgmt-reports" class="view">
           <div class="page-header">
-            <h2 class="page-title">📈 Management Reports</h2>
+            <h2 class="page-title" data-i18n="page.reports">📈 Management Reports</h2>
           </div>
           <div class="view-toolbar" style="margin-bottom:16px">
             <div class="filter-row">
               <select id="mgmt-filter-year" class="filter-select"><option value="" data-i18n="filter.allYears">All years</option></select>
               <select id="mgmt-filter-month" class="filter-select">
-                <option value="">All months</option>
-                <option value="0">January</option>
-                <option value="1">February</option>
-                <option value="2">March</option>
-                <option value="3">April</option>
-                <option value="4">May</option>
-                <option value="5">June</option>
-                <option value="6">July</option>
-                <option value="7">August</option>
-                <option value="8">September</option>
-                <option value="9">October</option>
-                <option value="10">November</option>
-                <option value="11">December</option>
+                <option value="" data-i18n="filter.allMonths">All months</option>
+                <option value="0" data-i18n="month.jan">January</option>
+                <option value="1" data-i18n="month.feb">February</option>
+                <option value="2" data-i18n="month.mar">March</option>
+                <option value="3" data-i18n="month.apr">April</option>
+                <option value="4" data-i18n="month.may">May</option>
+                <option value="5" data-i18n="month.jun">June</option>
+                <option value="6" data-i18n="month.jul">July</option>
+                <option value="7" data-i18n="month.aug">August</option>
+                <option value="8" data-i18n="month.sep">September</option>
+                <option value="9" data-i18n="month.oct">October</option>
+                <option value="10" data-i18n="month.nov">November</option>
+                <option value="11" data-i18n="month.dec">December</option>
               </select>
             </div>
           </div>
@@ -745,31 +745,31 @@
         <!-- ── LICENSES VIEW (EWURA only) ─────────────────────────────── -->
         <div id="view-licenses" class="view">
           <div class="page-header">
-            <h2 class="page-title">📋 Licenses</h2>
+            <h2 class="page-title" data-i18n="page.licenses">📋 Licenses</h2>
             <div class="page-actions">
-              <button id="issue-license-btn" class="btn btn-primary" type="button">+ Issue License</button>
+              <button id="issue-license-btn" class="btn btn-primary" type="button" data-i18n="lic.issueViewBtn">+ Issue License</button>
             </div>
           </div>
           <div class="view-toolbar">
-            <input id="lic-search" type="search" class="search-input" placeholder="Search company…" />
+            <input id="lic-search" type="search" class="search-input" data-i18n-placeholder="lic.searchPlh" placeholder="Search company…" />
             <div class="filter-row">
               <select id="lic-filter-type" class="filter-select">
-                <option value="">All types</option>
+                <option value="" data-i18n="word.allTypes">All types</option>
                 <option value="LPGMC">LPGMC</option>
-                <option value="Revalidator">Revalidator</option>
-                <option value="Distributor">Distributor</option>
-                <option value="Retailer">Retailer</option>
+                <option value="Revalidator" data-i18n="word.revalidator">Revalidator</option>
+                <option value="Distributor" data-i18n="net.distributor">Distributor</option>
+                <option value="Retailer" data-i18n="net.retailer">Retailer</option>
               </select>
               <select id="lic-filter-status" class="filter-select">
-                <option value="">All statuses</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="expired">Expired</option>
+                <option value="" data-i18n="word.allStatuses">All statuses</option>
+                <option value="active" data-i18n="word.active">Active</option>
+                <option value="suspended" data-i18n="status.suspended">Suspended</option>
+                <option value="expired" data-i18n="status.expired">Expired</option>
               </select>
             </div>
           </div>
           <ul id="licenses-list" class="licenses-list"></ul>
-          <p id="licenses-empty" class="list-empty">No licenses found.</p>
+          <p id="licenses-empty" class="list-empty" data-i18n="lic.noLicenses">No licenses found.</p>
         </div><!-- /view-licenses -->
 
         <!-- ── BULLET TANKS VIEW (EWURA only) ───────────────────────────────── -->
@@ -794,9 +794,9 @@
         <!-- ── RECALLS VIEW (EWURA only) ─────────────────────────────────── -->
         <div id="view-recalls" class="view">
           <div class="page-header">
-            <h2 class="page-title">⚠️ Cylinder Recalls</h2>
+            <h2 class="page-title" data-i18n="recall.title">⚠️ Cylinder Recalls</h2>
             <div class="page-actions">
-              <button id="recall-new-btn" class="btn btn-primary" type="button" style="background:var(--red)">+ Initiate Recall</button>
+              <button id="recall-new-btn" class="btn btn-primary" type="button" style="background:var(--red)" data-i18n="recall.newBtn">+ Initiate Recall</button>
             </div>
           </div>
           <div id="recalls-map" style="margin-bottom:12px"></div>
@@ -963,47 +963,47 @@
   <div id="modal-issue-license" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Issue License">
     <div class="modal">
       <div class="modal-header">
-        <h2>Issue New License</h2>
+        <h2 data-i18n="lic.issueTitle">Issue New License</h2>
         <button class="modal-close" data-close="modal-issue-license" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Company Name</label>
-          <input id="lic-company-name" type="text" class="form-control" placeholder="e.g. Sunrise Gas Ltd" />
+          <label data-i18n="license.company">Company Name</label>
+          <input id="lic-company-name" type="text" class="form-control" data-i18n-placeholder="lic.companyPlh" placeholder="e.g. Sunrise Gas Ltd" />
         </div>
         <div class="form-group">
-          <label>Company Type</label>
+          <label data-i18n="licApp.companyType">Company Type</label>
           <select id="lic-company-type" class="form-control">
             <option value="LPGMC">LPGMC</option>
-            <option value="Revalidator">Revalidator</option>
-            <option value="Distributor">Distributor</option>
-            <option value="Retailer">Retailer</option>
+            <option value="Revalidator" data-i18n="word.revalidator">Revalidator</option>
+            <option value="Distributor" data-i18n="net.distributor">Distributor</option>
+            <option value="Retailer" data-i18n="net.retailer">Retailer</option>
           </select>
         </div>
         <div class="form-group">
-          <label>License Number</label>
-          <input id="lic-number" type="text" class="form-control font-mono" placeholder="e.g. LPGMC-2026-008" />
+          <label data-i18n="license.number">License Number</label>
+          <input id="lic-number" type="text" class="form-control font-mono" data-i18n-placeholder="lic.numberPlh" placeholder="e.g. LPGMC-2026-008" />
         </div>
         <div class="form-group">
-          <label>Issued Date</label>
+          <label data-i18n="lic.issuedDate">Issued Date</label>
           <input id="lic-issued-date" type="date" class="form-control" />
         </div>
         <div class="form-group">
-          <label>Expiry Date</label>
+          <label data-i18n="lic.expiryDate">Expiry Date</label>
           <input id="lic-expiry-date" type="date" class="form-control" />
         </div>
         <div class="form-group">
-          <label>Status</label>
+          <label data-i18n="license.status">Status</label>
           <select id="lic-status" class="form-control">
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-            <option value="expired">Expired</option>
+            <option value="active" data-i18n="word.active">Active</option>
+            <option value="suspended" data-i18n="status.suspended">Suspended</option>
+            <option value="expired" data-i18n="status.expired">Expired</option>
           </select>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-issue-license" type="button">Cancel</button>
-        <button id="lic-submit-btn" class="btn btn-primary" type="button">Issue License</button>
+        <button class="btn btn-outline" data-close="modal-issue-license" type="button" data-i18n="word.cancel">Cancel</button>
+        <button id="lic-submit-btn" class="btn btn-primary" type="button" data-i18n="lic.issueBtn">Issue License</button>
       </div>
     </div>
   </div>
@@ -1015,16 +1015,16 @@
   <div id="modal-license-detail" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="License Details">
     <div class="modal modal-wide">
       <div class="modal-header">
-        <h2>License Details</h2>
+        <h2 data-i18n="lic.detailTitle">License Details</h2>
         <button class="modal-close" data-close="modal-license-detail" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body" id="license-detail-body">
         <!-- Injected by JS -->
       </div>
       <div class="modal-footer">
-        <button id="lic-detail-revoke-btn" class="btn btn-danger" type="button" style="display:none">Revoke License</button>
-        <button id="lic-detail-renew-btn" class="btn btn-primary" type="button" style="display:none">Renew License</button>
-        <button class="btn btn-outline" data-close="modal-license-detail" type="button">Close</button>
+        <button id="lic-detail-revoke-btn" class="btn btn-danger" type="button" style="display:none" data-i18n="lic.revoke">Revoke License</button>
+        <button id="lic-detail-renew-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="lic.renew">Renew License</button>
+        <button class="btn btn-outline" data-close="modal-license-detail" type="button" data-i18n="word.close">Close</button>
       </div>
     </div>
   </div>
@@ -1033,7 +1033,7 @@
   <div id="modal-shipment" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="New Shipment">
     <div class="modal modal-wide">
       <div class="modal-header">
-        <h2>New Shipment</h2>
+        <h2 data-i18n="ship.title">New Shipment</h2>
         <button class="modal-close" data-close="modal-shipment" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
@@ -1041,39 +1041,39 @@
         <div id="shipment-consumer-section" style="display:none;margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
             <input id="shipment-consumer-sale-chk" type="checkbox" />
-            Consumer sales
+            <span data-i18n="ship.consumer">Consumer sales</span>
           </label>
           <div id="shipment-consumer-id-wrap" style="display:none;margin-top:10px">
-            <label style="font-size:13px">Consumer ID <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
-            <input id="shipment-consumer-id" type="text" class="form-control" style="margin-top:4px" placeholder="National ID, phone, or account number…" />
+            <label style="font-size:13px"><span data-i18n="ship.consumerId">Consumer ID</span> <span style="font-size:11px;color:var(--dim)" data-i18n="word.optional">(optional)</span></label>
+            <input id="shipment-consumer-id" type="text" class="form-control" style="margin-top:4px" data-i18n-placeholder="ship.consumerIdPlh" placeholder="National ID, phone, or account number…" />
           </div>
         </div>
         <div class="form-group" id="shipment-dest-group">
-          <label id="shipment-dest-label">Destination</label>
+          <label id="shipment-dest-label" data-i18n="ship.dest">Destination</label>
           <select id="shipment-dest" class="form-control"></select>
         </div>
         <div class="form-group">
-          <label>Batch Scan Cylinders (RFID) <span style="font-size:11px;color:var(--dim)">— scan or type each tag, press Enter</span></label>
+          <label data-i18n="ship.cylinders">Batch Scan Cylinders (RFID)</label>
           <div style="display:flex;gap:8px">
-            <input id="shipment-scan-input" type="text" class="form-control font-mono" placeholder="Scan RFID tag…" autocomplete="off" maxlength="24" />
-            <button id="shipment-add-btn" class="btn btn-primary" type="button">Add</button>
+            <input id="shipment-scan-input" type="text" class="form-control font-mono" data-i18n-placeholder="ship.rfidPlh" placeholder="Scan RFID tag…" autocomplete="off" maxlength="24" />
+            <button id="shipment-add-btn" class="btn btn-primary" type="button" data-i18n="ship.add">Add</button>
           </div>
         </div>
         <div id="shipment-cylinder-list" style="margin-top:4px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;min-height:48px">
-          <p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>
+          <p style="font-size:13px;color:var(--dim);padding:8px 4px" data-i18n="ship.noCylinders">No cylinders scanned yet.</p>
         </div>
         <div class="form-group" style="margin-top:12px">
-          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
-          <textarea id="shipment-notes" class="form-control" rows="2" placeholder="Add shipment notes…" style="resize:vertical"></textarea>
+          <label><span data-i18n="ship.notes">Notes</span> <span style="font-size:11px;color:var(--dim)" data-i18n="word.optional">(optional)</span></label>
+          <textarea id="shipment-notes" class="form-control" rows="2" data-i18n-placeholder="ship.notesPlh" placeholder="Add shipment notes…" style="resize:vertical"></textarea>
         </div>
         <div class="form-group">
-          <label>Invoice <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
+          <label><span data-i18n="ship.invoice">Invoice</span> <span style="font-size:11px;color:var(--dim)" data-i18n="word.optional">(optional)</span></label>
           <input id="shipment-invoice" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-shipment" type="button">Cancel</button>
-        <button id="shipment-confirm-btn" class="btn btn-primary" type="button">Confirm Shipment</button>
+        <button class="btn btn-outline" data-close="modal-shipment" type="button" data-i18n="ship.cancel">Cancel</button>
+        <button id="shipment-confirm-btn" class="btn btn-primary" type="button" data-i18n="ship.confirm">Confirm Shipment</button>
       </div>
     </div>
   </div>
@@ -1082,28 +1082,28 @@
   <div id="modal-reception" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Reception">
     <div class="modal modal-wide">
       <div class="modal-header">
-        <h2>Reception</h2>
+        <h2 data-i18n="recv.title">Reception</h2>
         <button class="modal-close" data-close="modal-reception" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group" style="display:flex;gap:8px;align-items:flex-end">
           <div style="flex:1">
-            <label>Scan or enter cylinder tag</label>
-            <input id="reception-scan-input" type="text" class="form-control" autocomplete="off" placeholder="Scan RFID / barcode or type tag ID…" maxlength="24" />
+            <label data-i18n="recv.scanLabel">Scan or enter cylinder tag</label>
+            <input id="reception-scan-input" type="text" class="form-control" autocomplete="off" data-i18n-placeholder="recv.scanPlh" placeholder="Scan RFID / barcode or type tag ID…" maxlength="24" />
           </div>
-          <button id="reception-add-btn" class="btn btn-primary" type="button" style="flex-shrink:0">Add</button>
+          <button id="reception-add-btn" class="btn btn-primary" type="button" style="flex-shrink:0" data-i18n="recv.add">Add</button>
         </div>
         <div id="reception-cylinder-list" style="margin-top:4px;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;min-height:52px">
-          <p style="font-size:13px;color:var(--dim);padding:8px 4px">No cylinders scanned yet.</p>
+          <p style="font-size:13px;color:var(--dim);padding:8px 4px" data-i18n="recv.noCylinders">No cylinders scanned yet.</p>
         </div>
         <div class="form-group" style="margin-top:14px">
-          <label>Notes <span style="font-size:11px;color:var(--dim)">(optional)</span></label>
-          <textarea id="reception-notes" class="form-control" rows="2" placeholder="e.g. delivery reference, condition remarks…"></textarea>
+          <label><span data-i18n="recv.notes">Notes</span> <span style="font-size:11px;color:var(--dim)" data-i18n="word.optional">(optional)</span></label>
+          <textarea id="reception-notes" class="form-control" rows="2" data-i18n-placeholder="recv.notesPlh" placeholder="e.g. delivery reference, condition remarks…"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-reception" type="button">Cancel</button>
-        <button id="reception-confirm-btn" class="btn btn-primary" type="button">Confirm Reception</button>
+        <button class="btn btn-outline" data-close="modal-reception" type="button" data-i18n="recv.cancel">Cancel</button>
+        <button id="reception-confirm-btn" class="btn btn-primary" type="button" data-i18n="recv.confirm">Confirm Reception</button>
       </div>
     </div>
   </div>
@@ -1232,22 +1232,22 @@
   <div id="modal-recall" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Initiate Cylinder Recall">
     <div class="modal">
       <div class="modal-header">
-        <h2>Initiate Cylinder Recall</h2>
+        <h2 data-i18n="recall.modalTitle">Initiate Cylinder Recall</h2>
         <button class="modal-close" data-close="modal-recall" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#991b1b;display:flex;gap:8px;align-items:flex-start">
           <span style="font-size:16px;line-height:1.2">⚠️</span>
-          <span>A recall will trigger safety alerts across the network. Ensure all details are verified before issuing.</span>
+          <span data-i18n="recall.warning">A recall will trigger safety alerts across the network. Ensure all details are verified before issuing.</span>
         </div>
         <div class="form-group">
-          <label>Recall Reference</label>
-          <input id="recall-ref" type="text" class="form-control font-mono" readonly placeholder="Auto-generated" />
+          <label data-i18n="recall.ref">Recall Reference</label>
+          <input id="recall-ref" type="text" class="form-control font-mono" readonly data-i18n-placeholder="recall.refPlh" placeholder="Auto-generated" />
         </div>
         <div class="form-group">
-          <label>Operator / Manufacturer</label>
+          <label data-i18n="recall.operator">Operator / Manufacturer</label>
           <select id="recall-operator" class="form-control">
-            <option value="">— Select operator —</option>
+            <option value="" data-i18n="recall.selectOp">— Select operator —</option>
             <option value="Vivo LPG">Vivo LPG</option>
             <option value="Total Energies">Total Energies</option>
             <option value="Shell Gas">Shell Gas</option>
@@ -1256,35 +1256,35 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Batch Number</label>
-          <input id="recall-batch" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-041" />
+          <label data-i18n="recall.batch">Batch Number</label>
+          <input id="recall-batch" type="text" class="form-control font-mono" data-i18n-placeholder="recall.batchPlh" placeholder="e.g. BATCH-2026-041" />
         </div>
         <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
-            <label>Manufacture From <span style="color:var(--dim);font-size:11px">(optional)</span></label>
+            <label><span data-i18n="recall.dateFrom">Manufacture From</span> <span style="color:var(--dim);font-size:11px" data-i18n="word.optional">(optional)</span></label>
             <input id="recall-date-from" type="date" class="form-control" />
           </div>
           <div>
-            <label>Manufacture To <span style="color:var(--dim);font-size:11px">(optional)</span></label>
+            <label><span data-i18n="recall.dateTo">Manufacture To</span> <span style="color:var(--dim);font-size:11px" data-i18n="word.optional">(optional)</span></label>
             <input id="recall-date-to" type="date" class="form-control" />
           </div>
         </div>
         <div class="form-group">
-          <label>Severity</label>
+          <label data-i18n="recall.severity">Severity</label>
           <select id="recall-severity" class="form-control">
-            <option value="critical">🔴 Critical — Immediate withdrawal required</option>
-            <option value="high">🟠 High — Withdraw within 48 hours</option>
-            <option value="medium">🟡 Medium — Controlled recall</option>
+            <option value="critical" data-i18n="recall.sevCritical">🔴 Critical — Immediate withdrawal required</option>
+            <option value="high" data-i18n="recall.sevHigh">🟠 High — Withdraw within 48 hours</option>
+            <option value="medium" data-i18n="recall.sevMedium">🟡 Medium — Controlled recall</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Reason / Safety Notice</label>
-          <textarea id="recall-reason" class="form-control" rows="3" placeholder="Describe the defect, hazard, or safety concern…"></textarea>
+          <label data-i18n="recall.reason">Reason / Safety Notice</label>
+          <textarea id="recall-reason" class="form-control" rows="3" data-i18n-placeholder="recall.reasonPlh" placeholder="Describe the defect, hazard, or safety concern…"></textarea>
         </div>
         <div class="form-group">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <label style="margin:0">Affected Cylinder Locations</label>
-            <button id="recall-preview-btn" type="button" class="btn btn-outline" style="font-size:12px;padding:4px 10px">🗺 Preview on Map</button>
+            <label style="margin:0" data-i18n="recall.affectedLocs">Affected Cylinder Locations</label>
+            <button id="recall-preview-btn" type="button" class="btn btn-outline" style="font-size:12px;padding:4px 10px" data-i18n="recall.previewBtn">🗺 Preview on Map</button>
           </div>
           <div id="recall-preview-map" style="display:none;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
             <div id="recall-preview-lmap" style="height:240px;width:100%"></div>
@@ -1293,8 +1293,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-recall" type="button">Cancel</button>
-        <button id="recall-submit-btn" class="btn btn-primary" type="button" style="background:var(--red)">Issue Recall</button>
+        <button class="btn btn-outline" data-close="modal-recall" type="button" data-i18n="word.cancel">Cancel</button>
+        <button id="recall-submit-btn" class="btn btn-primary" type="button" style="background:var(--red)" data-i18n="recall.submit">Issue Recall</button>
       </div>
     </div>
   </div>
