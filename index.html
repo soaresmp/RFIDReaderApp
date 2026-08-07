@@ -267,7 +267,7 @@
 
         <div class="login-panel-footer">
           &copy; 2025 LPG Traceability Platform · Tanzania
-          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.20</span>
+          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.21</span>
         </div>
       </div>
     </div>
@@ -467,35 +467,35 @@
           <button class="nav-tab" data-view="reports">
             <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
           </button>
-          <button class="nav-tab" data-view="scan">
-            <span class="nav-label" data-i18n="nav.scan">Scan</span>
-          </button>
-          <button class="nav-tab" data-view="cylinders">
-            <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
-          </button>
-          <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
-            <span class="nav-label" data-i18n="nav.network">Network</span>
-          </button>
           <button class="nav-tab" data-view="alerts" id="nav-alerts" style="display:none">
             <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
-          </button>
-          <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
-            <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
-          </button>
-          <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
-            <span class="nav-label" data-i18n="nav.reports">Reports</span>
           </button>
           <button class="nav-tab" data-view="bulk-monitor" id="nav-bulk-monitor" style="display:none">
             <span class="nav-label" data-i18n="nav.bulletTanks">Bullet Tanks</span>
           </button>
+          <button class="nav-tab" data-view="cylinders">
+            <span class="nav-label" data-i18n="nav.cylinders">Cylinders</span>
+          </button>
           <button class="nav-tab" data-view="inspections" id="nav-inspections" style="display:none">
             <span class="nav-label" data-i18n="nav.inspections">Inspections</span>
+          </button>
+          <button class="nav-tab" data-view="licenses" id="nav-licenses" style="display:none">
+            <span class="nav-label" data-i18n="nav.licenses">Licenses</span>
+          </button>
+          <button class="nav-tab" data-view="market-intel" id="nav-market-intel" style="display:none">
+            <span class="nav-label" data-i18n="nav.marketIntel">Market Intel</span>
+          </button>
+          <button class="nav-tab" data-view="network" id="nav-network" style="display:none">
+            <span class="nav-label" data-i18n="nav.network">Network</span>
           </button>
           <button class="nav-tab" data-view="recalls" id="nav-recalls" style="display:none">
             <span class="nav-label">Recalls</span>
           </button>
-          <button class="nav-tab" data-view="market-intel" id="nav-market-intel" style="display:none">
-            <span class="nav-label" data-i18n="nav.marketIntel">Market Intel</span>
+          <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
+            <span class="nav-label" data-i18n="nav.reports">Reports</span>
+          </button>
+          <button class="nav-tab" data-view="scan">
+            <span class="nav-label" data-i18n="nav.scan">Scan</span>
           </button>
         </div>
       </nav>
@@ -706,7 +706,7 @@
               <option value="empty-desc">Empty: High → Low</option>
             </select>
           </div>
-          <div id="network-map" style="margin-bottom:12px"></div>
+          <div id="network-map-pane" style="margin-bottom:12px"><div id="network-map"></div></div>
           <ul id="network-list" class="network-list" style="max-height:none"></ul>
           <p id="network-empty" class="list-empty" style="display:none">No partners found.</p>
           <div id="net-pagination"></div>
@@ -1255,23 +1255,17 @@
             <option value="Oryx Gas">Oryx Gas</option>
           </select>
         </div>
-        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <label>Batch Number</label>
-            <input id="recall-batch" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-041" />
-          </div>
-          <div>
-            <label>Cylinder Series</label>
-            <input id="recall-series" type="text" class="form-control" placeholder="e.g. TZ-6KG-A" />
-          </div>
+        <div class="form-group">
+          <label>Batch Number</label>
+          <input id="recall-batch" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-041" />
         </div>
         <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
-            <label>Manufacture From</label>
+            <label>Manufacture From <span style="color:var(--dim);font-size:11px">(optional)</span></label>
             <input id="recall-date-from" type="date" class="form-control" />
           </div>
           <div>
-            <label>Manufacture To</label>
+            <label>Manufacture To <span style="color:var(--dim);font-size:11px">(optional)</span></label>
             <input id="recall-date-to" type="date" class="form-control" />
           </div>
         </div>
@@ -1286,6 +1280,16 @@
         <div class="form-group">
           <label>Reason / Safety Notice</label>
           <textarea id="recall-reason" class="form-control" rows="3" placeholder="Describe the defect, hazard, or safety concern…"></textarea>
+        </div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <label style="margin:0">Affected Cylinder Locations</label>
+            <button id="recall-preview-btn" type="button" class="btn btn-outline" style="font-size:12px;padding:4px 10px">🗺 Preview on Map</button>
+          </div>
+          <div id="recall-preview-map" style="display:none;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+            <div id="recall-preview-lmap" style="height:240px;width:100%"></div>
+          </div>
+          <p id="recall-preview-info" style="font-size:12px;color:var(--muted);margin:4px 0 0"></p>
         </div>
       </div>
       <div class="modal-footer">

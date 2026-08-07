@@ -1589,6 +1589,11 @@ function showView(name) {
   if (name === 'market-intel')  renderMarketIntel();
   if (name === 'inspections')   renderInspections();
   if (name === 'recalls')       renderRecalls();
+
+  // Invalidate Leaflet map sizes after view becomes visible
+  requestAnimationFrame(() => {
+    _leafletMaps.forEach(map => { try { map.invalidateSize(); } catch(e) {} });
+  });
 }
 
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -4497,6 +4502,12 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     if (btn.dataset.close === 'modal-register') {
       State.serialCaptureActive = false;
     }
+    if (btn.dataset.close === 'modal-recall') {
+      if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
+      const pane = $('recall-preview-map'); if (pane) pane.style.display = 'none';
+      const info = $('recall-preview-info'); if (info) info.textContent = '';
+      const ref2 = $('recall-ref'); if (ref2) ref2.value = '';
+    }
   });
 });
 
@@ -5270,16 +5281,30 @@ $('bulk-register-confirm-btn')?.addEventListener('click', async () => {
 // CYLINDER RECALL WORKFLOW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
+const _RECALL_SEEDS = [
+  { id:'RCL-2024-117', operator:'Vivo LPG',       batch:'BATCH-2024-117', dateFrom:'2023-01-01', dateTo:'2023-06-30', severity:'critical', reason:'Valve manufacturing defect detected — risk of gas leakage under pressure. Immediate withdrawal from all distribution points required.', timestamp:'2024-03-15T08:30:00Z' },
+  { id:'RCL-2025-042', operator:'Total Energies',  batch:'BATCH-2025-042', dateFrom:'2024-07-01', dateTo:'2024-12-31', severity:'high',     reason:'Cylinder neck thread non-conformance identified during quality audit. Withdraw within 48 hours and return to manufacturer for inspection.', timestamp:'2025-01-22T10:00:00Z' },
+  { id:'RCL-2025-088', operator:'Shell Gas',       batch:'BATCH-2025-088', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Incorrect tare weight stamping on a sub-batch of 6 kg cylinders. Controlled recall for re-stamping — no immediate safety risk.', timestamp:'2025-06-05T14:15:00Z' },
+];
+
 function renderRecalls() {
   const container = $('recalls-container');
   if (!container) return;
-  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+
+  // Seed demo data once
+  let recalls = JSON.parse(localStorage.getItem('lpg-recalls') || 'null');
+  if (!recalls) {
+    recalls = _RECALL_SEEDS.slice();
+    localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
+  }
 
   const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
   const sevLabel  = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
-  const impactHtml = recalls.length ? recalls.slice().reverse().map(r => {
+  const impactHtml = recalls.length ? recalls.slice().reverse().map((r, revIdx) => {
     const sev   = r.severity || 'high';
     const color = sevColor[sev] || '#dc2626';
+    const origIdx = recalls.length - 1 - revIdx;
+    const dateRange = (r.dateFrom && r.dateTo) ? `${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}` : (r.dateFrom || r.dateTo || 'All batches');
     return `<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
         <div style="flex:1;min-width:0">
@@ -5288,16 +5313,30 @@ function renderRecalls() {
             <span style="background:${color}22;color:${color};border:1px solid ${color}55;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600">${sevLabel[sev] || sev}</span>
           </div>
           <div style="font-weight:600;margin-bottom:4px">${escapeHtml(r.operator)}</div>
-          ${r.batch ? `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">Batch: <span style="font-family:monospace">${escapeHtml(r.batch)}</span>${r.series ? ' · Series: ' + escapeHtml(r.series) : ''}</div>` : ''}
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Manufacture period: ${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}</div>
+          ${r.batch ? `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">Batch: <span style="font-family:monospace">${escapeHtml(r.batch)}</span></div>` : ''}
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Manufacture period: ${dateRange}</div>
           <div style="font-size:13px;color:var(--text)">${escapeHtml(r.reason)}</div>
         </div>
-        <span style="font-size:11px;color:var(--muted);white-space:nowrap">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+          <span style="font-size:11px;color:var(--muted)">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
+          <button class="btn btn-outline recall-delete-btn" data-recall-idx="${origIdx}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">Delete</button>
+        </div>
       </div>
     </div>`;
   }).join('') : `<p style="color:var(--muted);font-size:13px">No recalls issued.</p>`;
 
   container.innerHTML = impactHtml;
+
+  container.querySelectorAll('.recall-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.recallIdx;
+      const list = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+      list.splice(idx, 1);
+      localStorage.setItem('lpg-recalls', JSON.stringify(list));
+      renderRecalls();
+      showSnackbar('Recall deleted.', 'success');
+    });
+  });
 }
 
 $('recall-new-btn')?.addEventListener('click', () => {
@@ -5308,21 +5347,67 @@ $('recall-new-btn')?.addEventListener('click', () => {
   openModal('modal-recall');
 });
 
+// Preview map for recall modal
+let _recallPreviewMap = null;
+$('recall-preview-btn')?.addEventListener('click', () => {
+  const operator = $('recall-operator')?.value;
+  const pane = $('recall-preview-map');
+  const info = $('recall-preview-info');
+  if (!pane) return;
+
+  pane.style.display = 'block';
+
+  if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
+
+  const locs = DEMO_NETWORK.filter(n => !operator || n.owner === operator || n.name.includes(operator));
+  const allLocs = locs.length ? locs : DEMO_NETWORK.slice(0, 8);
+
+  if (typeof L === 'undefined') {
+    pane.innerHTML = '<div style="height:240px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px">Map requires an internet connection.</div>';
+    return;
+  }
+
+  _recallPreviewMap = L.map('recall-preview-lmap', { zoomControl: true });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(_recallPreviewMap);
+
+  const latlngs = [];
+  allLocs.forEach(n => {
+    if (!n.lat || !n.lng) return;
+    latlngs.push([n.lat, n.lng]);
+    L.circleMarker([n.lat, n.lng], { radius: 9, fillColor:'#dc2626', color:'white', weight:2.5, fillOpacity:0.9 })
+      .bindTooltip(escapeHtml(n.name + ' · ' + (n.city || '')), { direction:'top' })
+      .addTo(_recallPreviewMap);
+  });
+
+  if (latlngs.length > 1) _recallPreviewMap.fitBounds(latlngs, { padding:[30,30], maxZoom:9 });
+  else if (latlngs.length === 1) _recallPreviewMap.setView(latlngs[0], 9);
+  else _recallPreviewMap.setView([-6.5, 35], 5);
+
+  if (info) info.textContent = `${allLocs.length} location${allLocs.length !== 1 ? 's' : ''} tracked in the platform${operator ? ' for ' + operator : ''}.`;
+});
+
 $('recall-submit-btn')?.addEventListener('click', () => {
   const operator  = $('recall-operator')?.value;
   const batch     = $('recall-batch')?.value.trim();
-  const series    = $('recall-series')?.value.trim();
   const dateFrom  = $('recall-date-from')?.value;
   const dateTo    = $('recall-date-to')?.value;
   const severity  = $('recall-severity')?.value || 'high';
   const reason    = $('recall-reason')?.value.trim();
   const ref       = $('recall-ref')?.value || ('RCL-' + new Date().getFullYear() + '-' + Date.now());
-  if (!operator || !dateFrom || !dateTo || !reason) {
-    showSnackbar('Operator, manufacture dates and reason are required.', 'error'); return;
+  if (!operator || !reason) {
+    showSnackbar('Operator and reason are required.', 'error'); return;
   }
   const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
-  recalls.push({ id: ref, operator, batch, series, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
+  recalls.push({ id: ref, operator, batch, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
   localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
+  // Reset preview state
+  if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
+  const pane = $('recall-preview-map'); if (pane) pane.style.display = 'none';
+  const info = $('recall-preview-info'); if (info) info.textContent = '';
+  const ref2 = $('recall-ref'); if (ref2) ref2.value = '';
   closeModal('modal-recall');
   showSnackbar(t('recall.saved'), 'success');
   renderRecalls();
