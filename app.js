@@ -225,7 +225,7 @@ const TRANSLATIONS = {
     'licApp.sec4':'4. Technical Requirements',
     'licApp.sec4sub':'Operational and commercial capability documentation',
     'licApp.sec5':'5. Financial Proof',
-    'licApp.sec5note':'(at least one required — minimum TZS 1.5 billion)',
+    'licApp.sec5note':'(at least one required)',
     'licApp.sec5sub':'Submit at least one of the following documents demonstrating sufficient financial capacity',
     'licApp.sec6':'6. Health, Safety & Environment',
     'licApp.sec6sub':'Valid certificates from the relevant regulatory bodies',
@@ -516,7 +516,7 @@ const TRANSLATIONS = {
     'licApp.sec4':'4. Mahitaji ya Kiufundi',
     'licApp.sec4sub':'Nyaraka za uwezo wa uendeshaji na biashara',
     'licApp.sec5':'5. Uthibitisho wa Fedha',
-    'licApp.sec5note':'(angalau moja inahitajika — kiwango cha chini TZS bilioni 1.5)',
+    'licApp.sec5note':'(angalau moja inahitajika)',
     'licApp.sec5sub':'Wasilisha angalau moja ya hati zifuatazo zinazoonyesha uwezo wa kutosha wa fedha',
     'licApp.sec6':'6. Afya, Usalama na Mazingira',
     'licApp.sec6sub':'Vyeti halali kutoka kwa mamlaka husika za udhibiti',
@@ -657,6 +657,9 @@ const FLAG_SVG_TZ = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14'
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
@@ -5500,9 +5503,9 @@ async function renderBulkMonitor() {
       { id:'tech-list',  label:'List of LPG Dealers with Dealership Agreements',                                required:true  },
     ],
     'la-docs-fin': [
-      { id:'fin-audit',  label:'Audited Financial Statement (annual gross turnover ≥ TZS 1.5 billion)',         required:false },
-      { id:'fin-bank',   label:'Bank Statement (credit balance ≥ TZS 1.5 billion)',                             required:false },
-      { id:'fin-guar',   label:'Bank Guarantee or Credit Facility (≥ TZS 1.5 billion)',                         required:false },
+      { id:'fin-audit',  label:'Audited Financial Statement',                                                   required:false },
+      { id:'fin-bank',   label:'Bank Statement',                                                                 required:false },
+      { id:'fin-guar',   label:'Bank Guarantee or Credit Facility',                                              required:false },
       { id:'fin-letter', label:'Letter of Comfort from Licensed Bank / Financial Institution',                  required:false },
     ],
     'la-docs-hse': [
@@ -5876,21 +5879,32 @@ $('bulk-register-confirm-btn')?.addEventListener('click', async () => {
 // CYLINDER RECALL WORKFLOW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
-const _RECALL_SEEDS = [
-  { id:'RCL-2024-117', operator:'Vivo LPG',       batch:'BATCH-2024-117', dateFrom:'2023-01-01', dateTo:'2023-06-30', severity:'critical', reason:'Valve manufacturing defect detected — risk of gas leakage under pressure. Immediate withdrawal from all distribution points required.', timestamp:'2024-03-15T08:30:00Z' },
-  { id:'RCL-2025-042', operator:'Total Energies',  batch:'BATCH-2025-042', dateFrom:'2024-07-01', dateTo:'2024-12-31', severity:'high',     reason:'Cylinder neck thread non-conformance identified during quality audit. Withdraw within 48 hours and return to manufacturer for inspection.', timestamp:'2025-01-22T10:00:00Z' },
-  { id:'RCL-2025-088', operator:'Shell Gas',       batch:'BATCH-2025-088', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Incorrect tare weight stamping on a sub-batch of 6 kg cylinders. Controlled recall for re-stamping — no immediate safety risk.', timestamp:'2025-06-05T14:15:00Z' },
+const _RECALL_SEEDS_TZ = [
+  { id:'RCL-TZ-2024-117', operator:'Vivo LPG',       batch:'BATCH-2024-117', dateFrom:'2023-01-01', dateTo:'2023-06-30', severity:'critical', reason:'Valve manufacturing defect detected — risk of gas leakage under pressure. Immediate withdrawal from all distribution points required.', timestamp:'2024-03-15T08:30:00Z' },
+  { id:'RCL-TZ-2025-042', operator:'Total Energies',  batch:'BATCH-2025-042', dateFrom:'2024-07-01', dateTo:'2024-12-31', severity:'high',     reason:'Cylinder neck thread non-conformance identified during quality audit. Withdraw within 48 hours and return to manufacturer for inspection.', timestamp:'2025-01-22T10:00:00Z' },
+  { id:'RCL-TZ-2025-088', operator:'Shell Gas',       batch:'BATCH-2025-088', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Incorrect tare weight stamping on a sub-batch of 6 kg cylinders. Controlled recall for re-stamping — no immediate safety risk.', timestamp:'2025-06-05T14:15:00Z' },
+  { id:'RCL-TZ-2025-201', operator:'Lake Gas',        batch:'BATCH-2025-201', dateFrom:'2025-01-01', dateTo:'2025-03-31', severity:'high',     reason:'Pressure relief valve spring fatigue identified in a production batch. Potential over-pressurisation risk — withdraw within 48 hours.', timestamp:'2025-08-10T09:00:00Z' },
 ];
+
+const _RECALL_SEEDS_KE = [
+  { id:'RCL-KE-2024-031', operator:'Total Energies Kenya', batch:'BATCH-KE-2024-031', dateFrom:'2023-03-01', dateTo:'2023-09-30', severity:'critical', reason:'Weld seam integrity failure detected on 13 kg cylinders manufactured in this period. Risk of sudden rupture. Immediate withdrawal required.', timestamp:'2024-06-12T07:45:00Z' },
+  { id:'RCL-KE-2025-018', operator:'Vivo Energy Kenya',    batch:'BATCH-KE-2025-018', dateFrom:'2024-08-01', dateTo:'2024-11-30', severity:'high',     reason:'Foot ring detachment risk due to incorrect welding parameter during production run. Withdraw within 48 hours for inspection.', timestamp:'2025-02-28T11:30:00Z' },
+  { id:'RCL-KE-2025-055', operator:'Africa Gas & Oil',     batch:'BATCH-KE-2025-055', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Tare weight label discrepancy on 6 kg cylinders — incorrect net weight printed. Controlled recall for re-labelling, no safety risk.', timestamp:'2025-05-19T13:00:00Z' },
+  { id:'RCL-KE-2025-091', operator:'Hashi Energy',         batch:'BATCH-KE-2025-091', dateFrom:'2025-02-01', dateTo:'2025-04-30', severity:'high',     reason:'Batch of valve handwheels found with sub-specification torque rating. Withdraw from retailers within 48 hours for valve replacement.', timestamp:'2025-07-30T08:15:00Z' },
+];
+
+function _recallKey() { return 'lpg-recalls-' + _activeCountry; }
 
 function renderRecalls() {
   const container = $('recalls-container');
   if (!container) return;
 
-  // Seed demo data once
-  let recalls = JSON.parse(localStorage.getItem('lpg-recalls') || 'null');
+  // Seed demo data once per country
+  const seeds = _activeCountry === 'KE' ? _RECALL_SEEDS_KE : _RECALL_SEEDS_TZ;
+  let recalls = JSON.parse(localStorage.getItem(_recallKey()) || 'null');
   if (!recalls) {
-    recalls = _RECALL_SEEDS.slice();
-    localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
+    recalls = seeds.slice();
+    localStorage.setItem(_recallKey(), JSON.stringify(recalls));
   }
 
   const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
@@ -5925,9 +5939,9 @@ function renderRecalls() {
   container.querySelectorAll('.recall-delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = +btn.dataset.recallIdx;
-      const list = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+      const list = JSON.parse(localStorage.getItem(_recallKey()) || '[]');
       list.splice(idx, 1);
-      localStorage.setItem('lpg-recalls', JSON.stringify(list));
+      localStorage.setItem(_recallKey(), JSON.stringify(list));
       renderRecalls();
       showSnackbar('Recall deleted.', 'success');
     });
@@ -5938,7 +5952,16 @@ $('recall-new-btn')?.addEventListener('click', () => {
   const yr  = new Date().getFullYear();
   const seq = String(Math.floor(Math.random() * 900) + 100);
   const ref = $('recall-ref');
-  if (ref) ref.value = `RCL-${yr}-${seq}`;
+  if (ref) ref.value = `RCL-${_activeCountry}-${yr}-${seq}`;
+
+  // Populate operator list for active country
+  const opSel = $('recall-operator');
+  if (opSel) {
+    const companies = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+    opSel.innerHTML = `<option value="" data-i18n="recall.selectOp">${t('recall.selectOp')}</option>` +
+      companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  }
+
   openModal('modal-recall');
 });
 
@@ -5954,8 +5977,9 @@ $('recall-preview-btn')?.addEventListener('click', () => {
 
   if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
 
-  const locs = DEMO_NETWORK.filter(n => !operator || n.owner === operator || n.name.includes(operator));
-  const allLocs = locs.length ? locs : DEMO_NETWORK.slice(0, 8);
+  const _net = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+  const locs = _net.filter(n => !operator || n.owner === operator || n.name.includes(operator));
+  const allLocs = locs.length ? locs : _net.slice(0, 8);
 
   if (typeof L === 'undefined') {
     pane.innerHTML = '<div style="height:240px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px">Map requires an internet connection.</div>';
@@ -5995,9 +6019,9 @@ $('recall-submit-btn')?.addEventListener('click', () => {
   if (!operator || !reason) {
     showSnackbar('Operator and reason are required.', 'error'); return;
   }
-  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+  const recalls = JSON.parse(localStorage.getItem(_recallKey()) || '[]');
   recalls.push({ id: ref, operator, batch, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
-  localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
+  localStorage.setItem(_recallKey(), JSON.stringify(recalls));
   // Reset preview state
   if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
   const pane = $('recall-preview-map'); if (pane) pane.style.display = 'none';
