@@ -1443,16 +1443,15 @@ async function seedDemoData() {
     } catch (e) { /* offline — fall through */ }
   }
 
-  const _fsOriginal = _fdb; // remember so we can fall back if Firestore writes fail
+  const hadFirestore = !!_fdb;
   try {
-  await _doSeed();
+    await _doSeed();
   } catch (seedErr) {
     console.error('Seeding failed:', seedErr);
-    if (_fsOriginal) {
+    if (hadFirestore) {
       console.warn('Firestore seeding failed — retrying with IndexedDB only');
-      _fdb = null;
-      await seedDemoData(); // recursive: _fdb is null so tx* routes to IDB
-      _fdb = _fsOriginal;
+      _fdb = null; // keep null: reads must also come from IDB, not empty Firestore
+      await seedDemoData();
     }
   }
 }
