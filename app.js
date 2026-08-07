@@ -1986,15 +1986,18 @@ function selectRole(role) {
   loginCompSel.style.display  = 'none';
   loginCompText.style.display = 'none';
 
+  const _network   = _activeCountry === 'KE' ? DEMO_NETWORK_KE   : DEMO_NETWORK;
+  const _lpgmcList = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+
   if (role === 'lpgmc') {
-    loginCompSel.innerHTML = LPGMC_COMPANIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    loginCompSel.innerHTML = _lpgmcList.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     loginCompSel.style.display = '';
   } else if (role === 'distributor') {
-    const dists = DEMO_NETWORK.filter(n => n.type === 'Distributor');
+    const dists = _network.filter(n => n.type === 'Distributor');
     loginCompSel.innerHTML = dists.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
     loginCompSel.style.display = '';
   } else if (role === 'retailer') {
-    const rets = DEMO_NETWORK.filter(n => n.type === 'Retailer');
+    const rets = _network.filter(n => n.type === 'Retailer');
     loginCompSel.innerHTML = rets.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
     loginCompSel.style.display = '';
   } else {
