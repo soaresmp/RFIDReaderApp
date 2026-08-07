@@ -8,6 +8,57 @@ const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 3;
 const SEED_KEY   = 'seeded-v16';
 
+// ── Firebase / Firestore ──────────────────────────────────────────────────────
+// cylinders and events are stored in Firestore; all other stores use IndexedDB.
+const FS_STORES = new Set(['cylinders', 'events']);
+let _fdb = null; // Firestore instance, set by initFirebase()
+
+// Pending batch during seedDemoData — when set, txPut accumulates into batches
+// of 500 and auto-commits, avoiding thousands of individual Firestore round-trips.
+let _seedBatch = null;
+
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined') return;
+    firebase.initializeApp({
+      apiKey:            'AIzaSyA4wH-NyfGRI4le03vAYUBKrmMVdy9GnzY',
+      authDomain:        'lpgtracking-f3050.firebaseapp.com',
+      projectId:         'lpgtracking-f3050',
+      storageBucket:     'lpgtracking-f3050.firebasestorage.app',
+      messagingSenderId: '639111115983',
+      appId:             '1:639111115983:web:b3499c57c946829a3c73ba',
+    });
+    _fdb = firebase.firestore();
+    // Enable offline persistence so Firestore works without a network connection
+    // after the first online load. Errors are non-fatal.
+    _fdb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+  } catch (e) {
+    console.warn('Firebase init failed — using local IndexedDB only:', e);
+    _fdb = null;
+  }
+}
+
+async function _fsBatchFlush() {
+  if (!_seedBatch || _seedBatch.length === 0) return;
+  const batch = _fdb.batch();
+  _seedBatch.forEach(({ ref, data }) => batch.set(ref, data));
+  await batch.commit();
+  _seedBatch = [];
+}
+
+async function _fsBatchAdd(storeName, record) {
+  let ref;
+  if (record.id != null) {
+    ref = _fdb.collection(storeName).doc(String(record.id));
+  } else {
+    ref = _fdb.collection(storeName).doc();
+    record = { ...record, id: ref.id };
+  }
+  _seedBatch.push({ ref, data: record });
+  if (_seedBatch.length >= 500) await _fsBatchFlush();
+  return record;
+}
+
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const TRANSLATIONS = {
   en: {
@@ -1023,7 +1074,8 @@ function openDB() {
   });
 }
 
-function txGet(storeName, key) {
+// ── IndexedDB helpers (used for non-Firestore stores) ────────────────────────
+function _idbGet(storeName, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
     const req = tx.objectStore(storeName).get(key);
@@ -1032,7 +1084,7 @@ function txGet(storeName, key) {
   });
 }
 
-function txGetAll(storeName) {
+function _idbGetAll(storeName) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
     const req = tx.objectStore(storeName).getAll();
@@ -1041,7 +1093,7 @@ function txGetAll(storeName) {
   });
 }
 
-function txPut(storeName, record) {
+function _idbPut(storeName, record) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readwrite');
     const req = tx.objectStore(storeName).put(record);
@@ -1050,7 +1102,7 @@ function txPut(storeName, record) {
   });
 }
 
-function txDelete(storeName, key) {
+function _idbDelete(storeName, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readwrite');
     const req = tx.objectStore(storeName).delete(key);
@@ -1059,7 +1111,7 @@ function txDelete(storeName, key) {
   });
 }
 
-function txClearStore(storeName) {
+function _idbClearStore(storeName) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readwrite');
     const req = tx.objectStore(storeName).clear();
@@ -1068,7 +1120,7 @@ function txClearStore(storeName) {
   });
 }
 
-function txGetIndex(storeName, indexName, value) {
+function _idbGetIndex(storeName, indexName, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
     const idx = tx.objectStore(storeName).index(indexName);
@@ -1076,6 +1128,68 @@ function txGetIndex(storeName, indexName, value) {
     req.onsuccess = () => resolve(req.result);
     req.onerror   = () => reject(req.error);
   });
+}
+
+// ── Public tx* API — routes FS_STORES to Firestore, others to IndexedDB ──────
+async function txGet(storeName, key) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    const snap = await _fdb.collection(storeName).doc(String(key)).get();
+    return snap.exists ? snap.data() : undefined;
+  }
+  return _idbGet(storeName, key);
+}
+
+async function txGetAll(storeName) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    const snap = await _fdb.collection(storeName).get();
+    return snap.docs.map(d => d.data());
+  }
+  return _idbGetAll(storeName);
+}
+
+async function txPut(storeName, record) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    // During seeding: accumulate into batches for efficiency
+    if (_seedBatch !== null) return _fsBatchAdd(storeName, record);
+    if (record.id != null) {
+      await _fdb.collection(storeName).doc(String(record.id)).set(record);
+      return record.id;
+    } else {
+      const ref = await _fdb.collection(storeName).add(record);
+      record.id = ref.id;
+      return ref.id;
+    }
+  }
+  return _idbPut(storeName, record);
+}
+
+async function txDelete(storeName, key) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    await _fdb.collection(storeName).doc(String(key)).delete();
+    return;
+  }
+  return _idbDelete(storeName, key);
+}
+
+async function txClearStore(storeName) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    const snap = await _fdb.collection(storeName).get();
+    for (let i = 0; i < snap.docs.length; i += 500) {
+      const batch = _fdb.batch();
+      snap.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    return;
+  }
+  return _idbClearStore(storeName);
+}
+
+async function txGetIndex(storeName, indexName, value) {
+  if (_fdb && FS_STORES.has(storeName)) {
+    const snap = await _fdb.collection(storeName).where(indexName, '==', value).get();
+    return snap.docs.map(d => d.data());
+  }
+  return _idbGetIndex(storeName, indexName, value);
 }
 
 function buildGeneratedCylinders() {
@@ -1129,8 +1243,27 @@ function buildGeneratedCylinders() {
 }
 
 async function seedDemoData() {
-  const seeded = await txGet('meta', SEED_KEY);
-  if (seeded) return;
+  // Local guard — already seeded on this device
+  const localSeeded = await _idbGet('meta', SEED_KEY);
+  if (localSeeded) return;
+
+  // Firestore global guard — if another device already seeded, skip writing
+  // but still mark local as done so we don't check again.
+  if (_fdb) {
+    try {
+      const snap = await _fdb.collection('cylinders').limit(1).get();
+      if (!snap.empty) {
+        await _idbPut('meta', { key: SEED_KEY, value: true });
+        return;
+      }
+    } catch (e) {
+      // Offline on first load — fall through and seed locally via Firestore
+      // persistence queue; writes will sync when back online.
+    }
+  }
+
+  // Activate batch mode for Firestore writes (auto-flushes at 500 docs)
+  if (_fdb) _seedBatch = [];
 
   // Clear any stale data from previous seed versions
   await txClearStore('cylinders');
@@ -1262,10 +1395,9 @@ async function seedDemoData() {
   }
 
   // Seed generated bulk cylinders (300 per LPGMC)
+  // No existence check needed — we confirmed the collection was empty above.
   const generatedCyls = buildGeneratedCylinders();
   for (const cyl of generatedCyls) {
-    const existing = await txGet('cylinders', cyl.id);
-    if (existing) continue; // already seeded
     await txPut('cylinders', cyl);
     const mfgTime = new Date(cyl.manufactureDate).getTime();
     await txPut('events', {
@@ -1378,15 +1510,21 @@ async function seedDemoData() {
     });
   }
 
+  // Flush any remaining Firestore batch writes and exit batch mode
+  if (_fdb && _seedBatch !== null) {
+    await _fsBatchFlush();
+    _seedBatch = null;
+  }
+
+  // Licenses and inspections stay in IndexedDB only
   for (const lic of DEMO_LICENSES) {
-    await txPut('licenses', lic);
+    await _idbPut('licenses', lic);
   }
-
   for (const ins of DEMO_INSPECTIONS) {
-    await txPut('inspections', ins);
+    await _idbPut('inspections', ins);
   }
 
-  await txPut('meta', { key: SEED_KEY, value: true });
+  await _idbPut('meta', { key: SEED_KEY, value: true });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -5658,6 +5796,7 @@ if ('serviceWorker' in navigator) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function init() {
+  initFirebase();
   await openDB();
   await seedDemoData();
 

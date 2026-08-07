@@ -1,4 +1,4 @@
-const CACHE = 'rfid-reader-v24';
+const CACHE = 'rfid-reader-v25';
 const ASSETS = ['/', '/index.html', '/style.css', '/app.js', '/manifest.json', '/leaflet.js', '/leaflet.css'];
 
 self.addEventListener('install', e => {
@@ -17,14 +17,17 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = e.request.url;
-  // OSM tiles: network-first, fall back to cache
-  if (url.includes('tile.openstreetmap.org')) {
+  // OSM tiles + Firebase SDK: cache-first with network fallback, cache on miss
+  if (url.includes('tile.openstreetmap.org') || url.includes('gstatic.com/firebasejs')) {
     e.respondWith(
-      fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
-      }).catch(() => caches.match(e.request))
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        });
+      })
     );
     return;
   }
