@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 3;
-const SEED_KEY   = 'seeded-v16';
+const SEED_KEY   = 'seeded-v17';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
