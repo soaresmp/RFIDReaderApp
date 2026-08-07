@@ -9,12 +9,15 @@ const DB_VERSION = 3;
 const SEED_KEY   = 'seeded-v16';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
-// cylinders and events are stored in Firestore; all other stores use IndexedDB.
-const FS_STORES = new Set(['cylinders', 'events']);
-let _fdb = null; // Firestore instance, set by initFirebase()
+// All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
+const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections']);
+let _fdb = null;
+let _activeCountry = 'TZ';
 
-// Pending batch during seedDemoData — when set, txPut accumulates into batches
-// of 500 and auto-commits, avoiding thousands of individual Firestore round-trips.
+function _fsColl(storeName) {
+  return _fdb.collection('countries').doc(_activeCountry).collection(storeName);
+}
+
 let _seedBatch = null;
 
 function initFirebase() {
@@ -49,9 +52,9 @@ async function _fsBatchFlush() {
 async function _fsBatchAdd(storeName, record) {
   let ref;
   if (record.id != null) {
-    ref = _fdb.collection(storeName).doc(String(record.id));
+    ref = _fsColl(storeName).doc(String(record.id));
   } else {
-    ref = _fdb.collection(storeName).doc();
+    ref = _fsColl(storeName).doc();
     record = { ...record, id: ref.id };
   }
   _seedBatch.push({ ref, data: record });
@@ -915,6 +918,189 @@ const DEMO_LICENSE_EXTRA_INFO = {
   'CityGas Direct':   { region:'Dar es Salaam', city:'Dar es Salaam', address:'Msongola, Ilala District',          contact:'+255 22 213 0774', contactPerson:'Stella Mwamba'   },
 };
 
+// ── Kenya dataset ─────────────────────────────────────────────────────────────
+
+const LPGMC_COMPANIES_KE = ['Total Energies Kenya', 'Vivo Energy Kenya', 'Africa Gas & Oil', 'Hashi Energy'];
+
+const DEMO_CYLINDERS_KE = [
+  // Total Energies Kenya — 15 entries
+  { id:'E280116060000204C3F04F81', serial:'TEK-2014-001', company:'Total Energies Kenya', manufactureDate:'2014-03-15', tareWeight:8.0,  capacity:6,  fillCount:510, lastHydroTest:'2019-03-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04F82', serial:'TEK-2015-002', company:'Total Energies Kenya', manufactureDate:'2015-07-20', tareWeight:8.0,  capacity:6,  fillCount:430, lastHydroTest:'2020-07-20', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04F83', serial:'TEK-2016-003', company:'Total Energies Kenya', manufactureDate:'2016-02-10', tareWeight:8.0,  capacity:6,  fillCount:372, lastHydroTest:'2021-02-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04F84', serial:'TEK-2017-004', company:'Total Energies Kenya', manufactureDate:'2017-05-22', tareWeight:14.5, capacity:12, fillCount:298, lastHydroTest:'2022-05-22', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04F85', serial:'TEK-2018-005', company:'Total Energies Kenya', manufactureDate:'2018-09-08', tareWeight:14.5, capacity:12, fillCount:225, lastHydroTest:'2023-09-08', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04F86', serial:'TEK-2019-006', company:'Total Energies Kenya', manufactureDate:'2019-01-15', tareWeight:14.5, capacity:12, fillCount:168, lastHydroTest:'2024-01-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04F87', serial:'TEK-2020-007', company:'Total Energies Kenya', manufactureDate:'2020-06-30', tareWeight:14.5, capacity:12, fillCount:112, lastHydroTest:'2025-06-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04F88', serial:'TEK-2021-008', company:'Total Energies Kenya', manufactureDate:'2021-02-18', tareWeight:14.5, capacity:12, fillCount:78,  lastHydroTest:'2026-02-18', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04F89', serial:'TEK-2021-009', company:'Total Energies Kenya', manufactureDate:'2021-11-05', tareWeight:14.5, capacity:12, fillCount:59,  lastHydroTest:'2026-11-05', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04F8A', serial:'TEK-2022-010', company:'Total Energies Kenya', manufactureDate:'2022-04-20', tareWeight:14.5, capacity:12, fillCount:42,  lastHydroTest:'2027-04-20', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04F8B', serial:'TEK-2023-011', company:'Total Energies Kenya', manufactureDate:'2023-08-12', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-08-12', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04F8C', serial:'TEK-2024-012', company:'Total Energies Kenya', manufactureDate:'2024-02-28', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-02-28', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04F8D', serial:'TEK-2013-013', company:'Total Energies Kenya', manufactureDate:'2013-06-15', tareWeight:28.5, capacity:38, fillCount:575, lastHydroTest:'2018-06-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04F8E', serial:'TEK-2012-014', company:'Total Energies Kenya', manufactureDate:'2012-10-25', tareWeight:28.5, capacity:38, fillCount:618, lastHydroTest:'2017-10-25', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04F8F', serial:'TEK-2025-015', company:'Total Energies Kenya', manufactureDate:'2025-03-01', tareWeight:14.5, capacity:12, fillCount:3,   lastHydroTest:'2030-03-01', status:'in-refill',      notes:'' },
+  // Vivo Energy Kenya — 15 entries
+  { id:'E280116060000204C3F04FA1', serial:'VEK-2013-001', company:'Vivo Energy Kenya', manufactureDate:'2013-04-10', tareWeight:8.0,  capacity:6,  fillCount:528, lastHydroTest:'2018-04-10', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FA2', serial:'VEK-2015-002', company:'Vivo Energy Kenya', manufactureDate:'2015-05-22', tareWeight:8.0,  capacity:6,  fillCount:468, lastHydroTest:'2020-05-22', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FA3', serial:'VEK-2016-003', company:'Vivo Energy Kenya', manufactureDate:'2016-11-15', tareWeight:8.0,  capacity:6,  fillCount:385, lastHydroTest:'2021-11-15', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FA4', serial:'VEK-2017-004', company:'Vivo Energy Kenya', manufactureDate:'2017-07-08', tareWeight:14.5, capacity:12, fillCount:312, lastHydroTest:'2022-07-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FA5', serial:'VEK-2018-005', company:'Vivo Energy Kenya', manufactureDate:'2018-03-20', tareWeight:14.5, capacity:12, fillCount:238, lastHydroTest:'2023-03-20', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FA6', serial:'VEK-2019-006', company:'Vivo Energy Kenya', manufactureDate:'2019-10-14', tareWeight:14.5, capacity:12, fillCount:177, lastHydroTest:'2024-10-14', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FA7', serial:'VEK-2020-007', company:'Vivo Energy Kenya', manufactureDate:'2020-08-05', tareWeight:14.5, capacity:12, fillCount:119, lastHydroTest:'2025-08-05', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FA8', serial:'VEK-2021-008', company:'Vivo Energy Kenya', manufactureDate:'2021-01-25', tareWeight:14.5, capacity:12, fillCount:83,  lastHydroTest:'2026-01-25', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FA9', serial:'VEK-2022-009', company:'Vivo Energy Kenya', manufactureDate:'2022-05-10', tareWeight:14.5, capacity:12, fillCount:52,  lastHydroTest:'2027-05-10', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FAA', serial:'VEK-2022-010', company:'Vivo Energy Kenya', manufactureDate:'2022-11-18', tareWeight:14.5, capacity:12, fillCount:38,  lastHydroTest:'2027-11-18', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FAB', serial:'VEK-2023-011', company:'Vivo Energy Kenya', manufactureDate:'2023-06-02', tareWeight:14.5, capacity:12, fillCount:19,  lastHydroTest:'2028-06-02', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04FAC', serial:'VEK-2024-012', company:'Vivo Energy Kenya', manufactureDate:'2024-01-16', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-01-16', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FAD', serial:'VEK-2012-013', company:'Vivo Energy Kenya', manufactureDate:'2012-07-20', tareWeight:28.5, capacity:38, fillCount:645, lastHydroTest:'2017-07-20', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FAE', serial:'VEK-2014-014', company:'Vivo Energy Kenya', manufactureDate:'2014-09-12', tareWeight:28.5, capacity:38, fillCount:492, lastHydroTest:'2019-09-12', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FAF', serial:'VEK-2025-015', company:'Vivo Energy Kenya', manufactureDate:'2025-01-08', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-01-08', status:'in-refill',      notes:'' },
+  // Africa Gas & Oil (AGOL) — 15 entries
+  { id:'E280116060000204C3F04FB1', serial:'AGL-2014-001', company:'Africa Gas & Oil', manufactureDate:'2014-05-18', tareWeight:8.0,  capacity:6,  fillCount:495, lastHydroTest:'2019-05-18', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FB2', serial:'AGL-2015-002', company:'Africa Gas & Oil', manufactureDate:'2015-09-30', tareWeight:8.0,  capacity:6,  fillCount:420, lastHydroTest:'2020-09-30', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FB3', serial:'AGL-2016-003', company:'Africa Gas & Oil', manufactureDate:'2016-04-12', tareWeight:14.5, capacity:12, fillCount:362, lastHydroTest:'2021-04-12', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FB4', serial:'AGL-2017-004', company:'Africa Gas & Oil', manufactureDate:'2017-10-08', tareWeight:14.5, capacity:12, fillCount:288, lastHydroTest:'2022-10-08', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FB5', serial:'AGL-2018-005', company:'Africa Gas & Oil', manufactureDate:'2018-06-25', tareWeight:14.5, capacity:12, fillCount:215, lastHydroTest:'2023-06-25', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FB6', serial:'AGL-2019-006', company:'Africa Gas & Oil', manufactureDate:'2019-02-14', tareWeight:14.5, capacity:12, fillCount:158, lastHydroTest:'2024-02-14', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FB7', serial:'AGL-2020-007', company:'Africa Gas & Oil', manufactureDate:'2020-09-20', tareWeight:14.5, capacity:12, fillCount:104, lastHydroTest:'2025-09-20', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FB8', serial:'AGL-2021-008', company:'Africa Gas & Oil', manufactureDate:'2021-04-05', tareWeight:14.5, capacity:12, fillCount:71,  lastHydroTest:'2026-04-05', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FB9', serial:'AGL-2022-009', company:'Africa Gas & Oil', manufactureDate:'2022-01-22', tareWeight:14.5, capacity:12, fillCount:46,  lastHydroTest:'2027-01-22', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FBA', serial:'AGL-2022-010', company:'Africa Gas & Oil', manufactureDate:'2022-08-14', tareWeight:14.5, capacity:12, fillCount:33,  lastHydroTest:'2027-08-14', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FBB', serial:'AGL-2023-011', company:'Africa Gas & Oil', manufactureDate:'2023-04-18', tareWeight:14.5, capacity:12, fillCount:17,  lastHydroTest:'2028-04-18', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FBC', serial:'AGL-2024-012', company:'Africa Gas & Oil', manufactureDate:'2024-03-10', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-10', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FBD', serial:'AGL-2013-013', company:'Africa Gas & Oil', manufactureDate:'2013-08-22', tareWeight:28.5, capacity:38, fillCount:555, lastHydroTest:'2018-08-22', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FBE', serial:'AGL-2012-014', company:'Africa Gas & Oil', manufactureDate:'2012-12-05', tareWeight:28.5, capacity:38, fillCount:602, lastHydroTest:'2017-12-05', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FBF', serial:'AGL-2025-015', company:'Africa Gas & Oil', manufactureDate:'2025-02-20', tareWeight:14.5, capacity:12, fillCount:4,   lastHydroTest:'2030-02-20', status:'in-refill',      notes:'' },
+  // Hashi Energy — 12 entries
+  { id:'E280116060000204C3F04FC1', serial:'HSH-2015-001', company:'Hashi Energy', manufactureDate:'2015-03-28', tareWeight:8.0,  capacity:6,  fillCount:440, lastHydroTest:'2020-03-28', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FC2', serial:'HSH-2016-002', company:'Hashi Energy', manufactureDate:'2016-08-15', tareWeight:14.5, capacity:12, fillCount:345, lastHydroTest:'2021-08-15', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FC3', serial:'HSH-2018-003', company:'Hashi Energy', manufactureDate:'2018-05-20', tareWeight:14.5, capacity:12, fillCount:245, lastHydroTest:'2023-05-20', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FC4', serial:'HSH-2019-004', company:'Hashi Energy', manufactureDate:'2019-02-14', tareWeight:14.5, capacity:12, fillCount:188, lastHydroTest:'2024-02-14', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FC5', serial:'HSH-2020-005', company:'Hashi Energy', manufactureDate:'2020-07-08', tareWeight:14.5, capacity:12, fillCount:125, lastHydroTest:'2025-07-08', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FC6', serial:'HSH-2021-006', company:'Hashi Energy', manufactureDate:'2021-10-22', tareWeight:14.5, capacity:12, fillCount:81,  lastHydroTest:'2026-10-22', status:'revalidation',   notes:'' },
+  { id:'E280116060000204C3F04FC7', serial:'HSH-2022-007', company:'Hashi Energy', manufactureDate:'2022-04-05', tareWeight:14.5, capacity:12, fillCount:50,  lastHydroTest:'2027-04-05', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FC8', serial:'HSH-2023-008', company:'Hashi Energy', manufactureDate:'2023-09-12', tareWeight:14.5, capacity:12, fillCount:24,  lastHydroTest:'2028-09-12', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FC9', serial:'HSH-2024-009', company:'Hashi Energy', manufactureDate:'2024-05-18', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-05-18', status:'in-refill',      notes:'' },
+  { id:'E280116060000204C3F04FCA', serial:'HSH-2013-010', company:'Hashi Energy', manufactureDate:'2013-01-30', tareWeight:28.5, capacity:38, fillCount:562, lastHydroTest:'2018-01-30', status:'in-circulation', notes:'' },
+  { id:'E280116060000204C3F04FCB', serial:'HSH-2014-011', company:'Hashi Energy', manufactureDate:'2014-11-10', tareWeight:28.5, capacity:38, fillCount:418, lastHydroTest:'2019-11-10', status:'in-use',         notes:'' },
+  { id:'E280116060000204C3F04FCC', serial:'HSH-2025-012', company:'Hashi Energy', manufactureDate:'2025-05-05', tareWeight:14.5, capacity:12, fillCount:1,   lastHydroTest:'2030-05-05', status:'in-refill',      notes:'' },
+];
+
+const DEMO_LICENSES_KE = [
+  { id:'LIC-KE-001', companyName:'Total Energies Kenya', companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/001/2020', issuedDate:'2020-02-10', expiryDate:'2027-02-09', status:'active',
+    history:[{type:'granted', date:'2020-02-10', by:'EPRA', note:'Initial license granted'}] },
+  { id:'LIC-KE-002', companyName:'Vivo Energy Kenya',    companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/002/2019', issuedDate:'2019-07-15', expiryDate:'2026-07-14', status:'active',
+    history:[{type:'granted', date:'2019-07-15', by:'EPRA', note:'Initial license granted'},{type:'renewed', date:'2023-07-15', by:'EPRA', note:'License renewed for 3 years'}] },
+  { id:'LIC-KE-003', companyName:'Africa Gas & Oil',     companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/003/2021', issuedDate:'2021-04-20', expiryDate:'2028-04-19', status:'active',
+    history:[{type:'granted', date:'2021-04-20', by:'EPRA', note:'Initial license granted'}] },
+  { id:'LIC-KE-004', companyName:'Hashi Energy',         companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/004/2022', issuedDate:'2022-09-01', expiryDate:'2029-08-31', status:'active',
+    history:[{type:'granted', date:'2022-09-01', by:'EPRA', note:'Initial license granted'}] },
+  { id:'LIC-KE-005', companyName:'Nairobi Gas Supplies', companyType:'Distributor', licenseNumber:'EPRA/DIST/001/2022',  issuedDate:'2022-05-18', expiryDate:'2025-05-17', status:'expired',
+    history:[{type:'granted', date:'2022-05-18', by:'EPRA', note:'Initial license granted'}] },
+  { id:'LIC-KE-006', companyName:'Mombasa Gas Direct',   companyType:'Retailer',    licenseNumber:'EPRA/RET/001/2023',   issuedDate:'2023-03-10', expiryDate:'2026-03-09', status:'active',
+    history:[{type:'granted', date:'2023-03-10', by:'EPRA', note:'Initial license granted'}] },
+  { id:'LIC-KE-007', companyName:'Kenya Reval Services', companyType:'Revalidator', licenseNumber:'EPRA/REVAL/001/2021', issuedDate:'2021-10-05', expiryDate:'2028-10-04', status:'active',
+    history:[{type:'granted', date:'2021-10-05', by:'EPRA', note:'Initial license granted'}] },
+];
+
+const DEMO_INSPECTIONS_KE = [
+  { id:'INS-KE-001', company:'Total Energies Kenya',  region:'Nairobi',  auditor:'James Kariuki',    scheduledDate:'2026-05-12', status:'completed', notes:'Full compliance check. All cylinders tagged and verified.' },
+  { id:'INS-KE-002', company:'Vivo Energy Kenya',     region:'Mombasa',  auditor:'Fatuma Mwangi',    scheduledDate:'2026-05-25', status:'completed', notes:'Minor labelling issues found. Follow-up scheduled.' },
+  { id:'INS-KE-003', company:'Africa Gas & Oil',      region:'Kisumu',   auditor:'Peter Odhiambo',   scheduledDate:'2026-06-18', status:'scheduled', notes:'Routine annual inspection.' },
+  { id:'INS-KE-004', company:'Hashi Energy',          region:'Nakuru',   auditor:'Grace Njoroge',    scheduledDate:'2026-07-10', status:'scheduled', notes:'New facility inspection — first visit.' },
+  { id:'INS-KE-005', company:'Nairobi Gas Supplies',  region:'Nairobi',  auditor:'David Kamau',      scheduledDate:'2026-04-20', status:'overdue',   notes:'Inspection not completed — auditor unavailable.' },
+  { id:'INS-KE-006', company:'Mombasa Gas Direct',    region:'Mombasa',  auditor:'Salma Hassan',     scheduledDate:'2026-05-05', status:'overdue',   notes:'No response from operator. Second notice sent.' },
+];
+
+const DEMO_NETWORK_KE = [
+  { id:'KE-NET-001', name:'Nairobi Gas Supplies',      type:'Distributor', region:'Nairobi',      city:'Nairobi',  address:'Industrial Area, Enterprise Road, Nairobi',    lat:-1.3028, lng:36.8588, contact:'+254 20 222 0101', contactPerson:'James Mwangi',     status:'active',   cylinders:152, full:91, empty:61 },
+  { id:'KE-NET-002', name:'Mombasa Gas Depot',         type:'Distributor', region:'Mombasa',      city:'Mombasa',  address:'Port Reitz Road, Changamwe, Mombasa',          lat:-4.0435, lng:39.6682, contact:'+254 41 222 0202', contactPerson:'Fatuma Ali',       status:'active',   cylinders:104, full:65, empty:39 },
+  { id:'KE-NET-003', name:'Kisumu Gas Supplies',       type:'Distributor', region:'Kisumu',       city:'Kisumu',   address:'Kondele Area, Kisumu',                         lat:-0.0917, lng:34.7680, contact:'+254 57 222 0303', contactPerson:'George Odhiambo',  status:'active',   cylinders:86,  full:54, empty:32 },
+  { id:'KE-NET-004', name:'Nakuru Gas Centre',         type:'Distributor', region:'Nakuru',       city:'Nakuru',   address:'Nakuru Industrial Area, Kenyatta Avenue',      lat:-0.3031, lng:36.0800, contact:'+254 51 222 0404', contactPerson:'Mary Njoroge',     status:'active',   cylinders:72,  full:43, empty:29 },
+  { id:'KE-NET-005', name:'Eldoret Gas Distributors',  type:'Distributor', region:'Uasin Gishu',  city:'Eldoret',  address:'Huruma Estate, Eldoret',                       lat:0.5143,  lng:35.2698, contact:'+254 53 222 0505', contactPerson:'John Rotich',      status:'active',   cylinders:65,  full:40, empty:25 },
+  { id:'KE-NET-006', name:'Mt Kenya Gas Ltd',          type:'Distributor', region:'Nyeri',        city:'Nyeri',    address:'Nyeri Town Centre, Hospital Road',              lat:-0.4167, lng:36.9500, contact:'+254 61 222 0606', contactPerson:'Ann Wanjiku',      status:'inactive', cylinders:38,  full:18, empty:20 },
+  { id:'KE-NET-007', name:'Thika Gas Supplies',        type:'Distributor', region:'Kiambu',       city:'Thika',    address:'Thika Industrial Area, Kenyatta Highway',      lat:-1.0332, lng:37.0693, contact:'+254 67 222 0707', contactPerson:'Peter Kamau',      status:'active',   cylinders:58,  full:35, empty:23 },
+  { id:'KE-NET-008', name:'Machakos Gas Distributors', type:'Distributor', region:'Machakos',     city:'Machakos', address:'Machakos Town, Mwatu wa Ngoma Road',           lat:-1.5177, lng:37.2634, contact:'+254 44 222 0808', contactPerson:'Ruth Mutua',       status:'active',   cylinders:43,  full:26, empty:17 },
+  { id:'KE-NET-009', name:'Meru Gas Centre',           type:'Distributor', region:'Meru',         city:'Meru',     address:'Meru Town, Kenyatta Highway',                  lat:0.0467,  lng:37.6495, contact:'+254 64 222 0909', contactPerson:'Simon Murungi',    status:'active',   cylinders:37,  full:22, empty:15 },
+  { id:'KE-NET-010', name:'Garissa Gas Supply Co.',    type:'Distributor', region:'Garissa',      city:'Garissa',  address:'Garissa Town, Jogoo Road',                     lat:-0.4532, lng:39.6461, contact:'+254 46 222 1010', contactPerson:'Hassan Aden',      status:'inactive', cylinders:24,  full:10, empty:14 },
+  { id:'KE-NET-011', name:'Malindi Gas Depot',         type:'Distributor', region:'Kilifi',       city:'Malindi',  address:'Malindi Town, Galana Road',                    lat:-3.2175, lng:40.1169, contact:'+254 42 222 1111', contactPerson:'Aisha Mwachiru',   status:'active',   cylinders:31,  full:19, empty:12 },
+  { id:'KE-NET-012', name:'Kisii Gas Distributors',    type:'Distributor', region:'Kisii',        city:'Kisii',    address:'Kisii Town, Hospital Road',                    lat:-0.6817, lng:34.7667, contact:'+254 58 222 1212', contactPerson:'Caroline Nyamari', status:'active',   cylinders:29,  full:17, empty:12 },
+  { id:'KE-NET-013', name:'Westlands Gas Shop',        type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'Westlands Commercial Centre, Waiyaki Way',     lat:-1.2675, lng:36.8100, contact:'+254 20 222 1301', contactPerson:'Wanjiku Kamau',    status:'active',   cylinders:35,  full:22, empty:13 },
+  { id:'KE-NET-014', name:'Eastleigh Gas Outlet',      type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'2nd Avenue, Eastleigh, Nairobi',               lat:-1.2787, lng:36.8526, contact:'+254 20 222 1401', contactPerson:'Mohamed Abdi',     status:'active',   cylinders:28,  full:17, empty:11 },
+  { id:'KE-NET-015', name:'Kibera Gas Point',          type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'Olympic Market, Kibera Drive',                 lat:-1.3127, lng:36.7940, contact:'+254 20 222 1501', contactPerson:'Jane Akinyi',      status:'active',   cylinders:22,  full:13, empty:9  },
+  { id:'KE-NET-016', name:'Karen Gas Retail',          type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'Karen Shopping Centre, Ngong Road',            lat:-1.3467, lng:36.7088, contact:'+254 20 222 1601', contactPerson:'Evelyn Njeri',     status:'active',   cylinders:18,  full:11, empty:7  },
+  { id:'KE-NET-017', name:'Mtwapa Gas Shop',           type:'Retailer',    region:'Mombasa',      city:'Mombasa',  address:'Mtwapa Town Centre, Mombasa-Malindi Road',     lat:-3.9574, lng:39.7320, contact:'+254 41 222 1701', contactPerson:'Suleiman Omar',    status:'active',   cylinders:20,  full:12, empty:8  },
+  { id:'KE-NET-018', name:'Nyali Gas Direct',          type:'Retailer',    region:'Mombasa',      city:'Mombasa',  address:'Nyali Centre, Links Road',                     lat:-4.0200, lng:39.7200, contact:'+254 41 222 1801', contactPerson:'Amina Hassan',     status:'active',   cylinders:16,  full:9,  empty:7  },
+  { id:'KE-NET-019', name:'Kisumu Milimani Gas',       type:'Retailer',    region:'Kisumu',       city:'Kisumu',   address:'Milimani Estate, Kisumu',                      lat:-0.0800, lng:34.7600, contact:'+254 57 222 1901', contactPerson:'Grace Otieno',     status:'active',   cylinders:19,  full:11, empty:8  },
+  { id:'KE-NET-020', name:'Nakuru Central Gas Shop',   type:'Retailer',    region:'Nakuru',       city:'Nakuru',   address:'Nakuru Central Market, Geoffrey Kamau Way',    lat:-0.2833, lng:36.0667, contact:'+254 51 222 2001', contactPerson:'Simon Kimani',     status:'active',   cylinders:15,  full:9,  empty:6  },
+  { id:'KE-NET-021', name:'Eldoret Pioneer Gas',       type:'Retailer',    region:'Uasin Gishu',  city:'Eldoret',  address:'Pioneer Estate, Uganda Road, Eldoret',         lat:0.5200,  lng:35.2750, contact:'+254 53 222 2101', contactPerson:'Chebet Korir',     status:'active',   cylinders:14,  full:8,  empty:6  },
+  { id:'KE-NET-022', name:'Nyeri Gas Corner',          type:'Retailer',    region:'Nyeri',        city:'Nyeri',    address:'Nyeri Town, Kimathi Way',                      lat:-0.4200, lng:36.9500, contact:'+254 61 222 2201', contactPerson:'Lucy Wanjiku',     status:'active',   cylinders:13,  full:8,  empty:5  },
+  { id:'KE-NET-023', name:'Thika Gas Retail',          type:'Retailer',    region:'Kiambu',       city:'Thika',    address:'Thika Town Centre, Kenyatta Highway',           lat:-1.0400, lng:37.0800, contact:'+254 67 222 2301', contactPerson:'Daniel Mwangi',    status:'active',   cylinders:17,  full:10, empty:7  },
+  { id:'KE-NET-024', name:'Machakos Gas Shop',         type:'Retailer',    region:'Machakos',     city:'Machakos', address:'Machakos Central, Muindi Mbingu Street',       lat:-1.5100, lng:37.2700, contact:'+254 44 222 2401', contactPerson:'Mary Mwende',      status:'active',   cylinders:12,  full:7,  empty:5  },
+  { id:'KE-NET-025', name:'Meru Tigania Gas',          type:'Retailer',    region:'Meru',         city:'Meru',     address:'Meru Town, Makandara Road',                    lat:0.0500,  lng:37.6500, contact:'+254 64 222 2501', contactPerson:'Agnes Muriithi',   status:'active',   cylinders:11,  full:6,  empty:5  },
+  { id:'KE-NET-026', name:'Kisii Central Gas',         type:'Retailer',    region:'Kisii',        city:'Kisii',    address:'Kisii Central Market, Robert Ouko Road',       lat:-0.6800, lng:34.7700, contact:'+254 58 222 2601', contactPerson:'Beatrice Omari',   status:'active',   cylinders:10,  full:6,  empty:4  },
+  { id:'KE-NET-027', name:'Malindi Seaside Gas',       type:'Retailer',    region:'Kilifi',       city:'Malindi',  address:'Malindi Town, Lamu Road',                      lat:-3.2200, lng:40.1200, contact:'+254 42 222 2701', contactPerson:'Zuhura Bakari',    status:'active',   cylinders:14,  full:8,  empty:6  },
+  { id:'KE-NET-028', name:'Nairobi CBD Gas',           type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'Tom Mboya Street, Nairobi CBD',                lat:-1.2867, lng:36.8200, contact:'+254 20 222 2801', contactPerson:'Kevin Otieno',     status:'active',   cylinders:21,  full:13, empty:8  },
+  { id:'KE-NET-029', name:'Gigiri Gas Point',          type:'Retailer',    region:'Nairobi',      city:'Nairobi',  address:'Gigiri Estate, UN Avenue',                     lat:-1.2350, lng:36.8020, contact:'+254 20 222 2901', contactPerson:'Purity Wachira',   status:'active',   cylinders:16,  full:10, empty:6  },
+  { id:'KE-NET-030', name:'Rongai Gas Retail',         type:'Retailer',    region:'Kajiado',      city:'Rongai',   address:'Rongai Town Centre, Nakuru Highway',            lat:-1.3940, lng:36.7436, contact:'+254 20 222 3001', contactPerson:'Francis Maina',    status:'active',   cylinders:13,  full:7,  empty:6  },
+];
+
+const DEMO_LPGMC_INFO_KE = {
+  'Total Energies Kenya': { region:'Nairobi', city:'Nairobi', address:'Industrial Area, Enterprise Road, Nairobi', contact:'+254 20 286 0101', contactPerson:'Samuel Waweru',  lat:-1.3028, lng:36.8588 },
+  'Vivo Energy Kenya':    { region:'Mombasa', city:'Mombasa', address:'Port Reitz Road, Changamwe, Mombasa',       contact:'+254 41 277 0202', contactPerson:'Fatuma Said',    lat:-4.0435, lng:39.6682 },
+  'Africa Gas & Oil':     { region:'Nairobi', city:'Nairobi', address:'Baba Dogo Road, Ruaraka, Nairobi',          contact:'+254 20 285 0303', contactPerson:'Peter Omondi',   lat:-1.2550, lng:36.8700 },
+  'Hashi Energy':         { region:'Nairobi', city:'Nairobi', address:'Likoni Road, Industrial Area, Nairobi',     contact:'+254 20 254 0404', contactPerson:'Hassan Ibrahim', lat:-1.3100, lng:36.8350 },
+};
+
+const DEMO_LICENSE_EXTRA_INFO_KE = {
+  'Nairobi Gas Supplies': { region:'Nairobi', city:'Nairobi', address:'Industrial Area, Enterprise Road, Nairobi', contact:'+254 20 218 0441', contactPerson:'James Mwangi'  },
+  'Mombasa Gas Direct':   { region:'Mombasa', city:'Mombasa', address:'Nyali Centre, Links Road, Mombasa',         contact:'+254 41 211 0552', contactPerson:'Amina Hassan'   },
+  'Kenya Reval Services': { region:'Nairobi', city:'Nairobi', address:'Industrial Area, Baba Dogo Road, Nairobi',  contact:'+254 20 286 0663', contactPerson:'Charles Oduya'  },
+};
+
+function buildKenyaCylinders() {
+  const companies = [
+    { name:'Total Energies Kenya', prefix:'TEK', code:'05' },
+    { name:'Vivo Energy Kenya',    prefix:'VEK', code:'06' },
+    { name:'Africa Gas & Oil',     prefix:'AGL', code:'07' },
+    { name:'Hashi Energy',         prefix:'HSH', code:'08' },
+  ];
+  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill-empty','in-use','in-circulation','revalidation','in-use','in-refill','in-use','in-circulation','in-circ-empty','in-use','in-use','in-refill','in-use','in-use'];
+  const capacities  = [12,12,15,12,12,12,15,12,12,12];
+  const result = [];
+  const existingCounts = { 'Total Energies Kenya':15, 'Vivo Energy Kenya':15, 'Africa Gas & Oil':15, 'Hashi Energy':12 };
+  companies.forEach((co, ci) => {
+    const needed = 500 - (existingCounts[co.name] || 0);
+    for (let i = 1; i <= needed; i++) {
+      const isOld = (i % 40 === 0);
+      const year = isOld ? (2017 + (Math.floor(i/40) % 4)) : (2016 + (i % 10));
+      const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
+      const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
+      const mfgDate   = `${year}-${month}-${day}`;
+      const hydroDate = `${year + 5}-${month}-${day}`;
+      const age = 2026 - year;
+      const fillCount = Math.max(1, age * 30 + (i % 50));
+      const rawStatus = statusCycle[i % statusCycle.length];
+      const resolvedStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus === 'in-refill-empty' ? 'in-refill' : rawStatus;
+      result.push({
+        id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
+        serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
+        company: co.name,
+        manufactureDate: mfgDate,
+        tareWeight: 14.5,
+        capacity: capacities[i % capacities.length],
+        fillCount,
+        lastHydroTest: hydroDate,
+        status: resolvedStatus,
+        _seedEmpty: rawStatus === 'in-circ-empty',
+        _seedRefillEmpty: rawStatus === 'in-refill-empty',
+        notes: '',
+      });
+    }
+  });
+  return result;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH MODULE
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1130,10 +1316,10 @@ function _idbGetIndex(storeName, indexName, value) {
   });
 }
 
-// ── Public tx* API — routes FS_STORES to Firestore, others to IndexedDB ──────
+// ── Public tx* API — routes FS_STORES to Firestore under /countries/{_activeCountry}/ ──
 async function txGet(storeName, key) {
   if (_fdb && FS_STORES.has(storeName)) {
-    const snap = await _fdb.collection(storeName).doc(String(key)).get();
+    const snap = await _fsColl(storeName).doc(String(key)).get();
     return snap.exists ? snap.data() : undefined;
   }
   return _idbGet(storeName, key);
@@ -1141,7 +1327,7 @@ async function txGet(storeName, key) {
 
 async function txGetAll(storeName) {
   if (_fdb && FS_STORES.has(storeName)) {
-    const snap = await _fdb.collection(storeName).get();
+    const snap = await _fsColl(storeName).get();
     return snap.docs.map(d => d.data());
   }
   return _idbGetAll(storeName);
@@ -1149,13 +1335,12 @@ async function txGetAll(storeName) {
 
 async function txPut(storeName, record) {
   if (_fdb && FS_STORES.has(storeName)) {
-    // During seeding: accumulate into batches for efficiency
     if (_seedBatch !== null) return _fsBatchAdd(storeName, record);
     if (record.id != null) {
-      await _fdb.collection(storeName).doc(String(record.id)).set(record);
+      await _fsColl(storeName).doc(String(record.id)).set(record);
       return record.id;
     } else {
-      const ref = await _fdb.collection(storeName).add(record);
+      const ref = await _fsColl(storeName).add(record);
       record.id = ref.id;
       return ref.id;
     }
@@ -1165,7 +1350,7 @@ async function txPut(storeName, record) {
 
 async function txDelete(storeName, key) {
   if (_fdb && FS_STORES.has(storeName)) {
-    await _fdb.collection(storeName).doc(String(key)).delete();
+    await _fsColl(storeName).doc(String(key)).delete();
     return;
   }
   return _idbDelete(storeName, key);
@@ -1173,7 +1358,7 @@ async function txDelete(storeName, key) {
 
 async function txClearStore(storeName) {
   if (_fdb && FS_STORES.has(storeName)) {
-    const snap = await _fdb.collection(storeName).get();
+    const snap = await _fsColl(storeName).get();
     for (let i = 0; i < snap.docs.length; i += 500) {
       const batch = _fdb.batch();
       snap.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));
@@ -1186,7 +1371,7 @@ async function txClearStore(storeName) {
 
 async function txGetIndex(storeName, indexName, value) {
   if (_fdb && FS_STORES.has(storeName)) {
-    const snap = await _fdb.collection(storeName).where(indexName, '==', value).get();
+    const snap = await _fsColl(storeName).where(indexName, '==', value).get();
     return snap.docs.map(d => d.data());
   }
   return _idbGetIndex(storeName, indexName, value);
@@ -1243,287 +1428,326 @@ function buildGeneratedCylinders() {
 }
 
 async function seedDemoData() {
-  // Local guard — already seeded on this device
   const localSeeded = await _idbGet('meta', SEED_KEY);
   if (localSeeded) return;
 
-  // Firestore global guard — if another device already seeded, skip writing
-  // but still mark local as done so we don't check again.
+  // Global guard: if TZ already seeded in Firestore on another device, skip
   if (_fdb) {
     try {
-      const snap = await _fdb.collection('cylinders').limit(1).get();
+      _activeCountry = 'TZ';
+      const snap = await _fsColl('cylinders').limit(1).get();
       if (!snap.empty) {
         await _idbPut('meta', { key: SEED_KEY, value: true });
         return;
       }
-    } catch (e) {
-      // Offline on first load — fall through and seed locally via Firestore
-      // persistence queue; writes will sync when back online.
-    }
-  }
-
-  // Activate batch mode for Firestore writes (auto-flushes at 500 docs)
-  if (_fdb) _seedBatch = [];
-
-  // Clear any stale data from previous seed versions
-  await txClearStore('cylinders');
-  await txClearStore('events');
-
-  for (const cyl of DEMO_CYLINDERS) {
-    await txPut('cylinders', cyl);
+    } catch (e) { /* offline — fall through */ }
   }
 
   const now   = Date.now();
   const DAY   = 24 * 60 * 60 * 1000;
   const MONTH = 30 * DAY;
+  function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-  const RETAILERS = [
+  // Helper: one full usage cycle
+  async function seedCompleteCycle(cyl, baseMs, distributors, retailers) {
+    const d = rnd(distributors), r = rnd(retailers);
+    await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(baseMs).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+    await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(baseMs+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(baseMs+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(baseMs+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(baseMs+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(baseMs+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(baseMs+50*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+    await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(baseMs+53*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+    await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(baseMs+56*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+  }
+
+  // Helper: seed event lifecycle for named (hand-coded) cylinders
+  async function seedNamedCylEvents(cylinders, distributors, retailers, revalName, revalCity) {
+    for (const cyl of cylinders) {
+      const mfgTime = new Date(cyl.manufactureDate).getTime();
+      await txPut('events', { cylinderId:cyl.id, type:'registered', timestamp:new Date(mfgTime).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration' });
+      if (cyl.status === 'revalidation') {
+        await seedCompleteCycle(cyl, now - 18*MONTH, distributors, retailers);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now-6*MONTH).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now-5*MONTH).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now-5*MONTH+3*DAY).toISOString(),  operatorId:'SYSTEM', company:revalName, location:revalName, region:revalCity });
+        continue;
+      }
+      if (parseInt(cyl.manufactureDate) <= 2020 || cyl.fillCount >= 50) {
+        await seedCompleteCycle(cyl, now-30*MONTH, distributors, retailers);
+        await seedCompleteCycle(cyl, now-16*MONTH, distributors, retailers);
+      } else if (cyl.fillCount >= 10) {
+        await seedCompleteCycle(cyl, now-12*MONTH, distributors, retailers);
+      }
+      if (cyl.status === 'in-refill') {
+        const d = rnd(distributors), r = rnd(retailers);
+        const base = now - 4*MONTH;
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base+50*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base+53*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base+56*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now-14*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      } else if (cyl.status === 'in-circulation') {
+        const d = rnd(distributors), r = rnd(retailers);
+        const base = now - 110*DAY;
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base-7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+12*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      } else if (cyl.status === 'in-use') {
+        const d = rnd(distributors), r = rnd(retailers);
+        const base = now - 3*MONTH;
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      }
+    }
+  }
+
+  // Helper: seed event lifecycle for generated (bulk) cylinders
+  async function seedGeneratedCylEvents(generatedCyls, distributors, retailers, revalName, revalCity) {
+    for (const cyl of generatedCyls) {
+      await txPut('cylinders', cyl);
+      const mfgTime = new Date(cyl.manufactureDate).getTime();
+      await txPut('events', { cylinderId:cyl.id, type:'registered', timestamp:new Date(mfgTime).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration' });
+      const now2   = Date.now();
+      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const d = rnd(distributors), r = rnd(retailers);
+      if (cyl._seedRefillEmpty) {
+        const base = now2 - (5 + (idHash % 20)) * DAY;
+        const r2 = rnd(retailers);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',           timestamp:new Date(base-60*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',            timestamp:new Date(base-53*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',      timestamp:new Date(base-51*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',   timestamp:new Date(base-45*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r2.name, destinedRegion:r2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',       timestamp:new Date(base-43*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',           timestamp:new Date(base-38*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:new Date(base-15*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty',timestamp:new Date(base-10*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),         operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      } else if (cyl.status === 'in-refill') {
+        const base = now2 - 2*MONTH;
+        await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base-5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+      } else if (cyl._seedEmpty) {
+        const base = now2 - (20 + (idHash % 30)) * DAY;
+        const r3 = rnd(retailers);
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base-30*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base-22*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base-20*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base-15*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r3.name, destinedRegion:r3.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base-13*DAY).toISOString(), operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base-8*DAY).toISOString(),  operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
+      } else if (cyl.status === 'in-circulation') {
+        const isStuck = (idHash % 4 === 0);
+        const daysAgo = isStuck ? 105 : (8 + (idHash % 30));
+        const base = now2 - daysAgo * DAY;
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base-7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+8*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+10*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      } else if (cyl.status === 'in-use') {
+        const base = now2 - 3*MONTH;
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
+        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',         timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
+      } else if (cyl.status === 'revalidation') {
+        await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now2-6*MONTH).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now2-5*MONTH).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
+        await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now2-5*MONTH+3*DAY).toISOString(), operatorId:'SYSTEM', company:revalName, location:revalName, region:revalCity });
+      }
+    }
+  }
+
+  // ── Tanzania (TZ) ─────────────────────────────────────────────────────────
+  _activeCountry = 'TZ';
+  if (_fdb) _seedBatch = [];
+
+  await txClearStore('cylinders');
+  await txClearStore('events');
+
+  for (const cyl of DEMO_CYLINDERS) { await txPut('cylinders', cyl); }
+
+  const TZ_RETAILERS = [
     { name:'QuickGas Retail DSM North',  region:'Dar es Salaam' },
     { name:'CityGas Direct Temeke',      region:'Dar es Salaam' },
     { name:'Kariakoo Gas Shop',          region:'Dar es Salaam' },
     { name:'Dar North Gas Kijitonyama',  region:'Dar es Salaam' },
-    { name:'Northern Gas Retail Arusha', region:'Arusha' },
-    { name:'Arusha Clock Tower Gas',     region:'Arusha' },
-    { name:'Moshi Gas Outlet',           region:'Kilimanjaro' },
-    { name:'Mwanza Lakeside Gas',        region:'Mwanza' },
-    { name:'Mwanza Rock City Gas',       region:'Mwanza' },
-    { name:'Iringa Gas Retail',          region:'Iringa' },
-    { name:'Zanzibar Stone Town Gas',    region:'Zanzibar' },
-    { name:'Morogoro Gas Centre',        region:'Morogoro' },
-    { name:'Dodoma Central Gas Shop',    region:'Dodoma' },
-    { name:'Mbeya Highland Gas Retail',  region:'Mbeya' },
-    { name:'Tanga Shoreline Gas',        region:'Tanga' },
-    { name:'Tabora Market Gas Shop',     region:'Tabora' },
-    { name:'Shinyanga Gas Retail',       region:'Shinyanga' },
+    { name:'Northern Gas Retail Arusha', region:'Arusha'        },
+    { name:'Arusha Clock Tower Gas',     region:'Arusha'        },
+    { name:'Moshi Gas Outlet',           region:'Kilimanjaro'   },
+    { name:'Mwanza Lakeside Gas',        region:'Mwanza'        },
+    { name:'Mwanza Rock City Gas',       region:'Mwanza'        },
+    { name:'Iringa Gas Retail',          region:'Iringa'        },
+    { name:'Zanzibar Stone Town Gas',    region:'Zanzibar'      },
+    { name:'Morogoro Gas Centre',        region:'Morogoro'      },
+    { name:'Dodoma Central Gas Shop',    region:'Dodoma'        },
+    { name:'Mbeya Highland Gas Retail',  region:'Mbeya'         },
+    { name:'Tanga Shoreline Gas',        region:'Tanga'         },
+    { name:'Tabora Market Gas Shop',     region:'Tabora'        },
+    { name:'Shinyanga Gas Retail',       region:'Shinyanga'     },
   ];
-  const DISTRIBUTORS = [
+  const TZ_DISTRIBUTORS = [
     { name:'ABC Gas Distributors',         region:'Dar es Salaam' },
-    { name:'Sunrise Gas Ltd',              region:'Arusha' },
-    { name:'Lake Victoria Gas Supply',     region:'Mwanza' },
-    { name:'Capital Gas Supplies',         region:'Dodoma' },
-    { name:'Kilimanjaro Gas Distributors', region:'Kilimanjaro' },
-    { name:'Southern Highlands Gas',       region:'Mbeya' },
-    { name:'Coastal Gas Ltd',              region:'Tanga' },
-    { name:'Tabora Gas Distributors',      region:'Tabora' },
-    { name:'Morogoro Gas Depot',           region:'Morogoro' },
-    { name:'Shinyanga Gas Centre',         region:'Shinyanga' },
+    { name:'Sunrise Gas Ltd',              region:'Arusha'        },
+    { name:'Lake Victoria Gas Supply',     region:'Mwanza'        },
+    { name:'Capital Gas Supplies',         region:'Dodoma'        },
+    { name:'Kilimanjaro Gas Distributors', region:'Kilimanjaro'   },
+    { name:'Southern Highlands Gas',       region:'Mbeya'         },
+    { name:'Coastal Gas Ltd',              region:'Tanga'         },
+    { name:'Tabora Gas Distributors',      region:'Tabora'        },
+    { name:'Morogoro Gas Depot',           region:'Morogoro'      },
+    { name:'Shinyanga Gas Centre',         region:'Shinyanga'     },
   ];
 
-  function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  await seedNamedCylEvents(DEMO_CYLINDERS, TZ_DISTRIBUTORS, TZ_RETAILERS, 'ProRevalid Ltd', 'Dar es Salaam');
+  await seedGeneratedCylEvents(buildGeneratedCylinders(), TZ_DISTRIBUTORS, TZ_RETAILERS, 'ProRevalid Ltd', 'Dar es Salaam');
 
-  // Helper: seed one full cycle (registered → refilled → shipped → dist-received →
-  // dist-sent-retail → ret-received → ret-sold → ret-returned-empty →
-  // dist-returned-empty → received-empty)
-  async function seedCompleteCycle(cyl, baseMs) {
-    const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-    await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(baseMs).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-    await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(baseMs + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(baseMs + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(baseMs + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(baseMs + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(baseMs + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(baseMs + 50*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(baseMs + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(baseMs + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-  }
-
-  for (const cyl of DEMO_CYLINDERS) {
-    const mfgTime = new Date(cyl.manufactureDate).getTime();
-
-    // Step 1: Registration at LPGMC
-    await txPut('events', {
-      cylinderId:cyl.id, type:'registered',
-      timestamp: new Date(mfgTime).toISOString(),
-      operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration',
-    });
-
-    if (cyl.status === 'revalidation') {
-      // 1 complete cycle, then sent to revalidation
-      await seedCompleteCycle(cyl, now - 18*MONTH);
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now - 6*MONTH).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now - 5*MONTH).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now - 5*MONTH + 3*DAY).toISOString(), operatorId:'SYSTEM', company:'ProRevalid Ltd', location:'ProRevalid Ltd', region:'Dar es Salaam' });
-      continue;
-    }
-
-    // Older cylinders: seed 2 complete past cycles going back ~30 months
-    if (parseInt(cyl.manufactureDate) <= 2020 || cyl.fillCount >= 50) {
-      await seedCompleteCycle(cyl, now - 30*MONTH);
-      await seedCompleteCycle(cyl, now - 16*MONTH);
-    } else if (cyl.fillCount >= 10) {
-      await seedCompleteCycle(cyl, now - 12*MONTH);
-    }
-
-    // Final state per current cylinder status
-    if (cyl.status === 'in-refill') {
-      // Most recent event: received-empty a few months ago, then refilled at LPGMC
-      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-      const base = now - 4*MONTH;
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base + 50*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base + 53*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base + 56*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      // Now in-refill: refilled recently, awaiting dispatch
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now - 14*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-
-    } else if (cyl.status === 'in-circulation') {
-      // Last event ~98 days ago → triggers Unreported alert (> 90 days threshold)
-      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-      const base = now - 110*DAY;
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 12*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-
-    } else if (cyl.status === 'in-use') {
-      // Full cycle ending at ret-sold
-      const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-      const base = now - 3*MONTH;
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),             operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base + 7*DAY).toISOString(),     operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base + 9*DAY).toISOString(),     operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base + 15*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base + 17*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base + 22*DAY).toISOString(),    operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    }
-  }
-
-  // Seed generated bulk cylinders (300 per LPGMC)
-  // No existence check needed — we confirmed the collection was empty above.
-  const generatedCyls = buildGeneratedCylinders();
-  for (const cyl of generatedCyls) {
-    await txPut('cylinders', cyl);
-    const mfgTime = new Date(cyl.manufactureDate).getTime();
-    await txPut('events', {
-      cylinderId: cyl.id, type: 'registered',
-      timestamp: new Date(mfgTime).toISOString(),
-      operatorId: 'SYSTEM', company: cyl.company, location: cyl.company, notes: 'Initial registration',
-    });
-    // Seed final-state events only (lightweight seeding)
-    const now2  = Date.now();
-    const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const d = rnd(DISTRIBUTORS), r = rnd(RETAILERS);
-    if (cyl._seedRefillEmpty) {
-      // Empty cylinder returned to LPGMC, awaiting refill — last event is received-empty
-      const base = now2 - (5 + (idHash % 20)) * DAY;
-      const r2 = rnd(RETAILERS);
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',           timestamp:new Date(base - 60*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',            timestamp:new Date(base - 53*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',      timestamp:new Date(base - 51*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',   timestamp:new Date(base - 45*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r2.name, destinedRegion:r2.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',       timestamp:new Date(base - 43*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',           timestamp:new Date(base - 38*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:new Date(base - 15*DAY).toISOString(), operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty',timestamp:new Date(base - 10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-    } else if (cyl.status === 'in-refill') {
-      const base = now2 - 2 * MONTH;
-      await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base - 5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-    } else if (cyl._seedEmpty) {
-      // Empty cylinder returned to distributor
-      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      const base = now2 - (20 + (idHash % 30)) * DAY;
-      const r = rnd(RETAILERS);
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base - 30*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base - 22*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base - 20*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base - 15*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base - 13*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base - 8*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    } else if (cyl.status === 'in-circulation') {
-      const isStuck = (idHash % 4 === 0);
-      const daysAgo = isStuck ? 105 : (8 + (idHash % 30));
-      const base = now2 - daysAgo * DAY;
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base - 7*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 8*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 10*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    } else if (cyl.status === 'in-use') {
-      const base = now2 - 3 * MONTH;
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base).toISOString(),           operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base + 7*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base + 9*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-      await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base + 15*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base + 17*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      await txPut('events', { cylinderId:cyl.id, type:'ret-sold',         timestamp:new Date(base + 22*DAY).toISOString(),  operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    } else if (cyl.status === 'revalidation') {
-      await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now2 - 6*MONTH).toISOString(),            operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now2 - 5*MONTH).toISOString(),            operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now2 - 5*MONTH + 3*DAY).toISOString(),    operatorId:'SYSTEM', company:'ProRevalid Ltd', location:'ProRevalid Ltd', region:'Dar es Salaam' });
-    }
-  }
-
-  // Misplaced cylinder demo: shipped to X but received by Y (different region)
-  const misplacedPairs = [
-    { cylId:'E280116060000204C3F04E85', company:'Vivo LPG',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',              actualRegion:'Arusha'      },
-    { cylId:'E280116060000204C3F04E95', company:'Shell Gas',      intendedDist:'Capital Gas Supplies',         intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',       actualRegion:'Mbeya'       },
-    { cylId:'E280116060000204C3F04E87', company:'Vivo LPG',       intendedDist:'Kilimanjaro Gas Distributors', intendedRegion:'Kilimanjaro',    actualDist:'ABC Gas Distributors',         actualRegion:'Dar es Salaam'},
-    { cylId:'E280116060000204C3F04E8B', company:'Total Energies', intendedDist:'Morogoro Gas Depot',           intendedRegion:'Morogoro',       actualDist:'Tabora Gas Distributors',      actualRegion:'Tabora'      },
-    { cylId:'E280116060000204C3F04E91', company:'Shell Gas',      intendedDist:'Coastal Gas Ltd',              intendedRegion:'Tanga',          actualDist:'Sunrise Gas Ltd',              actualRegion:'Arusha'      },
-    { cylId:'E280116060000204C3F04E9C', company:'Lake Gas',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam',  actualDist:'Lake Victoria Gas Supply',     actualRegion:'Mwanza'      },
+  const tzMisplacedPairs = [
+    { cylId:'E280116060000204C3F04E85', company:'Vivo LPG',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',          actualRegion:'Arusha'       },
+    { cylId:'E280116060000204C3F04E95', company:'Shell Gas',      intendedDist:'Capital Gas Supplies',         intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',   actualRegion:'Mbeya'        },
+    { cylId:'E280116060000204C3F04E87', company:'Vivo LPG',       intendedDist:'Kilimanjaro Gas Distributors', intendedRegion:'Kilimanjaro',    actualDist:'ABC Gas Distributors',     actualRegion:'Dar es Salaam' },
+    { cylId:'E280116060000204C3F04E8B', company:'Total Energies', intendedDist:'Morogoro Gas Depot',           intendedRegion:'Morogoro',       actualDist:'Tabora Gas Distributors',  actualRegion:'Tabora'       },
+    { cylId:'E280116060000204C3F04E91', company:'Shell Gas',      intendedDist:'Coastal Gas Ltd',              intendedRegion:'Tanga',          actualDist:'Sunrise Gas Ltd',          actualRegion:'Arusha'       },
+    { cylId:'E280116060000204C3F04E9C', company:'Lake Gas',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam',  actualDist:'Lake Victoria Gas Supply', actualRegion:'Mwanza'       },
   ];
-  for (const mp of misplacedPairs) {
-    const tShip = new Date(now - 10*DAY);
-    const tRecv = new Date(now - 8*DAY);
-    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company, location:mp.company, destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
+  for (const mp of tzMisplacedPairs) {
+    const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
+    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,     location:mp.company,     destinedFor:mp.intendedDist,  destinedRegion:mp.intendedRegion });
+    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist,  location:mp.actualDist,  region:mp.actualRegion });
+  }
+
+  const TZ_INSP_SEED = [
+    { cylId:'E280116060000204C3F04E81', type:'inspected',       ts:'2025-12-10T10:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E82', type:'inspected',       ts:'2025-12-15T11:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E83', type:'ewura-monitored', ts:'2025-12-20T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E89', type:'inspected',       ts:'2026-01-08T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8A', type:'inspected',       ts:'2026-01-15T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8B', type:'ewura-monitored', ts:'2026-01-22T08:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E91', type:'inspected',       ts:'2026-02-05T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E92', type:'inspected',       ts:'2026-02-12T09:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E99', type:'inspected',       ts:'2026-02-18T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E84', type:'ewura-monitored', ts:'2026-03-03T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E85', type:'inspected',       ts:'2026-03-10T14:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E8C', type:'inspected',       ts:'2026-03-20T09:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E9A', type:'inspected',       ts:'2026-04-04T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E9B', type:'ewura-monitored', ts:'2026-04-11T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E93', type:'inspected',       ts:'2026-04-18T08:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E86', type:'inspected',       ts:'2026-05-06T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E94', type:'inspected',       ts:'2026-05-14T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04EA1', type:'ewura-monitored', ts:'2026-05-22T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04E87', type:'inspected',       ts:'2026-06-02T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04E95', type:'inspected',       ts:'2026-06-07T11:00:00Z', compliant:true  },
+  ];
+  for (const s of TZ_INSP_SEED) {
+    await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='ewura-monitored'?'EWURA':'Field Inspection Unit', compliant:s.compliant });
+  }
+
+  if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
+  for (const lic of DEMO_LICENSES)     { await txPut('licenses',     lic); }
+  for (const ins of DEMO_INSPECTIONS)  { await txPut('inspections',  ins); }
+
+  // ── Kenya (KE) ────────────────────────────────────────────────────────────
+  _activeCountry = 'KE';
+  if (_fdb) _seedBatch = [];
+
+  await txClearStore('cylinders');
+  await txClearStore('events');
+
+  for (const cyl of DEMO_CYLINDERS_KE) { await txPut('cylinders', cyl); }
+
+  const KE_RETAILERS = [
+    { name:'Westlands Gas Shop',      region:'Nairobi'     },
+    { name:'Eastleigh Gas Outlet',    region:'Nairobi'     },
+    { name:'Kibera Gas Point',        region:'Nairobi'     },
+    { name:'Karen Gas Retail',        region:'Nairobi'     },
+    { name:'Nairobi CBD Gas',         region:'Nairobi'     },
+    { name:'Gigiri Gas Point',        region:'Nairobi'     },
+    { name:'Mtwapa Gas Shop',         region:'Mombasa'     },
+    { name:'Nyali Gas Direct',        region:'Mombasa'     },
+    { name:'Kisumu Milimani Gas',     region:'Kisumu'      },
+    { name:'Nakuru Central Gas Shop', region:'Nakuru'      },
+    { name:'Eldoret Pioneer Gas',     region:'Uasin Gishu' },
+    { name:'Nyeri Gas Corner',        region:'Nyeri'       },
+    { name:'Thika Gas Retail',        region:'Kiambu'      },
+    { name:'Rongai Gas Retail',       region:'Kajiado'     },
+    { name:'Malindi Seaside Gas',     region:'Kilifi'      },
+    { name:'Kisii Central Gas',       region:'Kisii'       },
+  ];
+  const KE_DISTRIBUTORS = [
+    { name:'Nairobi Gas Supplies',      region:'Nairobi'     },
+    { name:'Mombasa Gas Depot',         region:'Mombasa'     },
+    { name:'Kisumu Gas Supplies',       region:'Kisumu'      },
+    { name:'Nakuru Gas Centre',         region:'Nakuru'      },
+    { name:'Eldoret Gas Distributors',  region:'Uasin Gishu' },
+    { name:'Thika Gas Supplies',        region:'Kiambu'      },
+    { name:'Machakos Gas Distributors', region:'Machakos'    },
+    { name:'Meru Gas Centre',           region:'Meru'        },
+    { name:'Malindi Gas Depot',         region:'Kilifi'      },
+    { name:'Kisii Gas Distributors',    region:'Kisii'       },
+  ];
+
+  await seedNamedCylEvents(DEMO_CYLINDERS_KE, KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
+  await seedGeneratedCylEvents(buildKenyaCylinders(), KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
+
+  const keMisplacedPairs = [
+    { cylId:'E280116060000204C3F04F85', company:'Total Energies Kenya', intendedDist:'Nairobi Gas Supplies',     intendedRegion:'Nairobi',      actualDist:'Mombasa Gas Depot',         actualRegion:'Mombasa'   },
+    { cylId:'E280116060000204C3F04FA5', company:'Vivo Energy Kenya',    intendedDist:'Kisumu Gas Supplies',      intendedRegion:'Kisumu',       actualDist:'Nakuru Gas Centre',         actualRegion:'Nakuru'    },
+    { cylId:'E280116060000204C3F04FB4', company:'Africa Gas & Oil',     intendedDist:'Thika Gas Supplies',       intendedRegion:'Kiambu',       actualDist:'Machakos Gas Distributors', actualRegion:'Machakos'  },
+    { cylId:'E280116060000204C3F04F88', company:'Total Energies Kenya', intendedDist:'Eldoret Gas Distributors', intendedRegion:'Uasin Gishu',  actualDist:'Nairobi Gas Supplies',      actualRegion:'Nairobi'   },
+  ];
+  for (const mp of keMisplacedPairs) {
+    const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
+    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,    location:mp.company,    destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
     await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
   }
 
-  // Seed inspection events (Feature 8) spread across 2025-2026
-  const INSPECTION_SEED_DATA = [
-    // 2025 months (6 months back from June 2026)
-    { cylId:'E280116060000204C3F04E81', type:'inspected',      ts:'2025-12-10T10:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E82', type:'inspected',      ts:'2025-12-15T11:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E83', type:'ewura-monitored',ts:'2025-12-20T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E89', type:'inspected',      ts:'2026-01-08T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8A', type:'inspected',      ts:'2026-01-15T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8B', type:'ewura-monitored',ts:'2026-01-22T08:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E91', type:'inspected',      ts:'2026-02-05T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E92', type:'inspected',      ts:'2026-02-12T09:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E99', type:'inspected',      ts:'2026-02-18T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E84', type:'ewura-monitored',ts:'2026-03-03T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E85', type:'inspected',      ts:'2026-03-10T14:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8C', type:'inspected',      ts:'2026-03-20T09:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E9A', type:'inspected',      ts:'2026-04-04T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E9B', type:'ewura-monitored',ts:'2026-04-11T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E93', type:'inspected',      ts:'2026-04-18T08:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E86', type:'inspected',      ts:'2026-05-06T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E94', type:'inspected',      ts:'2026-05-14T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04EA1', type:'ewura-monitored',ts:'2026-05-22T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E87', type:'inspected',      ts:'2026-06-02T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E95', type:'inspected',      ts:'2026-06-07T11:00:00Z', compliant:true  },
+  const KE_INSP_SEED = [
+    { cylId:'E280116060000204C3F04F81', type:'inspected',      ts:'2025-12-12T10:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04F82', type:'inspected',      ts:'2025-12-18T11:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04F83', type:'epra-monitored', ts:'2025-12-22T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04F8D', type:'inspected',      ts:'2026-01-10T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04F8E', type:'inspected',      ts:'2026-01-18T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FA1', type:'epra-monitored', ts:'2026-01-25T08:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04FA2', type:'inspected',      ts:'2026-02-08T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FA3', type:'inspected',      ts:'2026-02-14T09:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FC1', type:'inspected',      ts:'2026-02-20T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04F84', type:'epra-monitored', ts:'2026-03-05T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04F85', type:'inspected',      ts:'2026-03-12T14:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FB1', type:'inspected',      ts:'2026-03-22T09:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FC2', type:'inspected',      ts:'2026-04-06T11:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FC3', type:'epra-monitored', ts:'2026-04-14T10:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04FB2', type:'inspected',      ts:'2026-04-20T08:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04F86', type:'inspected',      ts:'2026-05-08T13:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FB3', type:'inspected',      ts:'2026-05-16T10:30:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FA4', type:'epra-monitored', ts:'2026-05-24T09:00:00Z', compliant:false },
+    { cylId:'E280116060000204C3F04F87', type:'inspected',      ts:'2026-06-04T14:00:00Z', compliant:true  },
+    { cylId:'E280116060000204C3F04FA5', type:'inspected',      ts:'2026-06-09T11:00:00Z', compliant:true  },
   ];
-  for (const s of INSPECTION_SEED_DATA) {
-    await txPut('events', {
-      cylinderId: s.cylId, type: s.type, timestamp: s.ts,
-      operatorId: 'SYSTEM', company: s.type === 'ewura-monitored' ? 'EWURA' : 'Field Inspection Unit',
-      compliant: s.compliant,
-    });
+  for (const s of KE_INSP_SEED) {
+    await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='epra-monitored'?'EPRA':'Field Inspection Unit', compliant:s.compliant });
   }
 
-  // Flush any remaining Firestore batch writes and exit batch mode
-  if (_fdb && _seedBatch !== null) {
-    await _fsBatchFlush();
-    _seedBatch = null;
-  }
+  if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
+  for (const lic of DEMO_LICENSES_KE)    { await txPut('licenses',    lic); }
+  for (const ins of DEMO_INSPECTIONS_KE) { await txPut('inspections', ins); }
 
-  // Licenses and inspections stay in IndexedDB only
-  for (const lic of DEMO_LICENSES) {
-    await _idbPut('licenses', lic);
-  }
-  for (const ins of DEMO_INSPECTIONS) {
-    await _idbPut('inspections', ins);
-  }
-
+  _activeCountry = 'TZ';
   await _idbPut('meta', { key: SEED_KEY, value: true });
 }
 
