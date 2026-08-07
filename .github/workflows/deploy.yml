@@ -19,12 +19,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Compute build version from commit count
+          VERSION="v1.$(git rev-list --count HEAD)"
+          echo "Stamping version $VERSION"
+
           # Copy site files to a temp folder
           mkdir /tmp/site
           cp index.html app.js style.css sw.js manifest.json .nojekyll /tmp/site/
           cp leaflet.js leaflet.css /tmp/site/ 2>/dev/null || true
           cp -r icons /tmp/site/ 2>/dev/null || true
           cp -r images /tmp/site/ 2>/dev/null || true
+
+          # Stamp the version into the login page
+          sed -i "s/v[0-9]\+\.[0-9]\+/$VERSION/" /tmp/site/index.html
 
           # Create a clean orphan branch and force-push
           git checkout --orphan gh-pages

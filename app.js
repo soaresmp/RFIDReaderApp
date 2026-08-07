@@ -1443,6 +1443,21 @@ async function seedDemoData() {
     } catch (e) { /* offline — fall through */ }
   }
 
+  const _fsOriginal = _fdb; // remember so we can fall back if Firestore writes fail
+  try {
+  await _doSeed();
+  } catch (seedErr) {
+    console.error('Seeding failed:', seedErr);
+    if (_fsOriginal) {
+      console.warn('Firestore seeding failed — retrying with IndexedDB only');
+      _fdb = null;
+      await seedDemoData(); // recursive: _fdb is null so tx* routes to IDB
+      _fdb = _fsOriginal;
+    }
+  }
+}
+
+async function _doSeed() {
   const now   = Date.now();
   const DAY   = 24 * 60 * 60 * 1000;
   const MONTH = 30 * DAY;
