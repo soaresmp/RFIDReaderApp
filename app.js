@@ -2749,6 +2749,17 @@ function initInteractiveMap(mapId, markers) {
   const el = document.getElementById(`${mapId}_lmap`);
   if (!el) return;
 
+  // If Leaflet CDN/bundle hasn't loaded yet, retry once it does
+  if (typeof L === 'undefined') {
+    const script = document.querySelector('script[src*="leaflet"]');
+    if (script) {
+      script.addEventListener('load', () => initInteractiveMap(mapId, markers), { once: true });
+    } else {
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:13px">Map requires an internet connection to load.</div>';
+    }
+    return;
+  }
+
   // Destroy previous instance if view was re-rendered
   const prev = _leafletMaps.get(mapId);
   if (prev) { prev.remove(); _leafletMaps.delete(mapId); }
@@ -5264,17 +5275,24 @@ function renderRecalls() {
   if (!container) return;
   const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
 
-  // Compute impact counts
+  const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
+  const sevLabel  = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
   const impactHtml = recalls.length ? recalls.slice().reverse().map(r => {
-    const color = '#dc2626';
+    const sev   = r.severity || 'high';
+    const color = sevColor[sev] || '#dc2626';
     return `<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div style="font-weight:600;margin-bottom:4px">${escapeHtml(r.id)} — ${escapeHtml(r.operator)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Manufacture: ${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}</div>
-          <div style="font-size:13px">${escapeHtml(r.reason)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-weight:700;font-family:monospace;font-size:13px">${escapeHtml(r.id)}</span>
+            <span style="background:${color}22;color:${color};border:1px solid ${color}55;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600">${sevLabel[sev] || sev}</span>
+          </div>
+          <div style="font-weight:600;margin-bottom:4px">${escapeHtml(r.operator)}</div>
+          ${r.batch ? `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">Batch: <span style="font-family:monospace">${escapeHtml(r.batch)}</span>${r.series ? ' · Series: ' + escapeHtml(r.series) : ''}</div>` : ''}
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Manufacture period: ${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}</div>
+          <div style="font-size:13px;color:var(--text)">${escapeHtml(r.reason)}</div>
         </div>
-        <span style="font-size:11px;color:var(--muted);white-space:nowrap;margin-left:12px">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
       </div>
     </div>`;
   }).join('') : `<p style="color:var(--muted);font-size:13px">No recalls issued.</p>`;
@@ -5282,19 +5300,28 @@ function renderRecalls() {
   container.innerHTML = impactHtml;
 }
 
-$('recall-new-btn')?.addEventListener('click', () => openModal('modal-recall'));
+$('recall-new-btn')?.addEventListener('click', () => {
+  const yr  = new Date().getFullYear();
+  const seq = String(Math.floor(Math.random() * 900) + 100);
+  const ref = $('recall-ref');
+  if (ref) ref.value = `RCL-${yr}-${seq}`;
+  openModal('modal-recall');
+});
 
 $('recall-submit-btn')?.addEventListener('click', () => {
   const operator  = $('recall-operator')?.value;
+  const batch     = $('recall-batch')?.value.trim();
+  const series    = $('recall-series')?.value.trim();
   const dateFrom  = $('recall-date-from')?.value;
   const dateTo    = $('recall-date-to')?.value;
+  const severity  = $('recall-severity')?.value || 'high';
   const reason    = $('recall-reason')?.value.trim();
+  const ref       = $('recall-ref')?.value || ('RCL-' + new Date().getFullYear() + '-' + Date.now());
   if (!operator || !dateFrom || !dateTo || !reason) {
-    showSnackbar('All fields are required.', 'error'); return;
+    showSnackbar('Operator, manufacture dates and reason are required.', 'error'); return;
   }
   const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
-  const id = 'RC-' + String(recalls.length + 1).padStart(3, '0');
-  recalls.push({ id, operator, dateFrom, dateTo, reason, timestamp: new Date().toISOString() });
+  recalls.push({ id: ref, operator, batch, series, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
   localStorage.setItem('lpg-recalls', JSON.stringify(recalls));
   closeModal('modal-recall');
   showSnackbar(t('recall.saved'), 'success');

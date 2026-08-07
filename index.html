@@ -8,7 +8,8 @@
   <title>LPG Traceability Platform</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"
+        onerror="this.onerror=null;this.href='leaflet.css'" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -266,7 +267,7 @@
 
         <div class="login-panel-footer">
           &copy; 2025 LPG Traceability Platform · Tanzania
-          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.19</span>
+          <span style="display:block;margin-top:4px;font-size:11px;opacity:0.6">v1.20</span>
         </div>
       </div>
     </div>
@@ -1231,38 +1232,65 @@
   <div id="modal-recall" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Initiate Cylinder Recall">
     <div class="modal">
       <div class="modal-header">
-        <h2 data-i18n="recall.initiate">Initiate Recall</h2>
+        <h2>Initiate Cylinder Recall</h2>
         <button class="modal-close" data-close="modal-recall" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#991b1b;display:flex;gap:8px;align-items:flex-start">
+          <span style="font-size:16px;line-height:1.2">⚠️</span>
+          <span>A recall will trigger safety alerts across the network. Ensure all details are verified before issuing.</span>
+        </div>
         <div class="form-group">
-          <label class="form-label" data-i18n="recall.operator">Operator</label>
-          <select id="recall-operator" class="form-input">
+          <label>Recall Reference</label>
+          <input id="recall-ref" type="text" class="form-control font-mono" readonly placeholder="Auto-generated" />
+        </div>
+        <div class="form-group">
+          <label>Operator / Manufacturer</label>
+          <select id="recall-operator" class="form-control">
             <option value="">— Select operator —</option>
             <option value="Vivo LPG">Vivo LPG</option>
             <option value="Total Energies">Total Energies</option>
             <option value="Shell Gas">Shell Gas</option>
             <option value="Lake Gas">Lake Gas</option>
+            <option value="Oryx Gas">Oryx Gas</option>
           </select>
         </div>
         <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
-            <label class="form-label" data-i18n="recall.dateFrom">Manufacture From</label>
-            <input id="recall-date-from" type="date" class="form-input" />
+            <label>Batch Number</label>
+            <input id="recall-batch" type="text" class="form-control font-mono" placeholder="e.g. BATCH-2026-041" />
           </div>
           <div>
-            <label class="form-label" data-i18n="recall.dateTo">Manufacture To</label>
-            <input id="recall-date-to" type="date" class="form-input" />
+            <label>Cylinder Series</label>
+            <input id="recall-series" type="text" class="form-control" placeholder="e.g. TZ-6KG-A" />
+          </div>
+        </div>
+        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label>Manufacture From</label>
+            <input id="recall-date-from" type="date" class="form-control" />
+          </div>
+          <div>
+            <label>Manufacture To</label>
+            <input id="recall-date-to" type="date" class="form-control" />
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" data-i18n="recall.reason">Reason / Safety Notice</label>
-          <textarea id="recall-reason" class="form-input" rows="3" style="resize:vertical"></textarea>
+          <label>Severity</label>
+          <select id="recall-severity" class="form-control">
+            <option value="critical">🔴 Critical — Immediate withdrawal required</option>
+            <option value="high">🟠 High — Withdraw within 48 hours</option>
+            <option value="medium">🟡 Medium — Controlled recall</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Reason / Safety Notice</label>
+          <textarea id="recall-reason" class="form-control" rows="3" placeholder="Describe the defect, hazard, or safety concern…"></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" data-close="modal-recall" type="button">Cancel</button>
-        <button id="recall-submit-btn" class="btn btn-primary" type="button" style="background:var(--red)" data-i18n="recall.submit">Issue Recall</button>
+        <button id="recall-submit-btn" class="btn btn-primary" type="button" style="background:var(--red)">Issue Recall</button>
       </div>
     </div>
   </div>
@@ -1302,7 +1330,8 @@
     </div>
   </div>
 
-  <script src="leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"
+          onerror="var s=document.createElement('script');s.src='leaflet.js';document.head.appendChild(s)"></script>
   <script src="app.js"></script>
 </body>
 </html>
