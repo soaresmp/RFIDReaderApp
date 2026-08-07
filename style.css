@@ -1795,20 +1795,20 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   gap: 4px;
 }
 .lang-btn {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--dim);
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  color: #64748b;
   font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
+  font-weight: 600;
+  padding: 4px 12px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.lang-btn:hover { background: var(--surface); color: var(--text); }
+.lang-btn:hover { background: #e2e8f0; color: #334155; }
 .lang-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: #1e3a5f;
+  border-color: #1e3a5f;
   color: #fff;
 }
 
@@ -1818,21 +1818,22 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   gap: 6px;
 }
 .country-btn {
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--dim);
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  color: #475569;
   font-size: 12px;
   font-weight: 500;
   padding: 4px 10px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1.4;
 }
-.country-btn:hover { background: var(--surface); color: var(--text); }
+.country-btn:hover { background: #e2e8f0; color: #1e293b; }
 .country-btn.active {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  color: #0284c7;
+  background: #1e3a5f;
+  border-color: #1e3a5f;
+  color: #fff;
   font-weight: 600;
 }
 

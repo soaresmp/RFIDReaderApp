@@ -900,7 +900,7 @@ const ROLE_TABS = {
 const ROLE_LABELS = {
   lpgmc:           'LPGMC',
   revalidator:     'Revalidator',
-  ewura:           'EWURA',
+  ewura:           'Regulator',
   'field-auditor': 'Field Auditor',
   tra:             'TRA',
   distributor:     'Distributor',
@@ -1977,7 +1977,7 @@ function selectRole(role) {
 
   // EWURA: auto-login immediately, no form needed
   if (role === 'ewura') {
-    Auth.login('ewura', 'EWURA', '');
+    Auth.login('ewura', 'Regulator', '');
     return;
   }
 
