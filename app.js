@@ -12,7 +12,7 @@ const SEED_KEY   = 'seeded-v17';
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
 const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections']);
 let _fdb = null;
-let _activeCountry = 'TZ';
+let _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
 
 function _fsColl(storeName) {
   return _fdb.collection('countries').doc(_activeCountry).collection(storeName);
@@ -103,7 +103,7 @@ const TRANSLATIONS = {
     'ev.distReceived':'Received by Distributor','ev.distSentRetail':'Sent to Retailer',
     'ev.distReturnedEmpty':'Returned Empty by Distributor','ev.retReceived':'Received by Retailer',
     'ev.retSold':'Sold to Consumer','ev.retReturnedEmpty':'Returned Empty by Consumer',
-    'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by EWURA',
+    'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by Regulator',
     'ev.traVerified':'Refills Verified by TRA','ev.traRegistered':'Shipment Registered by TRA',
     'dash.activityTitle':'Activity — Last 30 Days','dash.salesByMonth':'Sales by Month',
     'kpi.cylsInStock':'Cylinders in Stock','kpi.assignedAlerts':'Alerts',
@@ -129,7 +129,8 @@ const TRANSLATIONS = {
     'login.feat3':'Multi-stakeholder regulatory compliance',
     'login.feat4':'Field inspection alerts',
     'login.feat5':'Consumer engagement',
-    'login.brandFooter':'EWURA · Tanzania · LPG Sector',
+    'login.brandFooter':'Regulator · LPG Sector',
+    'login.regulatorTitle':'Regulator',
     'login.panelTitle':'Select your profile',
     'login.panelSubtitle':'Choose the role that matches your organisation to continue',
     'login.ewuraDesc':'Regulatory Authority · Grant & Revoke Licences · Monitor Supply Chain',
@@ -138,7 +139,7 @@ const TRANSLATIONS = {
     'login.retailerTitle':'Retailer','login.retailerDesc':'Retail Outlet · Receive Cylinders · Sell · Return Empty',
     'login.revalTitle':'Revalidator','login.revalDesc':'Cylinders Revalidator · Receive · Revalidate & Update · Return to LPGMC',
     'login.auditorTitle':'Field Auditor','login.auditorDesc':'Field Inspection Unit · Inspect Products · View All Cylinders',
-    'login.traDesc':'Tanzania Revenue Authority · Cross-check Refills · Register Shipments',
+    'login.traDesc':'Revenue Authority · Cross-check Refills · Register Shipments',
     'mgmt.netSalesTop10':'Network Sales — Top 10 Partners',
     'mgmt.fieldInspByRegion':'Field Inspection by Region',
     'mgmt.alertsByRegion':'Cylinder Alerts by Region',
@@ -189,8 +190,8 @@ const TRANSLATIONS = {
     'bulk.validIds':'valid IDs found','bulk.noValidIds':'No valid IDs found',
     'counterfeit.title':'COUNTERFEIT ALERT','counterfeit.body':'is not registered in the national LPG database.',
     'counterfeit.sub':'This may indicate a counterfeit or unregistered cylinder.',
-    'counterfeit.report':'Report to EWURA','counterfeit.reported':'Reported ✓',
-    'counterfeit.submitted':'Counterfeit report submitted to EWURA',
+    'counterfeit.report':'Report to Regulator','counterfeit.reported':'Reported ✓',
+    'counterfeit.submitted':'Counterfeit report submitted to Regulator',
     'alert.stockShortage':'Stock Shortage','alert.stockSurplus':'Stock Surplus',
     'alert.counterfeit':'Counterfeit Alert',
     'marketIntel.summary':'National Summary','marketIntel.totalCyls':'Total Cylinders',
@@ -202,15 +203,15 @@ const TRANSLATIONS = {
     'marketIntel.inReval':'In Revalidation','marketIntel.withConsumer':'With Consumer',
     'returnRate.title':'Return Rate by Retailer','returnRate.noData':'No dispatch data available.',
     'audit.exported':'Audit trail exported',
-    'consumer.title':'Cylinder Status Check','consumer.subtitle':'Tanzania LPG Cylinder Verification',
+    'consumer.title':'Cylinder Status Check','consumer.subtitle':'LPG Cylinder Verification',
     'consumer.registered':'Registered Cylinder','consumer.notRegistered':'Not Registered',
-    'consumer.notRegisteredDesc':'is not registered in the national LPG database. This may be a counterfeit or unregistered cylinder — do not use and report to EWURA.',
+    'consumer.notRegisteredDesc':'is not registered in the national LPG database. This may be a counterfeit or unregistered cylinder — do not use and report to the Regulator.',
     'consumer.closeLogin':'Close & Login',
     'insp.scheduledOk':'Inspection scheduled.',
     'licApp.newUser':'New to the platform?',
     'licApp.btnLabel':'📋 Apply for LPG Distribution Licence',
     'licApp.title':'LPG Distribution Licence Application',
-    'licApp.subtitle':'EWURA Form No. 2 — Petroleum (LPG Operations) Rules, 2020 (GN No. 825)',
+    'licApp.subtitle':'Regulatory Application — Petroleum (LPG Operations) Rules',
     'licApp.allRequired':'All fields marked * are required',
     'licApp.completeness':'Application completeness',
     'licApp.back':'← Back','licApp.cancel':'Cancel',
@@ -242,16 +243,16 @@ const TRANSLATIONS = {
     'licApp.region':'Region','licApp.selectRegion':'Select region…',
     'licApp.companyType':'Company Type','licApp.local':'Local Company','licApp.foreign':'Foreign Company',
     'licApp.optional':'optional','licApp.attachFile':'Attach file','licApp.noFile':'No file selected',
-    'licApp.processTitle':'ℹ EWURA Application Process',
-    'licApp.proc1':'Applications are submitted online via EWURA\'s LOIS (Licence and Order Information System)',
-    'licApp.proc2':'EWURA publishes a notice in a newspaper of wide circulation to solicit public comments within <strong>14 days</strong>',
-    'licApp.proc3':'EWURA must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back',
+    'licApp.processTitle':'ℹ Regulatory Application Process',
+    'licApp.proc1':'Applications are submitted online via the Regulator\'s licence portal',
+    'licApp.proc2':'Regulator publishes a public notice to solicit comments within <strong>14 days</strong>',
+    'licApp.proc3':'Regulator must decide within <strong>60 days</strong> of a complete application whether to grant, deny, or refer back',
     'licApp.proc4':'A pre-licensing facility inspection is conducted before the licence is granted',
     'licApp.proc5':'Licence term: <strong>5 years</strong> &nbsp;·&nbsp; Application fee is non-refundable',
     'licApp.successTitle':'Application Submitted',
     'licApp.successMsg1':'Your LPG Distribution Licence application for <strong>{{company}}</strong> has been received.',
-    'licApp.successMsg2':'EWURA will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.',
-    'licApp.successNext':'<strong>Next step:</strong> Submit your physical application documents to EWURA\'s LOIS portal at <strong>lois.ewura.go.tz</strong> or visit the EWURA offices in Dar es Salaam.',
+    'licApp.successMsg2':'Regulator will publish a public notice within <strong>14 days</strong> and issue a decision within <strong>60 days</strong> of a complete application. A pre-licensing facility inspection will be arranged.',
+    'licApp.successNext':'<strong>Next step:</strong> Submit your physical application documents to the Regulator\'s licence portal or visit the Regulator offices.',
     'licApp.backToLogin':'Back to Login',
     'licApp.noCompany':'Please enter your company name before submitting.',
     'licApp.noFinancial':'Please attach at least one financial proof document (Section 5).',
@@ -305,12 +306,12 @@ const TRANSLATIONS = {
     'month.sep':'September','month.oct':'October','month.nov':'November','month.dec':'December',
     'page.licenses':'📋 Licenses','page.reports':'📈 Management Reports',
     'signup.title':'Create Account','signup.desc':'Enter your activation details to get started.',
-    'signup.license':'License Key','signup.licensePlh':'e.g. EWURA-2026-XXXX',
+    'signup.license':'License Key','signup.licensePlh':'e.g. LIC-2026-XXXX',
     'signup.fullname':'Full Name','signup.fullnamePlh':'Your full name',
     'signup.email':'Email','signup.emailPlh':'you@company.com',
     'signup.password':'Password','signup.passwordPlh':'Min 8 characters',
     'signup.confirm':'Confirm Password','signup.confirmPlh':'Repeat password',
-    'signup.submit':'Create Account','signup.alreadyLicensed':'Already licensed?','signup.openBtn':'Sign Up',
+    'signup.submit':'Create Account','signup.alreadyLicensed':'Already licensed?','signup.openBtn':'🔑 Sign Up — Register Platform Credentials',
     'signup.allRequired':'All fields are required.',
     'signup.pwNoMatch':'Passwords do not match.','signup.pwShort':'Password must be at least 8 characters.',
     'signup.emailExists':'An account with this email already exists.',
@@ -393,7 +394,7 @@ const TRANSLATIONS = {
     'ev.distReceived':'Imepokelewa na Msambazaji','ev.distSentRetail':'Imetumwa kwa Muuzaji',
     'ev.distReturnedEmpty':'Mtungi Tupu Umerudishwa na Msambazaji','ev.retReceived':'Imepokelewa na Muuzaji',
     'ev.retSold':'Imeuzwa kwa Mnunuzi','ev.retReturnedEmpty':'Mtungi Tupu Umerudishwa na Mnunuzi',
-    'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na EWURA',
+    'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na Msimamizi',
     'ev.traVerified':'Kujaza Kuthibitishwa na TRA','ev.traRegistered':'Mzigo Umesajiliwa na TRA',
     'dash.activityTitle':'Shughuli — Siku 30 Zilizopita',
     'kpi.cylAssigned':'Mitungi Iliyokasimiwa','dash.salesByMonth':'Mauzo kwa Mwezi',
@@ -419,7 +420,8 @@ const TRANSLATIONS = {
     'login.feat3':'Kuzingatia kanuni kwa wadau wengi',
     'login.feat4':'Tahadhari za ukaguzi wa uwanjani',
     'login.feat5':'Ushirikiano wa watumiaji',
-    'login.brandFooter':'EWURA · Tanzania · Sekta ya LPG',
+    'login.brandFooter':'Msimamizi · Sekta ya LPG',
+    'login.regulatorTitle':'Msimamizi',
     'login.panelTitle':'Chagua wasifu wako',
     'login.panelSubtitle':'Chagua jukumu linalolingana na shirika lako kuendelea',
     'login.ewuraDesc':'Mamlaka ya Udhibiti · Kutoa na Kufuta Leseni · Kufuatilia Mnyororo wa Ugavi',
@@ -428,7 +430,7 @@ const TRANSLATIONS = {
     'login.retailerTitle':'Muuzaji','login.retailerDesc':'Duka la Rejareja · Pokea Mitungi · Uza · Rudisha Tupu',
     'login.revalTitle':'Mthibitishaji','login.revalDesc':'Mthibitishaji wa Mitungi · Pokea · Thibitisha Upya · Rudisha kwa LPGMC',
     'login.auditorTitle':'Mkaguzi wa Uwanjani','login.auditorDesc':'Kitengo cha Ukaguzi wa Uwanjani · Kagua Bidhaa · Tazama Mitungi Yote',
-    'login.traDesc':'Mamlaka ya Mapato Tanzania · Kagua Kujaza · Sajili Mizigo',
+    'login.traDesc':'Mamlaka ya Mapato · Kagua Kujaza · Sajili Mizigo',
     'mgmt.netSalesTop10':'Mauzo ya Mtandao — Washirika 10 Bora',
     'mgmt.fieldInspByRegion':'Ukaguzi wa Uwanjani kwa Mkoa',
     'mgmt.alertsByRegion':'Tahadhari za Mitungi kwa Mkoa',
@@ -479,8 +481,8 @@ const TRANSLATIONS = {
     'bulk.validIds':'vitambulisho sahihi vimepatikana','bulk.noValidIds':'Hakuna vitambulisho sahihi',
     'counterfeit.title':'TAHADHARI YA BANDIA','counterfeit.body':'haijasajiliwa katika hifadhidata ya kitaifa ya LPG.',
     'counterfeit.sub':'Hii inaweza kuashiria mtungi bandia au ambao haujasajiliwa.',
-    'counterfeit.report':'Ripoti kwa EWURA','counterfeit.reported':'Imeripotiwa ✓',
-    'counterfeit.submitted':'Ripoti ya mtungi bandia imetumwa kwa EWURA',
+    'counterfeit.report':'Ripoti kwa Msimamizi','counterfeit.reported':'Imeripotiwa ✓',
+    'counterfeit.submitted':'Ripoti ya mtungi bandia imetumwa kwa Msimamizi',
     'alert.stockShortage':'Upungufu wa Hifadhi','alert.stockSurplus':'Ziada ya Hifadhi',
     'alert.counterfeit':'Tahadhari ya Bandia',
     'marketIntel.summary':'Muhtasari wa Kitaifa','marketIntel.totalCyls':'Jumla ya Mitungi',
@@ -492,15 +494,15 @@ const TRANSLATIONS = {
     'marketIntel.inReval':'Kwenye Uthibitishaji','marketIntel.withConsumer':'Kwa Mnunuzi',
     'returnRate.title':'Kiwango cha Urudishaji kwa Muuzaji','returnRate.noData':'Hakuna data ya usafirishaji.',
     'audit.exported':'Rekodi ya ukaguzi imehamiishwa',
-    'consumer.title':'Ukaguzi wa Hali ya Mtungi','consumer.subtitle':'Uhakiki wa Mitungi ya LPG Tanzania',
+    'consumer.title':'Ukaguzi wa Hali ya Mtungi','consumer.subtitle':'Uhakiki wa Mitungi ya LPG',
     'consumer.registered':'Mtungi Uliosajiliwa','consumer.notRegistered':'Haujasajiliwa',
-    'consumer.notRegisteredDesc':'haujasajiliwa katika hifadhidata ya kitaifa ya LPG. Hii inaweza kuwa mtungi bandia — usitumie na ripoti kwa EWURA.',
+    'consumer.notRegisteredDesc':'haujasajiliwa katika hifadhidata ya kitaifa ya LPG. Hii inaweza kuwa mtungi bandia — usitumie na ripoti kwa Msimamizi.',
     'consumer.closeLogin':'Funga na Ingia',
     'insp.scheduledOk':'Ukaguzi umepangwa.',
     'licApp.newUser':'Mgeni kwenye jukwaa?',
     'licApp.btnLabel':'📋 Omba Leseni ya Usambazaji wa LPG',
     'licApp.title':'Maombi ya Leseni ya Usambazaji wa LPG',
-    'licApp.subtitle':'EWURA Fomu Na. 2 — Kanuni za Petroli (Uendeshaji wa LPG), 2020 (GN Na. 825)',
+    'licApp.subtitle':'Maombi ya Udhibiti — Kanuni za Petroli (Uendeshaji wa LPG)',
     'licApp.allRequired':'Sehemu zote zenye alama * zinahitajika',
     'licApp.completeness':'Ukamilishaji wa maombi',
     'licApp.back':'← Rudi','licApp.cancel':'Ghairi',
@@ -532,16 +534,16 @@ const TRANSLATIONS = {
     'licApp.region':'Mkoa','licApp.selectRegion':'Chagua mkoa…',
     'licApp.companyType':'Aina ya Kampuni','licApp.local':'Kampuni ya Ndani','licApp.foreign':'Kampuni ya Kigeni',
     'licApp.optional':'ya hiari','licApp.attachFile':'Ambatanisha faili','licApp.noFile':'Hakuna faili lililochaguliwa',
-    'licApp.processTitle':'ℹ Mchakato wa Maombi wa EWURA',
-    'licApp.proc1':'Maombi yanawasilishwa mtandaoni kupitia mfumo wa LOIS wa EWURA (Mfumo wa Taarifa za Leseni na Agizo)',
-    'licApp.proc2':'EWURA huchapisha tangazo katika gazeti linalofikia watu wengi kupata maoni ya umma ndani ya <strong>siku 14</strong>',
-    'licApp.proc3':'EWURA lazima ifanye uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili kutoa, kukataa, au kurudisha',
+    'licApp.processTitle':'ℹ Mchakato wa Maombi wa Msimamizi',
+    'licApp.proc1':'Maombi yanawasilishwa mtandaoni kupitia tovuti ya leseni ya Msimamizi',
+    'licApp.proc2':'Msimamizi huchapisha tangazo la umma kupata maoni ndani ya <strong>siku 14</strong>',
+    'licApp.proc3':'Msimamizi lazima afanye uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili kutoa, kukataa, au kurudisha',
     'licApp.proc4':'Ukaguzi wa awali wa kituo unafanywa kabla ya kutoa leseni',
     'licApp.proc5':'Muda wa leseni: <strong>miaka 5</strong> &nbsp;·&nbsp; Ada ya maombi hairejeshe',
     'licApp.successTitle':'Maombi Yamewasilishwa',
     'licApp.successMsg1':'Maombi yako ya Leseni ya Usambazaji wa LPG kwa <strong>{{company}}</strong> yamepokelewa.',
-    'licApp.successMsg2':'EWURA itachapisha tangazo la umma ndani ya <strong>siku 14</strong> na kutoa uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili. Ukaguzi wa awali wa kituo utaratibiwa.',
-    'licApp.successNext':'<strong>Hatua inayofuata:</strong> Wasilisha hati zako za maombi ya kimwili kwenye tovuti ya LOIS ya EWURA kwenye <strong>lois.ewura.go.tz</strong> au tembelea ofisi za EWURA Dar es Salaam.',
+    'licApp.successMsg2':'Msimamizi atachapisha tangazo la umma ndani ya <strong>siku 14</strong> na kutoa uamuzi ndani ya <strong>siku 60</strong> baada ya maombi kamili. Ukaguzi wa awali wa kituo utaratibiwa.',
+    'licApp.successNext':'<strong>Hatua inayofuata:</strong> Wasilisha hati zako za maombi ya kimwili kwenye tovuti ya leseni ya Msimamizi au tembelea ofisi za Msimamizi.',
     'licApp.backToLogin':'Rudi kwenye Kuingia',
     'licApp.noCompany':'Tafadhali ingiza jina la kampuni yako kabla ya kuwasilisha.',
     'licApp.noFinancial':'Tafadhali ambatanisha angalau hati moja ya uthibitisho wa fedha (Sehemu ya 5).',
@@ -600,7 +602,7 @@ const TRANSLATIONS = {
     'signup.email':'Barua pepe','signup.emailPlh':'wewe@kampuni.com',
     'signup.password':'Nywila','signup.passwordPlh':'Angalau herufi 8',
     'signup.confirm':'Thibitisha Nywila','signup.confirmPlh':'Rudia nywila',
-    'signup.submit':'Fungua Akaunti','signup.alreadyLicensed':'Una leseni tayari?','signup.openBtn':'Jiandikishe',
+    'signup.submit':'Fungua Akaunti','signup.alreadyLicensed':'Una leseni tayari?','signup.openBtn':'🔑 Jiandikishe — Sajili Akaunti',
     'signup.allRequired':'Sehemu zote zinahitajika.',
     'signup.pwNoMatch':'Nywila hazifanani.','signup.pwShort':'Nywila iwe na angalau herufi 8.',
     'signup.emailExists':'Akaunti yenye barua pepe hii tayari ipo.',
@@ -661,6 +663,9 @@ function applyLang() {
   });
   document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
     btn.innerHTML = _lang === 'sw' ? FLAG_SVG_TZ + ' SW' : FLAG_SVG_GB + ' EN';
+  });
+  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === _lang);
   });
   const cylSearch = $('cyl-search');
   if (cylSearch) cylSearch.placeholder = t('cyl.searchPlaceholder');
@@ -1434,8 +1439,7 @@ async function seedDemoData() {
   // Global guard: if TZ already seeded in Firestore on another device, skip
   if (_fdb) {
     try {
-      _activeCountry = 'TZ';
-      const snap = await _fsColl('cylinders').limit(1).get();
+      const snap = await _fdb.collection('countries').doc('TZ').collection('cylinders').limit(1).get();
       if (!snap.empty) {
         await _idbPut('meta', { key: SEED_KEY, value: true });
         return;
@@ -5251,6 +5255,22 @@ document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
     _lang = _lang === 'en' ? 'sw' : 'en';
     localStorage.setItem('lpg-lang', _lang);
     applyLang();
+  });
+});
+
+document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _lang = btn.dataset.lang;
+    localStorage.setItem('lpg-lang', _lang);
+    applyLang();
+  });
+});
+
+document.querySelectorAll('.country-btn[data-country]').forEach(btn => {
+  btn.classList.toggle('active', btn.dataset.country === _activeCountry);
+  btn.addEventListener('click', () => {
+    localStorage.setItem('lpg-country', btn.dataset.country);
+    location.reload();
   });
 });
 
