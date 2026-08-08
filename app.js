@@ -10,7 +10,7 @@ const SEED_KEY   = 'seeded-v18';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
-const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections']);
+const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections', 'recalls']);
 let _fdb = null;
 let _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
 
@@ -1710,6 +1710,8 @@ async function _doSeed(skipTZ = false, skipKE = false) {
 
   await txClearStore('cylinders');
   await txClearStore('events');
+  await txClearStore('licenses');
+  await txClearStore('inspections');
 
   for (const cyl of DEMO_CYLINDERS_KE) { await txPut('cylinders', cyl); }
 
@@ -3226,7 +3228,7 @@ async function renderAlerts() {
   }
 
   // Recall alerts — surface for all roles whose cylinders match a recall batch
-  const recalls = JSON.parse(localStorage.getItem('lpg-recalls') || '[]');
+  const recalls = await txGetAll('recalls');
   if (recalls.length) {
     const existingIds = new Set(_alertsData.filter(a => a.type === 'recall').map(a => a.cylinder?.id));
     cyls.forEach(cyl => {
@@ -5927,26 +5929,29 @@ const _RECALL_SEEDS_KE = [
   { id:'RCL-KE-2025-091', operator:'Hashi Energy',         batch:'BATCH-KE-2025-091', dateFrom:'2025-02-01', dateTo:'2025-04-30', severity:'high',     reason:'Batch of valve handwheels found with sub-specification torque rating. Withdraw from retailers within 48 hours for valve replacement.', timestamp:'2025-07-30T08:15:00Z' },
 ];
 
-function _recallKey() { return 'lpg-recalls-' + _activeCountry; }
-
-function renderRecalls() {
+async function renderRecalls() {
   const container = $('recalls-container');
   if (!container) return;
 
-  // Seed demo data once per country
-  const seeds = _activeCountry === 'KE' ? _RECALL_SEEDS_KE : _RECALL_SEEDS_TZ;
-  let recalls = JSON.parse(localStorage.getItem(_recallKey()) || 'null');
-  if (!recalls) {
-    recalls = seeds.slice();
-    localStorage.setItem(_recallKey(), JSON.stringify(recalls));
+  // Lazy-seed demo recalls into Firestore once per country (independent of main seed key)
+  const recallSeedKey = 'recalls-seeded-' + _activeCountry;
+  const alreadySeeded = await _idbGet('meta', recallSeedKey);
+  if (!alreadySeeded) {
+    const existing = await txGetAll('recalls');
+    if (existing.length === 0) {
+      const seeds = _activeCountry === 'KE' ? _RECALL_SEEDS_KE : _RECALL_SEEDS_TZ;
+      for (const r of seeds) await txPut('recalls', r);
+    }
+    await _idbPut('meta', { key: recallSeedKey, value: true });
   }
+
+  const recalls = (await txGetAll('recalls')).slice().sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1));
 
   const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
   const sevLabel  = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
-  const impactHtml = recalls.length ? recalls.slice().reverse().map((r, revIdx) => {
+  const impactHtml = recalls.length ? recalls.map(r => {
     const sev   = r.severity || 'high';
     const color = sevColor[sev] || '#dc2626';
-    const origIdx = recalls.length - 1 - revIdx;
     const dateRange = (r.dateFrom && r.dateTo) ? `${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}` : (r.dateFrom || r.dateTo || 'All batches');
     return `<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
@@ -5962,22 +5967,19 @@ function renderRecalls() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
           <span style="font-size:11px;color:var(--muted)">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
-          <button class="btn btn-outline recall-delete-btn" data-recall-idx="${origIdx}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">Delete</button>
+          <button class="btn btn-outline recall-delete-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">${t('recall.delete')}</button>
         </div>
       </div>
     </div>`;
-  }).join('') : `<p style="color:var(--muted);font-size:13px">No recalls issued.</p>`;
+  }).join('') : `<p style="color:var(--muted);font-size:13px">${t('recall.noRecalls')}</p>`;
 
   container.innerHTML = impactHtml;
 
   container.querySelectorAll('.recall-delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = +btn.dataset.recallIdx;
-      const list = JSON.parse(localStorage.getItem(_recallKey()) || '[]');
-      list.splice(idx, 1);
-      localStorage.setItem(_recallKey(), JSON.stringify(list));
+    btn.addEventListener('click', async () => {
+      await txDelete('recalls', btn.dataset.recallId);
       renderRecalls();
-      showSnackbar('Recall deleted.', 'success');
+      showSnackbar(t('recall.deleted'), 'success');
     });
   });
 }
@@ -6042,20 +6044,18 @@ $('recall-preview-btn')?.addEventListener('click', () => {
   if (info) info.textContent = `${allLocs.length} location${allLocs.length !== 1 ? 's' : ''} tracked in the platform${operator ? ' for ' + operator : ''}.`;
 });
 
-$('recall-submit-btn')?.addEventListener('click', () => {
+$('recall-submit-btn')?.addEventListener('click', async () => {
   const operator  = $('recall-operator')?.value;
   const batch     = $('recall-batch')?.value.trim();
   const dateFrom  = $('recall-date-from')?.value;
   const dateTo    = $('recall-date-to')?.value;
   const severity  = $('recall-severity')?.value || 'high';
   const reason    = $('recall-reason')?.value.trim();
-  const ref       = $('recall-ref')?.value || ('RCL-' + new Date().getFullYear() + '-' + Date.now());
+  const ref       = $('recall-ref')?.value || ('RCL-' + _activeCountry + '-' + new Date().getFullYear() + '-' + Date.now());
   if (!operator || !reason) {
-    showSnackbar('Operator and reason are required.', 'error'); return;
+    showSnackbar(t('recall.required'), 'error'); return;
   }
-  const recalls = JSON.parse(localStorage.getItem(_recallKey()) || '[]');
-  recalls.push({ id: ref, operator, batch, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
-  localStorage.setItem(_recallKey(), JSON.stringify(recalls));
+  await txPut('recalls', { id: ref, operator, batch, dateFrom, dateTo, severity, reason, timestamp: new Date().toISOString() });
   // Reset preview state
   if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
   const pane = $('recall-preview-map'); if (pane) pane.style.display = 'none';
