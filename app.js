@@ -1189,15 +1189,15 @@ async function txGetIndex(storeName, indexName, value) {
   return _idbGetIndex(storeName, indexName, value);
 }
 
-const DEMO_MANUFACTURERS = [
-  { id:'MFR-001', name:'Tageos RFID Solutions', country:'France',  type:'RFID Tags',     contact:'contact@tageos.com' },
-  { id:'MFR-002', name:'Zebra Technologies',    country:'USA',     type:'RFID Tags',     contact:'rfid@zebra.com' },
-  { id:'MFR-003', name:'Alien Technology',      country:'USA',     type:'RFID Tags',     contact:'sales@alientechnology.com' },
-  { id:'MFR-004', name:'Impinj Inc.',           country:'USA',     type:'RFID Tags',     contact:'sales@impinj.com' },
-  { id:'MFR-005', name:'HID Global',            country:'USA',     type:'RFID Tags',     contact:'sales@hidglobal.com' },
-  { id:'MFR-006', name:'TagsysRFID',            country:'France',  type:'RFID Tags',     contact:'contact@tagsysrfid.com' },
-  { id:'MFR-007', name:'TrustSecure Stamps Ltd',country:'Tanzania',type:'Security Stamps', contact:'info@trustsecure.co.tz' },
-  { id:'MFR-008', name:'SecurePrint Africa',    country:'Kenya',   type:'Security Stamps', contact:'info@secureprint.co.ke' },
+const CYLINDER_MANUFACTURERS = [
+  { id:'CMF-001', name:'Metal Box East Africa',   country:'Kenya',   contact:'info@metalbox.co.ke' },
+  { id:'CMF-002', name:'Hanyang Steel Cylinders', country:'China',   contact:'sales@hanyang-cylinder.com' },
+  { id:'CMF-003', name:'Aygaz Industrial',        country:'Turkey',  contact:'export@aygaz.com.tr' },
+  { id:'CMF-004', name:'EKC Engineering',         country:'India',   contact:'export@ekcengineering.com' },
+  { id:'CMF-005', name:'Worthington Industries',  country:'USA',     contact:'africa@worthingtonindustries.com' },
+  { id:'CMF-006', name:'Luxfer Gas Cylinders',    country:'UK',      contact:'info@luxfer.com' },
+  { id:'CMF-007', name:'Sneha Industries',        country:'India',   contact:'info@snehagroup.in' },
+  { id:'CMF-008', name:'TZ Steel Works Ltd',      country:'Tanzania',contact:'info@tzsteelworks.co.tz' },
 ];
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -5590,7 +5590,7 @@ async function renderTagOrders() {
         <div class="order-card-row"><span>Quantity</span><strong>${o.quantity.toLocaleString()} tags</strong></div>
         <div class="order-card-row"><span>Tag Type</span><strong>${escapeHtml(o.tagType)}</strong></div>
         ${o.cylinderSize ? `<div class="order-card-row"><span>Cylinder Size</span><strong>${escapeHtml(o.cylinderSize)}</strong></div>` : ''}
-        <div class="order-card-row"><span>Manufacturer</span><strong>${escapeHtml(o.manufacturer)} (${escapeHtml(o.manufacturerCountry)})</strong></div>
+        <div class="order-card-row"><span>Cylinder Manufacturer</span><strong>${escapeHtml(o.manufacturer)} (${escapeHtml(o.manufacturerCountry)})</strong></div>
         ${o.approvedDate ? `<div class="order-card-row"><span>Approved</span><strong>${o.approvedDate.slice(0,10)}</strong></div>` : ''}
         ${o.dispatchDate ? `<div class="order-card-row"><span>Dispatched</span><strong>${o.dispatchDate.slice(0,10)}</strong></div>` : ''}
         ${o.deliveryDate ? `<div class="order-card-row"><span>Delivered</span><strong>${o.deliveryDate.slice(0,10)}</strong></div>` : ''}
@@ -5667,7 +5667,7 @@ $('tag-order-submit-btn')?.addEventListener('click', async () => {
   const notes        = $('to-notes')?.value?.trim() || '';
   if (qty < 1) { showSnackbar('Enter a valid quantity.', 'error'); return; }
   if (!mfr)    { showSnackbar('Select a manufacturer.', 'error'); return; }
-  const mfrObj = DEMO_MANUFACTURERS.find(m => m.id === mfr);
+  const mfrObj = CYLINDER_MANUFACTURERS.find(m => m.id === mfr);
   const s = Auth.session;
   const id = 'TO-' + _activeCountry + '-' + Date.now();
   await txPut('tag-orders', {
