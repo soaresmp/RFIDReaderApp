@@ -6075,12 +6075,17 @@ function _orderStatusBadge(status) {
   return `<span style="background:${s.bg};color:${s.color};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${s.label}</span>`;
 }
 
+let _ordersFilterStatus = '';
+let _ordersFilterLpgmc  = '';
+
 async function renderOrders() {
   if (!$('view-orders')) return;
-  // Wire sub-tab switching (idempotent via flag)
   const ordersEl = $('view-orders');
+
   if (!ordersEl.dataset.tabsReady) {
     ordersEl.dataset.tabsReady = '1';
+
+    // Sub-tab switching
     ordersEl.querySelectorAll('.orders-subtab').forEach(btn => {
       btn.addEventListener('click', () => {
         ordersEl.querySelectorAll('.orders-subtab').forEach(b => {
@@ -6095,8 +6100,39 @@ async function renderOrders() {
         });
       });
     });
+
+    // Filter controls
+    const filterStatus = $('orders-filter-status');
+    const filterLpgmc  = $('orders-filter-lpgmc');
+    filterStatus?.addEventListener('change', () => {
+      _ordersFilterStatus = filterStatus.value;
+      renderTagOrders();
+      renderStampOrders();
+    });
+    filterLpgmc?.addEventListener('change', () => {
+      _ordersFilterLpgmc = filterLpgmc.value;
+      renderTagOrders();
+      renderStampOrders();
+    });
   }
-  const isCylProd = Auth.session?.role === 'cylinder-producer';
+
+  // Show/hide LPGMC filter (only useful when viewing multiple companies)
+  const role = Auth.session?.role;
+  const filterLpgmcEl = $('orders-filter-lpgmc');
+  if (filterLpgmcEl) {
+    const showLpgmcFilter = role !== 'lpgmc';
+    filterLpgmcEl.style.display = showLpgmcFilter ? '' : 'none';
+    if (showLpgmcFilter) {
+      // Populate LPGMC options from union of both order stores
+      const [tagOrders, stampOrders] = await Promise.all([txGetAll('tag-orders'), txGetAll('stamp-orders')]);
+      const lpgmcNames = [...new Set([...tagOrders, ...stampOrders].map(o => o.lpgmc).filter(Boolean))].sort();
+      const current = filterLpgmcEl.value;
+      filterLpgmcEl.innerHTML = '<option value="">All LPGMCs</option>' +
+        lpgmcNames.map(n => `<option value="${escapeHtml(n)}"${n === current ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('');
+    }
+  }
+
+  const isCylProd = role === 'cylinder-producer';
   const stampTab = ordersEl.querySelector('.orders-subtab[data-section="orders-stamp"]');
   const stampSection = $('orders-stamp');
   if (stampTab) stampTab.style.display = isCylProd ? 'none' : '';
@@ -6111,9 +6147,11 @@ async function renderTagOrders() {
   const company = Auth.session ? Auth.session.company : null;
   const orders = await txGetAll('tag-orders');
 
-  const visible = role === 'lpgmc'
+  let visible = role === 'lpgmc'
     ? orders.filter(o => o.lpgmc === company)
     : orders;
+  if (_ordersFilterStatus) visible = visible.filter(o => o.status === _ordersFilterStatus);
+  if (_ordersFilterLpgmc)  visible = visible.filter(o => o.lpgmc  === _ordersFilterLpgmc);
 
   visible.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
 
@@ -6246,9 +6284,11 @@ async function renderStampOrders() {
   const company = Auth.session ? Auth.session.company : null;
   const orders = await txGetAll('stamp-orders');
 
-  const visible = role === 'lpgmc'
+  let visible = role === 'lpgmc'
     ? orders.filter(o => o.lpgmc === company)
     : orders;
+  if (_ordersFilterStatus) visible = visible.filter(o => o.status === _ordersFilterStatus);
+  if (_ordersFilterLpgmc)  visible = visible.filter(o => o.lpgmc  === _ordersFilterLpgmc);
 
   visible.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
 

@@ -854,6 +854,21 @@
             </button>
           </div>
 
+          <!-- Filters -->
+          <div id="orders-filters" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+            <select id="orders-filter-status" class="form-control" style="max-width:180px">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="dispatched">Dispatched</option>
+              <option value="delivered">Delivered</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <select id="orders-filter-lpgmc" class="form-control" style="max-width:220px;display:none">
+              <option value="">All LPGMCs</option>
+            </select>
+          </div>
+
           <div id="orders-tag" class="orders-section">
             <div id="tag-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
           </div>
