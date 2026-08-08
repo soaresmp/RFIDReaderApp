@@ -930,6 +930,7 @@ const State = {
   focused:           false,
   scanEvents:        [],
   tagCaptureActive:      false,
+  batchTagCaptureActive: false,
   passportCylinderId: null,
 };
 
@@ -1510,6 +1511,9 @@ function applySession() {
     registerCylBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   }
 
+  // Bulk register button: LPGMC and Cylinder Producer
+  const _bulkBtn = $('bulk-register-btn');
+  if (_bulkBtn) _bulkBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   // Tag/stamp order buttons: LPGMC only
   const _tagOrderBtn = $('tag-order-place-btn');
   if (_tagOrderBtn) _tagOrderBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
@@ -1716,6 +1720,17 @@ async function handleScan(tagId) {
     return;
   }
 
+  // Batch scan — append tag to the batch textarea
+  if (State.batchTagCaptureActive) {
+    State.batchTagCaptureActive = false;
+    const ta = $('reg-batch-ids');
+    if (ta) {
+      ta.value = (ta.value ? ta.value.trimEnd() + '\n' : '') + tagId;
+      ta.dispatchEvent(new Event('input'));
+    }
+    showSnackbar('Tag added to batch.', 'success');
+    return;
+  }
 
   // Only process scans in Scan view
   if (State.activeView !== 'scan') return;
@@ -1947,7 +1962,31 @@ function _regUpdateOrderInfo(orderId) {
   if (sizeEl)  sizeEl.value  = order.cylinderSize || '';
 }
 
-async function openRegisterModal(tagId) {
+function parseBulkIds(text) {
+  return [...new Set(
+    text.split(/[\r\n,;\t ]+/).map(s => s.trim()).filter(s => s.length === 22 && s.startsWith('E280116060'))
+  )];
+}
+
+function _regSetMode(mode) {
+  const singlePanel = $('reg-mode-single');
+  const batchPanel  = $('reg-mode-batch');
+  if (singlePanel) singlePanel.style.display = mode === 'single' ? '' : 'none';
+  if (batchPanel)  batchPanel.style.display  = mode === 'batch'  ? '' : 'none';
+  document.querySelectorAll('.reg-mode-btn').forEach(btn => {
+    const isActive = btn.dataset.mode === mode;
+    btn.style.background  = isActive ? 'var(--blue,#3b82f6)' : 'transparent';
+    btn.style.color       = isActive ? '#fff' : 'var(--muted,#64748b)';
+    btn.style.borderColor = isActive ? 'var(--blue,#3b82f6)' : 'var(--border,#e2e8f0)';
+    btn.style.fontWeight  = isActive ? '600' : '500';
+  });
+}
+
+document.querySelectorAll('.reg-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => _regSetMode(btn.dataset.mode));
+});
+
+async function openRegisterModal(tagId, openInBatchMode) {
   const today = new Date().toISOString().slice(0, 10);
 
   // Reset fields
@@ -1955,6 +1994,9 @@ async function openRegisterModal(tagId) {
   if (regManufDate) regManufDate.value = today;
   if (regNotes) regNotes.value = '';
   const batchEl = $('reg-batch'); if (batchEl) batchEl.value = '';
+  const batchIds = $('reg-batch-ids'); if (batchIds) batchIds.value = '';
+  const batchFile = $('reg-batch-file'); if (batchFile) batchFile.value = '';
+  const batchPrev = $('reg-batch-preview'); if (batchPrev) batchPrev.textContent = '';
   _regUpdateOrderInfo('');
 
   // Load approved orders for this country
@@ -1968,17 +2010,16 @@ async function openRegisterModal(tagId) {
     regTagOrd.onchange = () => _regUpdateOrderInfo(regTagOrd.value);
   }
 
+  _regSetMode(openInBatchMode ? 'batch' : 'single');
   openModal('modal-register');
-  setTimeout(() => {
-    const first = $('reg-tag-order');
-    if (first) first.focus();
-  }, 80);
+  setTimeout(() => { $('reg-tag-order')?.focus(); }, 80);
 }
 
-// "+ Register" button
+// Register button (single mode) and Bulk Register button (batch mode)
 if (registerCylBtn) {
-  registerCylBtn.addEventListener('click', () => openRegisterModal(''));
+  registerCylBtn.addEventListener('click', () => openRegisterModal('', false));
 }
+$('bulk-register-btn')?.addEventListener('click', () => openRegisterModal('', true));
 
 if (regTagScanBtn) {
   regTagScanBtn.addEventListener('click', () => {
@@ -1988,60 +2029,92 @@ if (regTagScanBtn) {
   });
 }
 
-// Batch scan button — appends scanned tag to textarea
+// Batch: file upload → populate textarea
+$('reg-batch-file')?.addEventListener('change', async function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const ta = $('reg-batch-ids');
+  if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
+});
+
+// Batch: textarea live count
+$('reg-batch-ids')?.addEventListener('input', function() {
+  const ids = parseBulkIds(this.value);
+  const preview = $('reg-batch-preview');
+  if (preview) preview.textContent = ids.length ? `${ids.length} ${t('bulk.validIds')}` : (this.value.trim() ? t('bulk.noValidIds') : '');
+});
+
+// Batch: scan button appends to textarea
+$('reg-batch-scan-btn')?.addEventListener('click', () => {
+  State.batchTagCaptureActive = true;
+  scannerInput.focus();
+  showSnackbar('Ready — scan RFID tag to add to batch…');
+});
+
 regSubmitBtn.addEventListener('click', async () => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today   = new Date().toISOString().slice(0, 10);
+  const isBatch = $('reg-mode-batch')?.style.display !== 'none';
 
   const selOrder = $('reg-tag-order')?.value || '';
   if (!selOrder) { showSnackbar('Please select an approved tag order.', 'error'); return; }
 
-  const tagId = regTag?.value.trim() || '';
-  if (!tagId) { showSnackbar('Please scan or enter an RFID tag.', 'error'); return; }
-
-  const order      = _regApprovedOrders.find(o => o.id === selOrder);
-  const mfrObj     = CYLINDER_MANUFACTURERS.find(m => m.id === order?.manufacturer);
-  const manufacturer    = mfrObj ? mfrObj.name : (order?.manufacturer || '');
-  const size            = order?.cylinderSize || '13kg';
-  const cylCompany      = order?.lpgmc || Auth.session.company;
-  const batchNumber     = $('reg-batch')?.value.trim() || '';
+  const order        = _regApprovedOrders.find(o => o.id === selOrder);
+  const mfrObj       = CYLINDER_MANUFACTURERS.find(m => m.id === order?.manufacturer);
+  const manufacturer = mfrObj ? mfrObj.name : (order?.manufacturer || '');
+  const size         = order?.cylinderSize || '13kg';
+  const cylCompany   = order?.lpgmc || Auth.session.company;
+  const batchNumber  = $('reg-batch')?.value.trim() || '';
   const manufactureDate = regManufDate?.value || today;
-  const notes           = regNotes?.value.trim() || '';
-  const isCylProd       = Auth.session?.role === 'cylinder-producer';
+  const notes        = regNotes?.value.trim() || '';
+  const isCylProd    = Auth.session?.role === 'cylinder-producer';
 
-  const allCyls = await txGetAll('cylinders');
-  if (allCyls.find(c => c.id === tagId)) {
-    showSnackbar('RFID tag already registered.', 'error'); return;
-  }
-
-  const serial = 'CYL-' + tagId.slice(-8).toUpperCase();
-  const cyl = {
-    id: tagId,
-    serial,
-    company:        cylCompany,
-    ownerBrandName: cylCompany,
-    manufacturer,
-    size,
-    batchNumber,
-    tagOrderId:     selOrder,
-    manufactureDate,
-    fillCount:      0,
-    status:         'in-refill',
-    notes,
-    ...(isCylProd ? { producedBy: Auth.session.company } : {}),
-  };
-
-  try {
+  async function _saveCyl(tagId) {
+    const serial = 'CYL-' + tagId.slice(-8).toUpperCase();
+    const cyl = {
+      id: tagId, serial,
+      company: cylCompany, ownerBrandName: cylCompany,
+      manufacturer, size, batchNumber, tagOrderId: selOrder,
+      manufactureDate, fillCount: 0, status: 'in-refill', notes,
+      ...(isCylProd ? { producedBy: Auth.session.company } : {}),
+    };
     await txPut('cylinders', cyl);
     await txPut('events', { cylinderId: tagId, type: 'registered', timestamp: nowISO(), operatorId: Auth.session?.operatorId, company: Auth.session?.company, notes: batchNumber ? `Batch: ${batchNumber}` : 'Registered' });
-    if (State.activeView === 'scan') {
-      lastScanResult.className  = 'last-scan-result success';
-      lastScanResult.textContent = `${serial} registered successfully.`;
+    return serial;
+  }
+
+  if (isBatch) {
+    const ids = parseBulkIds($('reg-batch-ids')?.value || '');
+    if (!ids.length) { showSnackbar('No valid RFID tag IDs found.', 'error'); return; }
+    const existing = new Set((await txGetAll('cylinders')).map(c => c.id));
+    let registered = 0;
+    for (const id of ids) {
+      if (existing.has(id)) continue;
+      await _saveCyl(id);
+      registered++;
     }
     closeModal('modal-register');
-    showSnackbar(`${serial} registered.`, 'success');
+    showSnackbar(`${registered} cylinder${registered !== 1 ? 's' : ''} registered`, 'success');
     renderCylinders();
-  } catch (err) {
-    showSnackbar('Failed to save cylinder: ' + (err.message || err), 'error');
+  } else {
+    const tagId = regTag?.value.trim() || '';
+    if (!tagId) { showSnackbar('Please scan or enter an RFID tag.', 'error'); return; }
+    const allCyls = await txGetAll('cylinders');
+    if (allCyls.find(c => c.id === tagId)) {
+      showSnackbar('RFID tag already registered.', 'error'); return;
+    }
+    try {
+      const serial = await _saveCyl(tagId);
+      if (State.activeView === 'scan') {
+        lastScanResult.className  = 'last-scan-result success';
+        lastScanResult.textContent = `${serial} registered successfully.`;
+      }
+      closeModal('modal-register');
+      showSnackbar(`${serial} registered.`, 'success');
+      renderCylinders();
+    } catch (err) {
+      showSnackbar('Failed to save cylinder: ' + (err.message || err), 'error');
+    }
   }
 });
 
@@ -3138,8 +3211,8 @@ async function renderReports() {
         const stockColor = stockDays >= 30 ? 'var(--green)' : stockDays >= 15 ? 'var(--amber)' : 'var(--red)';
         return `<div class="report-card" style="border-color:${stockColor}">
           <span class="report-card-value" style="color:${stockColor}">${stockDays}</span>
-          <div class="report-card-label">${t('dash.nationalStockDays') || 'National Stock Level'}</div>
-          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days of supply · ${refills30} refills/30d</div>
+          <div class="report-card-label">National Stock</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days · ${refills30} refills/30d</div>
         </div>`;
       })() : ''}
       ${role === 'ewura' ? (() => {
@@ -4571,6 +4644,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     closeModal(btn.dataset.close);
     if (btn.dataset.close === 'modal-register') {
       State.tagCaptureActive = false;
+      State.batchTagCaptureActive = false;
     }
     if (btn.dataset.close === 'modal-recall') {
       if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
@@ -4588,6 +4662,7 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
       backdrop.hidden = true;
       if (backdrop.id === 'modal-register') {
         State.tagCaptureActive = false;
+        State.batchTagCaptureActive = false;
       }
     }
   });

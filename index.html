@@ -584,6 +584,7 @@
             <h2 class="page-title" data-i18n="page.cylinders">🔥 Cylinders</h2>
             <div class="page-actions">
               <button id="register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.register">Register</button>
+              <button id="bulk-register-btn" class="btn btn-outline" type="button" style="display:none" data-i18n="btn.bulkRegister">Bulk Register</button>
               <button id="shipment-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.shipment">Shipment</button>
               <button id="reception-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="btn.reception">Reception</button>
             </div>
@@ -950,13 +951,37 @@
           <input id="reg-manufacture-date" type="date" class="form-control" />
         </div>
 
-        <!-- RFID Tag -->
-        <div class="form-section-title">RFID Tag</div>
-        <div class="form-group">
-          <div class="input-with-action">
-            <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" maxlength="24" />
-            <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
+        <!-- RFID Tag(s) — mode toggle -->
+        <div class="form-section-title">RFID Tags</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button class="reg-mode-btn" data-mode="single" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--blue,#3b82f6);background:var(--blue,#3b82f6);color:#fff;font-size:13px;font-weight:600;cursor:pointer">📡 Single scan</button>
+          <button class="reg-mode-btn" data-mode="batch" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--border,#e2e8f0);background:transparent;color:var(--muted,#64748b);font-size:13px;font-weight:500;cursor:pointer">📋 Batch</button>
+        </div>
+
+        <!-- Single scan panel -->
+        <div id="reg-mode-single">
+          <div class="form-group">
+            <div class="input-with-action">
+              <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" maxlength="24" />
+              <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
+            </div>
           </div>
+        </div>
+
+        <!-- Batch panel -->
+        <div id="reg-mode-batch" style="display:none">
+          <div class="form-group">
+            <label>Upload CSV / TXT file</label>
+            <input id="reg-batch-file" type="file" accept=".csv,.txt" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Scan or paste RFID tags (one per line)</label>
+            <div class="input-with-action" style="align-items:flex-start">
+              <textarea id="reg-batch-ids" class="form-control font-mono" rows="5" placeholder="E280116060XXXXXXXXXXXX&#10;E280116060XXXXXXXXXXXX" style="resize:vertical"></textarea>
+              <button id="reg-batch-scan-btn" class="btn btn-sm btn-outline" type="button" style="flex-shrink:0;margin-top:0">📡 Scan</button>
+            </div>
+          </div>
+          <div id="reg-batch-preview" style="font-size:13px;color:var(--muted,#64748b);min-height:20px;margin-bottom:8px"></div>
         </div>
 
         <div class="form-group">
