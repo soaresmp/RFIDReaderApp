@@ -914,89 +914,72 @@
   <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
     <div class="modal">
       <div class="modal-header">
-        <h2>Register Cylinder</h2>
+        <h2>Register Cylinder(s)</h2>
         <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <!-- Shown only for Cylinder Producer role -->
-        <div id="reg-producer-section" style="display:none">
-          <div class="form-section-title">Order Reference</div>
-          <div class="form-group">
-            <label>LPGMC (Customer)</label>
-            <select id="reg-lpgmc" class="form-control">
-              <option value="">— Select LPGMC —</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Approved Tag Order</label>
-            <select id="reg-tag-order" class="form-control">
-              <option value="">— Select approved order —</option>
-            </select>
-          </div>
+        <!-- Order Reference -->
+        <div class="form-section-title">Order Reference</div>
+        <div id="reg-lpgmc-group" class="form-group" style="display:none">
+          <label>LPGMC (Customer)</label>
+          <select id="reg-lpgmc" class="form-control">
+            <option value="">— Select LPGMC —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Approved Tag Order</label>
+          <select id="reg-tag-order" class="form-control">
+            <option value="">— Select approved order —</option>
+          </select>
+        </div>
+        <div id="reg-order-info" style="display:none;background:var(--surface2,#f8fafc);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px">
+          <div>🏭 Manufacturer: <strong id="reg-order-mfr">—</strong></div>
+          <div style="margin-top:4px">🛢 Cylinder size: <strong id="reg-order-size">—</strong></div>
         </div>
 
-        <div class="form-section-title">RFID &amp; Serial</div>
+        <!-- Batch Details -->
+        <div class="form-section-title">Batch Details</div>
         <div class="form-group">
-          <label>RFID Tag</label>
-          <div class="input-with-action">
-            <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" maxlength="24" />
-            <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
-          </div>
+          <label>Batch Number</label>
+          <input id="reg-batch" type="text" class="form-control" placeholder="e.g. BATCH-2024-001" maxlength="32" />
         </div>
-        <div class="form-group">
-          <label>Serial Number</label>
-          <div class="input-with-action">
-            <input id="reg-serial" type="text" class="form-control" placeholder="Enter or scan serial barcode" maxlength="24" />
-            <button id="reg-serial-scan-btn" class="btn btn-sm btn-outline" type="button">📷 Scan</button>
-          </div>
-        </div>
-
-        <div class="form-section-title">Cylinder Marking</div>
-        <div class="form-group">
-          <label>Owner Brand Name</label>
-          <input id="reg-brand-name" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
-        </div>
-        <div class="form-group">
-          <label>Manufacturer Name</label>
-          <input id="reg-manufacturer" type="text" class="form-control" placeholder="e.g. Vivo LPG" />
-        </div>
-        <div class="form-group">
-          <label>Product Name</label>
-          <input id="reg-product-name" type="text" class="form-control" value="LPG" />
-        </div>
-
-        <div class="form-section-title">Dates &amp; Requalification</div>
         <div class="form-group">
           <label>Date of Manufacture</label>
           <input id="reg-manufacture-date" type="date" class="form-control" />
         </div>
-        <div class="form-group">
-          <label>Last Requalification Date</label>
-          <input id="reg-requalification-date" type="date" class="form-control" />
-        </div>
-        <div class="form-group">
-          <label>Requalifying Plant Name</label>
-          <input id="reg-requalification-plant" type="text" class="form-control" placeholder="e.g. ProRevalid Ltd" />
+
+        <!-- Mode toggle -->
+        <div class="form-section-title">RFID Tags</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button class="reg-mode-btn active-mode" data-mode="single" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--blue,#3b82f6);background:var(--blue,#3b82f6);color:#fff;font-size:13px;font-weight:600;cursor:pointer">📡 Single scan</button>
+          <button class="reg-mode-btn" data-mode="batch" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--border,#e2e8f0);background:transparent;color:var(--muted,#64748b);font-size:13px;font-weight:500;cursor:pointer">📋 Batch (CSV / multi-scan)</button>
         </div>
 
-        <div class="form-section-title">Physical Specifications</div>
-        <div class="form-group">
-          <label>Tare Weight (kg)</label>
-          <input id="reg-tare" type="number" class="form-control" value="14.5" step="0.1" />
-        </div>
-        <div class="form-group">
-          <label>Net Weight / Gas Content (kg)</label>
-          <input id="reg-net-weight" type="number" class="form-control" value="12" step="0.1" />
+        <!-- Single scan panel -->
+        <div id="reg-mode-single">
+          <div class="form-group">
+            <label>RFID Tag</label>
+            <div class="input-with-action">
+              <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" maxlength="24" />
+              <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
+            </div>
+          </div>
         </div>
 
-        <div class="form-section-title">Pressure &amp; Testing</div>
-        <div class="form-group">
-          <label>Pressure Test Values</label>
-          <input id="reg-pressure-test" type="text" class="form-control" placeholder="e.g. WP 17.2 bar / TP 34.5 bar" />
-        </div>
-        <div class="form-group">
-          <label>Last Hydro Test Date</label>
-          <input id="reg-hydrotest" type="date" class="form-control" />
+        <!-- Batch panel -->
+        <div id="reg-mode-batch" style="display:none">
+          <div class="form-group">
+            <label>Upload CSV / TXT file</label>
+            <input id="reg-batch-file" type="file" accept=".csv,.txt" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Scan or paste RFID tags (one per line)</label>
+            <div class="input-with-action" style="align-items:flex-start">
+              <textarea id="reg-batch-ids" class="form-control font-mono" rows="5" placeholder="E280116060XXXXXXXXXXXX&#10;E280116060XXXXXXXXXXXX" style="resize:vertical"></textarea>
+              <button id="reg-batch-scan-btn" class="btn btn-sm btn-outline" type="button" style="flex-shrink:0;margin-top:0">📡 Scan</button>
+            </div>
+          </div>
+          <div id="reg-batch-preview" style="font-size:13px;color:var(--muted,#64748b);min-height:20px;margin-bottom:8px"></div>
         </div>
 
         <div class="form-group">
@@ -1364,29 +1347,6 @@
   </div>
 
   <!-- Bulk Register modal (LPGMC) -->
-  <div id="modal-bulk-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Bulk Cylinder Registration">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 data-i18n="bulk.title">Bulk Cylinder Registration</h2>
-        <button class="modal-close" data-close="modal-bulk-register" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label data-i18n="bulk.uploadLabel">Upload CSV / TXT file</label>
-          <input id="bulk-register-file" type="file" accept=".csv,.txt" class="form-control" />
-        </div>
-        <div class="form-group">
-          <label data-i18n="bulk.pasteLabel">Or paste cylinder IDs (one per line, 22-char E280116060… format)</label>
-          <textarea id="bulk-register-ids" class="form-control font-mono" rows="6" placeholder="E280116060XXXXXXXXXXXX&#10;E280116060XXXXXXXXXXXX"></textarea>
-        </div>
-        <div id="bulk-register-preview" style="font-size:13px;color:var(--muted);min-height:20px"></div>
-      </div>
-      <div class="modal-footer">
-        <button id="bulk-register-confirm-btn" class="btn btn-primary" type="button" data-i18n="btn.registerCylinders">Register Cylinders</button>
-        <button class="btn btn-outline" data-close="modal-bulk-register" type="button">Cancel</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Place RFID Tag Order modal (LPGMC) -->
   <div id="modal-tag-order" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Place RFID Tag Order">

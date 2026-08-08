@@ -929,8 +929,8 @@ const State = {
   batchQueue:        [],
   focused:           false,
   scanEvents:        [],
-  serialCaptureActive: false,
-  tagCaptureActive:    false,
+  tagCaptureActive:      false,
+  batchTagCaptureActive: false,
   passportCylinderId: null,
 };
 
@@ -1280,21 +1280,9 @@ const licensesEmpty    = $('licenses-empty');
 const modalRegister    = $('modal-register');
 const regTag           = $('reg-tag');
 const regTagScanBtn    = $('reg-tag-scan-btn');
-const regSerial        = $('reg-serial');
-const regSerialScanBtn = $('reg-serial-scan-btn');
 const regManufDate     = $('reg-manufacture-date');
-const regTare          = $('reg-tare');
-const regHydrotest     = $('reg-hydrotest');
 const regNotes         = $('reg-notes');
 const regSubmitBtn     = $('reg-submit-btn');
-
-const regBrandName      = $('reg-brand-name');
-const regManufacturer   = $('reg-manufacturer');
-const regProductName    = $('reg-product-name');
-const regRequalDate     = $('reg-requalification-date');
-const regRequalPlant    = $('reg-requalification-plant');
-const regNetWeight      = $('reg-net-weight');
-const regPressureTest   = $('reg-pressure-test');
 
 const modalPassport    = $('modal-passport');
 const passportBody     = $('passport-body');
@@ -1723,19 +1711,23 @@ scannerInput.addEventListener('focus', () => {
 async function handleScan(tagId) {
   if (!Auth.session) return;
 
-  // Tag capture mode for register modal
+  // Single-tag capture for register modal
   if (State.tagCaptureActive) {
-    regTag.value = tagId;
+    if (regTag) regTag.value = tagId;
     State.tagCaptureActive = false;
     showSnackbar('Tag captured.', 'success');
     return;
   }
 
-  // Serial capture mode for register modal
-  if (State.serialCaptureActive) {
-    regSerial.value = tagId;
-    State.serialCaptureActive = false;
-    showSnackbar('Serial captured.', 'success');
+  // Batch scan — append tag to the batch textarea
+  if (State.batchTagCaptureActive) {
+    State.batchTagCaptureActive = false;
+    const ta = $('reg-batch-ids');
+    if (ta) {
+      ta.value = (ta.value ? ta.value.trimEnd() + '\n' : '') + tagId;
+      ta.dispatchEvent(new Event('input'));
+    }
+    showSnackbar('Tag added to batch.', 'success');
     return;
   }
 
@@ -1949,161 +1941,118 @@ exportEventsBtn.addEventListener('click', () => {
 // REGISTER CYLINDER MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function openRegisterModal(tagId) {
+// Holds all approved orders loaded when modal opens
+let _regApprovedOrders = [];
+
+function _regUpdateOrderInfo(orderId) {
+  const order = _regApprovedOrders.find(o => o.id === orderId);
+  const infoEl = $('reg-order-info');
+  if (!infoEl) return;
+  if (!order) { infoEl.style.display = 'none'; return; }
+  const mfrObj = CYLINDER_MANUFACTURERS.find(m => m.id === order.manufacturer);
+  const mfrName = mfrObj ? mfrObj.name : (order.manufacturer || '—');
+  $('reg-order-mfr').textContent  = mfrName;
+  $('reg-order-size').textContent = order.cylinderSize || '—';
+  infoEl.style.display = '';
+}
+
+async function openRegisterModal(tagId, openInBatchMode) {
   const session = Auth.session;
   const company = session ? session.company : '';
   const role    = session ? session.role : '';
   const isCylProd = role === 'cylinder-producer';
   const today   = new Date().toISOString().slice(0, 10);
 
-  regTag.value          = tagId || '';
-  regSerial.value       = '';
-  regProductName.value  = 'LPG';
-  regManufDate.value    = today;
-  regRequalDate.value   = '';
-  regRequalPlant.value  = '';
-  regTare.value         = '14.5';
-  regNetWeight.value    = '12';
-  regPressureTest.value = '';
-  regHydrotest.value    = today;
-  regNotes.value        = '';
+  // Reset fields
+  if (regTag) regTag.value = tagId || '';
+  if (regManufDate) regManufDate.value = today;
+  if (regNotes) regNotes.value = '';
+  const batchEl = $('reg-batch'); if (batchEl) batchEl.value = '';
+  const batchIds = $('reg-batch-ids'); if (batchIds) batchIds.value = '';
+  const batchFile = $('reg-batch-file'); if (batchFile) batchFile.value = '';
+  const batchPreview = $('reg-batch-preview'); if (batchPreview) batchPreview.textContent = '';
+  const orderInfoEl = $('reg-order-info'); if (orderInfoEl) orderInfoEl.style.display = 'none';
 
-  // Producer section: LPGMC + approved tag order selectors
-  const prodSection = $('reg-producer-section');
-  if (prodSection) prodSection.style.display = isCylProd ? '' : 'none';
+  // LPGMC dropdown — only for cylinder-producer
+  const lpgmcGroup = $('reg-lpgmc-group');
+  if (lpgmcGroup) lpgmcGroup.style.display = isCylProd ? '' : 'none';
 
-  if (isCylProd) {
-    // Cylinder producer fills manufacturer; LPGMC comes from order selection
-    regManufacturer.value = company;
-    regBrandName.value    = '';
+  const regLpgmc  = $('reg-lpgmc');
+  const regTagOrd = $('reg-tag-order');
 
-    const lpgmcList = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
-    const regLpgmc = $('reg-lpgmc');
-    regLpgmc.innerHTML = `<option value="">— Select LPGMC —</option>` +
-      lpgmcList.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  // Load approved orders
+  const allOrders = await txGetAll('tag-orders');
+  _regApprovedOrders = allOrders.filter(o => o.country === _activeCountry && o.status === 'approved');
 
-    const allOrders = await txGetAll('tag-orders');
-    const approvedOrders = allOrders.filter(o => o.country === _activeCountry && o.status === 'approved');
-
-    const regTagOrd = $('reg-tag-order');
-    function _populateOrders(lpgmc) {
-      const filtered = lpgmc ? approvedOrders.filter(o => o.lpgmc === lpgmc) : [];
+  function _populateOrderDropdown(lpgmc) {
+    const filtered = isCylProd
+      ? (lpgmc ? _regApprovedOrders.filter(o => o.lpgmc === lpgmc) : [])
+      : _regApprovedOrders.filter(o => o.lpgmc === company || !o.lpgmc);
+    if (regTagOrd) {
       regTagOrd.innerHTML = `<option value="">— Select approved order —</option>` +
         filtered.map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.id)} · ${(o.quantity||0).toLocaleString()} tags · ${o.cylinderSize||''}</option>`).join('');
     }
-    _populateOrders('');
-    regLpgmc.onchange = () => {
-      _populateOrders(regLpgmc.value);
-      regBrandName.value = regLpgmc.value;
-    };
-  } else {
-    regBrandName.value    = company;
-    regManufacturer.value = company;
+    _regUpdateOrderInfo('');
   }
 
+  if (isCylProd && regLpgmc) {
+    const lpgmcList = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+    regLpgmc.innerHTML = `<option value="">— Select LPGMC —</option>` +
+      lpgmcList.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    _populateOrderDropdown('');
+    regLpgmc.onchange = () => _populateOrderDropdown(regLpgmc.value);
+  } else {
+    _populateOrderDropdown('');
+  }
+
+  if (regTagOrd) regTagOrd.onchange = () => _regUpdateOrderInfo(regTagOrd.value);
+
+  // Mode toggle: single vs batch
+  _regSetMode(openInBatchMode ? 'batch' : 'single');
+
   openModal('modal-register');
-  setTimeout(() => { if (tagId) { regSerial.focus(); } else { regTag.focus(); } }, 80);
+  setTimeout(() => { if (tagId && regTag) regTag.focus(); }, 80);
 }
 
-// "+ Register" button in cylinders view header (LPGMC only)
-if (registerCylBtn) {
-  registerCylBtn.addEventListener('click', () => {
-    openRegisterModal('');
+function _regSetMode(mode) {
+  const singlePanel = $('reg-mode-single');
+  const batchPanel  = $('reg-mode-batch');
+  if (singlePanel) singlePanel.style.display = mode === 'single' ? '' : 'none';
+  if (batchPanel)  batchPanel.style.display  = mode === 'batch'  ? '' : 'none';
+  document.querySelectorAll('.reg-mode-btn').forEach(btn => {
+    const isActive = btn.dataset.mode === mode;
+    btn.style.background    = isActive ? 'var(--blue,#3b82f6)' : 'transparent';
+    btn.style.color         = isActive ? '#fff' : 'var(--muted,#64748b)';
+    btn.style.borderColor   = isActive ? 'var(--blue,#3b82f6)' : 'var(--border,#e2e8f0)';
+    btn.style.fontWeight    = isActive ? '600' : '500';
   });
 }
 
-// Auto-advance: RFID tag → serial number on Enter or when scanner fills the field
-regTag.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && regTag.value.trim()) {
-    e.preventDefault();
-    regSerial.focus();
-  }
-});
-// RFID scanners emit the value instantly then fire an 'input' event; detect by
-// checking that the field gained content without the user being in the middle of
-// typing (scanner input arrives fast and is followed by Enter, but we also handle
-// the case where the scanner sends no Enter by advancing on blur when filled).
-regTag.addEventListener('blur', () => {
-  if (regTag.value.trim() && !regSerial.value.trim()) {
-    regSerial.focus();
-  }
+// Mode toggle buttons
+document.querySelectorAll('.reg-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => _regSetMode(btn.dataset.mode));
 });
 
-regSubmitBtn.addEventListener('click', async () => {
-  const tagId  = regTag.value.trim();
-  const serial = regSerial.value.trim();
-  if (!serial) { showSnackbar('Serial number is required.', 'error'); return; }
-
-  // Check serial uniqueness
-  const allCyls = await txGetAll('cylinders');
-  if (allCyls.find(c => c.serial === serial)) {
-    showSnackbar('Serial number already exists.', 'error'); return;
-  }
-
-  const isCylProd = Auth.session?.role === 'cylinder-producer';
-  let cylCompany = Auth.session.company;
-  let tagOrderId = null;
-  if (isCylProd) {
-    const selLpgmc = $('reg-lpgmc')?.value || '';
-    const selOrder = $('reg-tag-order')?.value || '';
-    if (!selLpgmc) { showSnackbar('Please select an LPGMC.', 'error'); return; }
-    if (!selOrder) { showSnackbar('Please select an approved tag order.', 'error'); return; }
-    cylCompany = selLpgmc;
-    tagOrderId = selOrder;
-  }
-
-  const cyl = {
-    // Use RFID tag as document ID when available; null lets Firestore auto-generate
-    id:                tagId || null,
-    serial:            serial,
-    company:           cylCompany,
-    ownerBrandName:    regBrandName.value.trim(),
-    manufacturer:      regManufacturer.value.trim(),
-    productName:       regProductName.value.trim(),
-    manufactureDate:   regManufDate.value,
-    lastRequalDate:    regRequalDate.value,
-    requalPlant:       regRequalPlant.value.trim(),
-    tareWeight:        parseFloat(regTare.value) || 14.5,
-    netWeight:         parseFloat(regNetWeight.value) || 12,
-    capacity:          parseFloat(regNetWeight.value) || 12,
-    fillCount:         0,
-    pressureTestValue: regPressureTest.value.trim(),
-    lastHydroTest:     regHydrotest.value,
-    status:            'in-refill',
-    notes:             regNotes.value.trim(),
-    ...(tagOrderId ? { tagOrderId, producedBy: Auth.session.company } : {}),
-  };
-
-  try {
-    await txPut('cylinders', cyl);
-  } catch (err) {
-    showSnackbar('Failed to save cylinder: ' + (err.message || err), 'error');
-    return;
-  }
-
-  const event = {
-    cylinderId: cyl.id,
-    type:       'registered',
-    timestamp:  nowISO(),
-    operatorId: Auth.session.operatorId,
-    company:    Auth.session.company,
-    notes:      'Newly registered',
-  };
-  await txPut('events', event);
-
-  if (State.activeView === 'scan') {
-    State.scanEvents.unshift({ ...event, serial: cyl.serial });
-    renderScanEvent(State.scanEvents[0], true);
-    eventsEmpty.style.display = 'none';
-
-    lastScanResult.className  = 'last-scan-result success';
-    lastScanResult.textContent = `${serial} registered successfully.`;
-  }
-
-  closeModal('modal-register');
-  showSnackbar(`${serial} registered.`, 'success');
-  renderCylinders();
+// Batch file upload → populate textarea
+$('reg-batch-file')?.addEventListener('change', async function() {
+  const file = this.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const ta = $('reg-batch-ids');
+  if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
 });
+
+// Batch textarea → live count
+$('reg-batch-ids')?.addEventListener('input', function() {
+  const ids = parseBulkIds(this.value);
+  const preview = $('reg-batch-preview');
+  if (preview) preview.textContent = ids.length ? `${ids.length} ${t('bulk.validIds')}` : (this.value.trim() ? t('bulk.noValidIds') : '');
+});
+
+// "+ Register" button — single mode
+if (registerCylBtn) {
+  registerCylBtn.addEventListener('click', () => openRegisterModal('', false));
+}
 
 if (regTagScanBtn) {
   regTagScanBtn.addEventListener('click', () => {
@@ -2113,10 +2062,90 @@ if (regTagScanBtn) {
   });
 }
 
-regSerialScanBtn.addEventListener('click', () => {
-  State.serialCaptureActive = true;
+// Batch scan button — appends scanned tag to textarea
+$('reg-batch-scan-btn')?.addEventListener('click', () => {
+  State.batchTagCaptureActive = true;
   scannerInput.focus();
-  showSnackbar('Ready — scan the serial barcode now…');
+  showSnackbar('Ready — scan RFID tag to add to batch…');
+});
+
+regSubmitBtn.addEventListener('click', async () => {
+  const isCylProd = Auth.session?.role === 'cylinder-producer';
+  const isBatch   = $('reg-mode-batch')?.style.display !== 'none';
+  const today     = new Date().toISOString().slice(0, 10);
+
+  // Validate order
+  const selOrder = $('reg-tag-order')?.value || '';
+  if (!selOrder) { showSnackbar('Please select an approved tag order.', 'error'); return; }
+  if (isCylProd) {
+    const selLpgmc = $('reg-lpgmc')?.value || '';
+    if (!selLpgmc) { showSnackbar('Please select an LPGMC.', 'error'); return; }
+  }
+
+  const order   = _regApprovedOrders.find(o => o.id === selOrder);
+  const mfrObj  = CYLINDER_MANUFACTURERS.find(m => m.id === order?.manufacturer);
+  const manufacturer = mfrObj ? mfrObj.name : (order?.manufacturer || Auth.session.company);
+  const size         = order?.cylinderSize || '13kg';
+  const cylCompany   = isCylProd ? ($('reg-lpgmc')?.value || Auth.session.company) : Auth.session.company;
+  const batchNumber  = $('reg-batch')?.value.trim() || '';
+  const manufactureDate = regManufDate?.value || today;
+  const notes        = regNotes?.value.trim() || '';
+
+  async function _saveCyl(tagId) {
+    const serial = 'CYL-' + tagId.slice(-8).toUpperCase();
+    const cyl = {
+      id: tagId,
+      serial,
+      company:        cylCompany,
+      ownerBrandName: cylCompany,
+      manufacturer,
+      size,
+      batchNumber,
+      tagOrderId:     selOrder,
+      manufactureDate,
+      fillCount:      0,
+      status:         'in-refill',
+      notes,
+      ...(isCylProd ? { producedBy: Auth.session.company } : {}),
+    };
+    await txPut('cylinders', cyl);
+    await txPut('events', { cylinderId: tagId, type: 'registered', timestamp: nowISO(), operatorId: Auth.session?.operatorId, company: Auth.session?.company, notes: batchNumber ? `Batch: ${batchNumber}` : 'Registered' });
+    return serial;
+  }
+
+  if (isBatch) {
+    const ids = parseBulkIds($('reg-batch-ids')?.value || '');
+    if (!ids.length) { showSnackbar('No valid RFID tag IDs found.', 'error'); return; }
+    const existing = new Set((await txGetAll('cylinders')).map(c => c.id));
+    let registered = 0;
+    for (const id of ids) {
+      if (existing.has(id)) continue;
+      await _saveCyl(id);
+      registered++;
+    }
+    closeModal('modal-register');
+    showSnackbar(`${registered} cylinder${registered !== 1 ? 's' : ''} registered`, 'success');
+    renderCylinders();
+  } else {
+    const tagId = regTag?.value.trim() || '';
+    if (!tagId) { showSnackbar('Please scan or enter an RFID tag.', 'error'); return; }
+    const allCyls = await txGetAll('cylinders');
+    if (allCyls.find(c => c.id === tagId)) {
+      showSnackbar('RFID tag already registered.', 'error'); return;
+    }
+    try {
+      const serial = await _saveCyl(tagId);
+      if (State.activeView === 'scan') {
+        lastScanResult.className  = 'last-scan-result success';
+        lastScanResult.textContent = `${serial} registered successfully.`;
+      }
+      closeModal('modal-register');
+      showSnackbar(`${serial} registered.`, 'success');
+      renderCylinders();
+    } catch (err) {
+      showSnackbar('Failed to save cylinder: ' + (err.message || err), 'error');
+    }
+  }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4644,7 +4673,8 @@ document.querySelectorAll('[data-close]').forEach(btn => {
   btn.addEventListener('click', () => {
     closeModal(btn.dataset.close);
     if (btn.dataset.close === 'modal-register') {
-      State.serialCaptureActive = false;
+      State.tagCaptureActive = false;
+      State.batchTagCaptureActive = false;
     }
     if (btn.dataset.close === 'modal-recall') {
       if (_recallPreviewMap) { _recallPreviewMap.remove(); _recallPreviewMap = null; }
@@ -4661,7 +4691,8 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
     if (e.target === backdrop) {
       backdrop.hidden = true;
       if (backdrop.id === 'modal-register') {
-        State.serialCaptureActive = false;
+        State.tagCaptureActive = false;
+        State.batchTagCaptureActive = false;
       }
     }
   });
@@ -5433,55 +5464,18 @@ $('save-inspection-btn')?.addEventListener('click', async () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BULK CYLINDER REGISTRATION (LPGMC)
+// ══════════════════════════════════════════════════════════════════════════════
+// BULK / BATCH CYLINDER REGISTRATION
 // ══════════════════════════════════════════════════════════════════════════════
 
-$('bulk-register-btn')?.addEventListener('click', () => {
-  const textarea = $('bulk-register-ids');
-  if (textarea) textarea.value = '';
-  const preview = $('bulk-register-preview');
-  if (preview) preview.textContent = '';
-  openModal('modal-bulk-register');
-});
+// "Bulk Register" button opens the unified register modal in batch mode
+$('bulk-register-btn')?.addEventListener('click', () => openRegisterModal('', true));
 
 function parseBulkIds(text) {
   return [...new Set(
     text.split(/[\r\n,;\t ]+/).map(s => s.trim()).filter(s => s.length === 22 && s.startsWith('E280116060'))
   )];
 }
-
-$('bulk-register-ids')?.addEventListener('input', function() {
-  const ids = parseBulkIds(this.value);
-  const preview = $('bulk-register-preview');
-  if (preview) preview.textContent = ids.length ? `${ids.length} ${t('bulk.validIds')}` : t('bulk.noValidIds');
-});
-
-$('bulk-register-file')?.addEventListener('change', async function() {
-  const file = this.files?.[0];
-  if (!file) return;
-  const text = await file.text();
-  const ta = $('bulk-register-ids');
-  if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
-});
-
-$('bulk-register-confirm-btn')?.addEventListener('click', async () => {
-  const ta = $('bulk-register-ids');
-  const ids = parseBulkIds(ta?.value || '');
-  if (!ids.length) { showSnackbar('No valid cylinder IDs found.', 'error'); return; }
-  const today = new Date().toISOString().slice(0, 10);
-  let registered = 0;
-  for (const id of ids) {
-    const existing = await txGet('cylinders', id);
-    if (existing) continue;
-    const serial = 'CYL-' + id.slice(-8);
-    await txPut('cylinders', { id, serial, company: Auth.session?.company || 'LPGMC', size: '13kg', status: 'in-refill', fillCount: 0, manufactureDate: today });
-    await txPut('events', { cylinderId: id, type: 'registered', timestamp: nowISO(), operatorId: Auth.session?.operatorId, company: Auth.session?.company, notes: 'Bulk registered via CSV' });
-    registered++;
-  }
-  closeModal('modal-bulk-register');
-  showSnackbar(`${registered} cylinder${registered !== 1 ? 's' : ''} registered`, 'success');
-  renderCylinders();
-});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CYLINDER RECALL WORKFLOW (EWURA)
