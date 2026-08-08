@@ -787,9 +787,9 @@ const ROLE_EVENTS = {
 };
 
 const ROLE_TABS = {
-  lpgmc:              ['reports', 'cylinders', 'tag-orders', 'stamp-orders', 'stock-report', 'network', 'alerts', 'mgmt-reports'],
+  lpgmc:              ['reports', 'cylinders', 'tag-orders', 'stamp-orders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:        ['reports', 'scan', 'cylinders'],
-  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'tag-orders', 'stamp-orders', 'stock-report', 'mgmt-reports', 'network', 'bulk-monitor'],
+  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'tag-orders', 'stamp-orders', 'mgmt-reports', 'network', 'bulk-monitor'],
   'field-auditor':    ['reports', 'scan', 'cylinders'],
   tra:                ['reports', 'scan', 'cylinders'],
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
