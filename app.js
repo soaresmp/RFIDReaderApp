@@ -787,14 +787,14 @@ const ROLE_EVENTS = {
 };
 
 const ROLE_TABS = {
-  lpgmc:              ['reports', 'cylinders', 'tag-orders', 'stamp-orders', 'network', 'alerts', 'mgmt-reports'],
+  lpgmc:              ['reports', 'cylinders', 'orders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:        ['reports', 'scan', 'cylinders'],
-  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'tag-orders', 'stamp-orders', 'mgmt-reports', 'network', 'bulk-monitor'],
+  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'orders', 'mgmt-reports', 'network', 'bulk-monitor'],
   'field-auditor':    ['reports', 'scan', 'cylinders'],
   tra:                ['reports', 'scan', 'cylinders'],
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
   retailer:           ['reports', 'cylinders', 'mgmt-reports'],
-  'cylinder-producer':['tag-orders', 'cylinders'],
+  'cylinder-producer':['orders', 'cylinders'],
 };
 
 const ROLE_LABELS = {
@@ -1538,7 +1538,7 @@ function applySession() {
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
 
   // Navigate to first available view
-  showView(s.role === 'cylinder-producer' ? 'tag-orders' : 'reports');
+  showView(s.role === 'cylinder-producer' ? 'orders' : 'reports');
 
   // Refresh data-bound views
   renderCylinders();
@@ -1604,8 +1604,7 @@ function showView(name) {
     'market-intel':   'Market Intelligence',
     inspections:      'Field Inspections',
     recalls:          'Cylinder Recalls',
-    'tag-orders':     'RFID Tag Orders',
-    'stamp-orders':   'Refill Stamp Orders',
+    'orders':         'Orders',
     'stock-report':   'LPG Stock Report',
   }[name] || name;
 
@@ -1620,8 +1619,7 @@ function showView(name) {
   if (name === 'market-intel')  renderMarketIntel();
   if (name === 'inspections')   renderInspections();
   if (name === 'recalls')       renderRecalls();
-  if (name === 'tag-orders')    renderTagOrders();
-  if (name === 'stamp-orders')  renderStampOrders();
+  if (name === 'orders')        renderOrders();
   if (name === 'stock-report')  renderStockReport();
 
   // Invalidate Leaflet map sizes after view becomes visible
@@ -5605,9 +5603,33 @@ function _orderStatusBadge(status) {
   return `<span style="background:${s.bg};color:${s.color};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${s.label}</span>`;
 }
 
+async function renderOrders() {
+  if (!$('view-orders')) return;
+  // Wire sub-tab switching (idempotent via flag)
+  const ordersEl = $('view-orders');
+  if (!ordersEl.dataset.tabsReady) {
+    ordersEl.dataset.tabsReady = '1';
+    ordersEl.querySelectorAll('.orders-subtab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ordersEl.querySelectorAll('.orders-subtab').forEach(b => {
+          const isActive = b === btn;
+          b.classList.toggle('active', isActive);
+          b.style.color      = isActive ? 'var(--blue,#3b82f6)' : 'var(--muted,#64748b)';
+          b.style.fontWeight = isActive ? '600' : '500';
+          b.style.borderBottomColor = isActive ? 'var(--blue,#3b82f6)' : 'transparent';
+        });
+        ordersEl.querySelectorAll('.orders-section').forEach(s => {
+          s.style.display = s.id === btn.dataset.section ? '' : 'none';
+        });
+      });
+    });
+  }
+  await renderTagOrders();
+  await renderStampOrders();
+}
+
 async function renderTagOrders() {
-  const el = $('view-tag-orders');
-  if (!el) return;
+  if (!$('view-orders')) return;
   const role = Auth.session ? Auth.session.role : null;
   const company = Auth.session ? Auth.session.company : null;
   const orders = await txGetAll('tag-orders');
@@ -5742,8 +5764,7 @@ $('tag-order-submit-btn')?.addEventListener('click', async () => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function renderStampOrders() {
-  const el = $('view-stamp-orders');
-  if (!el) return;
+  if (!$('view-orders')) return;
   const role = Auth.session ? Auth.session.role : null;
   const company = Auth.session ? Auth.session.company : null;
   const orders = await txGetAll('stamp-orders');

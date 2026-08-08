@@ -499,11 +499,8 @@
           <button class="nav-tab" data-view="recalls" id="nav-recalls" style="display:none">
             <span class="nav-label">Recalls</span>
           </button>
-          <button class="nav-tab" data-view="tag-orders" id="nav-tag-orders" style="display:none">
-            <span class="nav-label">RFID Tag Orders</span>
-          </button>
-          <button class="nav-tab" data-view="stamp-orders" id="nav-stamp-orders" style="display:none">
-            <span class="nav-label">Stamp Orders</span>
+          <button class="nav-tab" data-view="orders" id="nav-orders" style="display:none">
+            <span class="nav-label">Orders</span>
           </button>
           <button class="nav-tab" data-view="stock-report" id="nav-stock-report" style="display:none">
             <span class="nav-label">Stock Report</span>
@@ -828,26 +825,34 @@
           <div id="market-intel-body"></div>
         </div>
 
-        <!-- ── TAG ORDERS VIEW ────────────────────────────────────────────── -->
-        <div id="view-tag-orders" class="view">
+        <!-- ── ORDERS VIEW (Tag Orders + Stamp Orders) ───────────────────── -->
+        <div id="view-orders" class="view">
           <div class="page-header">
-            <h2 class="page-title">📡 RFID Tag Orders</h2>
+            <h2 class="page-title">📋 Orders</h2>
             <div class="page-actions">
               <button id="tag-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Tag Order</button>
-            </div>
-          </div>
-          <div id="tag-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
-        </div>
-
-        <!-- ── STAMP ORDERS VIEW ──────────────────────────────────────────── -->
-        <div id="view-stamp-orders" class="view">
-          <div class="page-header">
-            <h2 class="page-title">🔖 Refill Stamp Orders</h2>
-            <div class="page-actions">
               <button id="stamp-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Stamp Order</button>
             </div>
           </div>
-          <div id="stamp-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
+
+          <!-- Sub-tabs -->
+          <div style="display:flex;border-bottom:2px solid var(--border,#e2e8f0);margin-bottom:16px">
+            <button class="orders-subtab active" data-section="orders-tag"
+              style="padding:8px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--blue,#3b82f6);border-bottom:2px solid var(--blue,#3b82f6);margin-bottom:-2px">
+              📡 RFID Tag Orders
+            </button>
+            <button class="orders-subtab" data-section="orders-stamp"
+              style="padding:8px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted,#64748b);border-bottom:2px solid transparent;margin-bottom:-2px">
+              🔖 Refill Stamp Orders
+            </button>
+          </div>
+
+          <div id="orders-tag" class="orders-section">
+            <div id="tag-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+          <div id="orders-stamp" class="orders-section" style="display:none">
+            <div id="stamp-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
         </div>
 
         <!-- ── STOCK REPORT VIEW ──────────────────────────────────────────── -->
