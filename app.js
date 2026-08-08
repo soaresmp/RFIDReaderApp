@@ -2008,7 +2008,8 @@ regSubmitBtn.addEventListener('click', async () => {
   }
 
   const cyl = {
-    id:                tagId,
+    // Use RFID tag as document ID when available; null lets Firestore auto-generate
+    id:                tagId || null,
     serial:            serial,
     company:           Auth.session.company,
     ownerBrandName:    regBrandName.value.trim(),
@@ -2027,7 +2028,12 @@ regSubmitBtn.addEventListener('click', async () => {
     notes:             regNotes.value.trim(),
   };
 
-  await txPut('cylinders', cyl);
+  try {
+    await txPut('cylinders', cyl);
+  } catch (err) {
+    showSnackbar('Failed to save cylinder: ' + (err.message || err), 'error');
+    return;
+  }
 
   const event = {
     cylinderId: cyl.id,
