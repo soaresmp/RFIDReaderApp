@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>KE Data Seed Tool</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; background: #f8fafc; color: #0f172a; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    p  { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+    button { background: #1e40af; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    #log { margin-top: 20px; background: #1e293b; color: #94d3a2; font-family: monospace; font-size: 13px; padding: 16px; border-radius: 8px; min-height: 120px; white-space: pre-wrap; }
+    .ok   { color: #4ade80; }
+    .err  { color: #f87171; }
+    .info { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <h1>🇰🇪 Kenya — Direct Firestore Seed</h1>
+  <p>Writes KE licenses and inspections directly to Firestore. Open this page in a browser, then click the button below.</p>
+  <button id="run-btn" onclick="runSeed()">Write KE Licenses &amp; Inspections to Firestore</button>
+  <div id="log">Ready. Click the button above to start.</div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script>
+    const LICENSES_KE = [
+      { id:'LIC-KE-001', companyName:'Total Energies Kenya', companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/001/2020', issuedDate:'2020-02-10', expiryDate:'2027-02-09', status:'active',
+        history:[{type:'granted', date:'2020-02-10', by:'EPRA', note:'Initial license granted'}] },
+      { id:'LIC-KE-002', companyName:'Vivo Energy Kenya',    companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/002/2019', issuedDate:'2019-07-15', expiryDate:'2026-07-14', status:'active',
+        history:[{type:'granted', date:'2019-07-15', by:'EPRA', note:'Initial license granted'},{type:'renewed', date:'2023-07-15', by:'EPRA', note:'License renewed for 3 years'}] },
+      { id:'LIC-KE-003', companyName:'Africa Gas & Oil',     companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/003/2021', issuedDate:'2021-04-20', expiryDate:'2028-04-19', status:'active',
+        history:[{type:'granted', date:'2021-04-20', by:'EPRA', note:'Initial license granted'}] },
+      { id:'LIC-KE-004', companyName:'Hashi Energy',         companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/004/2022', issuedDate:'2022-09-01', expiryDate:'2029-08-31', status:'active',
+        history:[{type:'granted', date:'2022-09-01', by:'EPRA', note:'Initial license granted'}] },
+      { id:'LIC-KE-005', companyName:'Nairobi Gas Supplies', companyType:'Distributor', licenseNumber:'EPRA/DIST/001/2022',  issuedDate:'2022-05-18', expiryDate:'2025-05-17', status:'expired',
+        history:[{type:'granted', date:'2022-05-18', by:'EPRA', note:'Initial license granted'}] },
+      { id:'LIC-KE-006', companyName:'Mombasa Gas Direct',   companyType:'Retailer',    licenseNumber:'EPRA/RET/001/2023',   issuedDate:'2023-03-10', expiryDate:'2026-03-09', status:'active',
+        history:[{type:'granted', date:'2023-03-10', by:'EPRA', note:'Initial license granted'}] },
+      { id:'LIC-KE-007', companyName:'Kenya Reval Services', companyType:'Revalidator', licenseNumber:'EPRA/REVAL/001/2021', issuedDate:'2021-10-05', expiryDate:'2028-10-04', status:'active',
+        history:[{type:'granted', date:'2021-10-05', by:'EPRA', note:'Initial license granted'}] },
+    ];
+
+    const INSPECTIONS_KE = [
+      { id:'INS-KE-001', company:'Total Energies Kenya', region:'Nairobi', auditor:'James Kariuki',  scheduledDate:'2026-05-12', status:'completed', notes:'Full compliance check. All cylinders tagged and verified.' },
+      { id:'INS-KE-002', company:'Vivo Energy Kenya',    region:'Mombasa', auditor:'Fatuma Mwangi',  scheduledDate:'2026-05-25', status:'completed', notes:'Minor labelling issues found. Follow-up scheduled.' },
+      { id:'INS-KE-003', company:'Africa Gas & Oil',     region:'Kisumu',  auditor:'Peter Odhiambo', scheduledDate:'2026-06-18', status:'scheduled', notes:'Routine annual inspection.' },
+      { id:'INS-KE-004', company:'Hashi Energy',         region:'Nakuru',  auditor:'Grace Njoroge',  scheduledDate:'2026-07-10', status:'scheduled', notes:'New facility inspection — first visit.' },
+      { id:'INS-KE-005', company:'Nairobi Gas Supplies', region:'Nairobi', auditor:'David Kamau',    scheduledDate:'2026-04-20', status:'overdue',   notes:'Inspection not completed — auditor unavailable.' },
+      { id:'INS-KE-006', company:'Mombasa Gas Direct',   region:'Mombasa', auditor:'Salma Hassan',   scheduledDate:'2026-05-05', status:'overdue',   notes:'No response from operator. Second notice sent.' },
+    ];
+
+    function log(msg, cls) {
+      const el = document.getElementById('log');
+      el.innerHTML += `<span class="${cls || ''}">${msg}</span>\n`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function runSeed() {
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      document.getElementById('log').innerHTML = '';
+
+      try {
+        log('Initialising Firebase…', 'info');
+        if (!firebase.apps.length) {
+          firebase.initializeApp({
+            apiKey:            'AIzaSyA4wH-NyfGRI4le03vAYUBKrmMVdy9GnzY',
+            authDomain:        'lpgtracking-f3050.firebaseapp.com',
+            projectId:         'lpgtracking-f3050',
+            storageBucket:     'lpgtracking-f3050.firebasestorage.app',
+            messagingSenderId: '639111115983',
+            appId:             '1:639111115983:web:b3499c57c946829a3c73ba',
+          });
+        }
+        const db = firebase.firestore();
+        const keRef = db.collection('countries').doc('KE');
+
+        log('Writing 7 KE licenses…', 'info');
+        for (const lic of LICENSES_KE) {
+          await keRef.collection('licenses').doc(lic.id).set(lic);
+          log(`  ✓ ${lic.id}  ${lic.companyName}`, 'ok');
+        }
+
+        log('Writing 6 KE inspections…', 'info');
+        for (const ins of INSPECTIONS_KE) {
+          await keRef.collection('inspections').doc(ins.id).set(ins);
+          log(`  ✓ ${ins.id}  ${ins.company}`, 'ok');
+        }
+
+        log('\nAll done — 13 documents written to Firestore.', 'ok');
+        log('You can now close this page and reload the app with Kenya selected.', 'info');
+      } catch (err) {
+        log('\n✗ Error: ' + err.message, 'err');
+        console.error(err);
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
