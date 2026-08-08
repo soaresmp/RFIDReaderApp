@@ -588,7 +588,7 @@ const TRANSLATIONS = {
     'month.sep':'Septemba','month.oct':'Oktoba','month.nov':'Novemba','month.dec':'Desemba',
     'page.licenses':'📋 Leseni','page.reports':'📈 Ripoti za Usimamizi',
     'signup.title':'Fungua Akaunti','signup.desc':'Ingiza maelezo yako ya uanzishaji kuanza.',
-    'signup.license':'Funguo ya Leseni','signup.licensePlh':'mfano: EWURA-2026-XXXX',
+    'signup.license':'Funguo ya Leseni','signup.licensePlh':'mfano: REG-2026-XXXX',
     'signup.fullname':'Jina Kamili','signup.fullnamePlh':'Jina lako kamili',
     'signup.email':'Barua pepe','signup.emailPlh':'wewe@kampuni.com',
     'signup.password':'Nywila','signup.passwordPlh':'Angalau herufi 8',
@@ -756,7 +756,7 @@ const EVENT_LABELS = {
   'ret-sold':            'Sold to Consumer',
   'ret-returned-empty':  'Empty Cylinder Returned by Consumer',
   'inspected':           'Inspected by Field Auditor',
-  'ewura-monitored':     'Supply Monitored by EWURA',
+  'ewura-monitored':     'Supply Monitored by Regulator',
   'tra-verified':        'Refills Verified by TRA',
   'tra-registered':      'Shipment Registered by TRA',
 };
@@ -2755,7 +2755,7 @@ async function renderAlerts() {
         _alertsData.unshift({
           severity:'critical', type:'recall', cylinder: cyl,
           title:`${t('alert.recall')} — ${escapeHtml(cyl.serial)}`,
-          desc:`${escapeHtml(matched.operator)} recall issued by EWURA. Reason: ${escapeHtml(matched.reason)}. Recall ID: ${escapeHtml(matched.id)}`
+          desc:`${escapeHtml(matched.operator)} recall issued by Regulator. Reason: ${escapeHtml(matched.reason)}. Recall ID: ${escapeHtml(matched.id)}`
         });
       }
     });
@@ -4761,7 +4761,7 @@ $('lic-detail-revoke-btn')?.addEventListener('click', async () => {
   _licensesData[idx].status = 'revoked';
   _licensesData[idx].revokedDate = today;
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
-  _licensesData[idx].history.push({ type: 'revoked', date: today, by: Auth.session?.company || 'EWURA', note: 'License revoked by EWURA' });
+  _licensesData[idx].history.push({ type: 'revoked', date: today, by: Auth.session?.company || 'Regulator', note: 'License revoked by Regulator' });
   await txPut('licenses', _licensesData[idx]);
   const netEntryRev = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
   if (netEntryRev) netEntryRev.status = 'inactive';
@@ -4780,7 +4780,7 @@ $('lic-detail-renew-btn')?.addEventListener('click', async () => {
   _licensesData[idx].status = 'active';
   _licensesData[idx].expiryDate = newExpiry.toISOString().slice(0, 10);
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
-  _licensesData[idx].history.push({ type: 'renewed', date: today, by: Auth.session?.company || 'EWURA', note: `License renewed. New expiry: ${newExpiry.toISOString().slice(0, 10)}` });
+  _licensesData[idx].history.push({ type: 'renewed', date: today, by: Auth.session?.company || 'Regulator', note: `License renewed. New expiry: ${newExpiry.toISOString().slice(0, 10)}` });
   await txPut('licenses', _licensesData[idx]);
   const netEntryR = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
   if (netEntryR) netEntryR.status = 'active';
@@ -4798,7 +4798,7 @@ $('lic-detail-approve-btn')?.addEventListener('click', async () => {
   _licensesData[idx].status = 'active';
   if (!_licensesData[idx].issuedDate) _licensesData[idx].issuedDate = today;
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
-  _licensesData[idx].history.push({ type: 'granted', date: today, by: Auth.session?.company || 'EWURA', note: 'License application approved' });
+  _licensesData[idx].history.push({ type: 'granted', date: today, by: Auth.session?.company || 'Regulator', note: 'License application approved' });
   await txPut('licenses', _licensesData[idx]);
   const netEntryA = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
   if (netEntryA) netEntryA.status = 'active';
@@ -4815,7 +4815,7 @@ $('lic-detail-reject-btn')?.addEventListener('click', async () => {
   const today = new Date().toISOString().slice(0, 10);
   _licensesData[idx].status = 'rejected';
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
-  _licensesData[idx].history.push({ type: 'rejected', date: today, by: Auth.session?.company || 'EWURA', note: 'License application rejected' });
+  _licensesData[idx].history.push({ type: 'rejected', date: today, by: Auth.session?.company || 'Regulator', note: 'License application rejected' });
   await txPut('licenses', _licensesData[idx]);
   showSnackbar('License application rejected.', 'error');
   renderLicenses();
@@ -4856,7 +4856,7 @@ licSubmitBtn.addEventListener('click', async () => {
     issuedDate:   issued,
     expiryDate:   expiry,
     status,
-    history: [{ type: 'granted', date: issued, by: Auth.session?.company || 'EWURA', note: 'License granted' }],
+    history: [{ type: 'granted', date: issued, by: Auth.session?.company || 'Regulator', note: 'License granted' }],
   };
 
   await txPut('licenses', lic);
@@ -5838,7 +5838,7 @@ $('signup-submit-btn')?.addEventListener('click', () => {
   localStorage.setItem('lpg-registrations', JSON.stringify(registrations));
   closeModal('modal-signup');
   ['signup-license','signup-fullname','signup-email','signup-password','signup-password2'].forEach(id => { const el = $(id); if (el) el.value = ''; });
-  showSnackbar('Registration submitted! Your account is pending EWURA approval.', 'success');
+  showSnackbar('Registration submitted! Your account is pending Regulator approval.', 'success');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
