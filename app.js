@@ -5412,14 +5412,14 @@ function openBulkTankDetail(id) {
     <!-- Transport Authorization -->
     <div class="passport-section-title">📋 Transport Authorization</div>
     ${pRow('Authorization No.', `<strong style="font-family:var(--font-mono);font-size:12px">${escapeHtml(tk.authNo)}</strong>`)}
-    ${pRow('Issuing Authority', escapeHtml(tk.authIssuer))}
+
     ${pRow('Valid Until', escapeHtml(tk.authExpiry))}
     ${pRow('Operator', escapeHtml(tk.operator))}
 
     <!-- Cargo / Content -->
     <div class="passport-section-title" style="margin-top:16px">🛢 Cargo Details</div>
     ${pRow('Product', escapeHtml(tk.product))}
-    ${pRow('Quantity Loaded', `${tk.loadedQty.toLocaleString()} L`)}
+
     ${pRow('Tank Capacity', `${tk.capacityL.toLocaleString()} L`)}
     <div style="padding:6px 0 12px">
       <div style="position:relative;height:12px;background:var(--border,#e2e8f0);border-radius:6px;overflow:hidden">
