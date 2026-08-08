@@ -6,7 +6,7 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 3;
-const SEED_KEY   = 'seeded-v17';
+const SEED_KEY   = 'seeded-v18';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
@@ -1078,7 +1078,7 @@ function buildKenyaCylinders() {
   const result = [];
   const existingCounts = { 'Total Energies Kenya':15, 'Vivo Energy Kenya':15, 'Africa Gas & Oil':15, 'Hashi Energy':12 };
   companies.forEach((co, ci) => {
-    const needed = 500 - (existingCounts[co.name] || 0);
+    const needed = 150 - (existingCounts[co.name] || 0);
     for (let i = 1; i <= needed; i++) {
       const isOld = (i % 40 === 0);
       const year = isOld ? (2017 + (Math.floor(i/40) % 4)) : (2016 + (i % 10));
@@ -1451,31 +1451,37 @@ async function seedDemoData() {
   const localSeeded = await _idbGet('meta', SEED_KEY);
   if (localSeeded) return;
 
-  // Global guard: if TZ already seeded in Firestore on another device, skip
+  // Check each country independently — KE may be missing even when TZ exists
+  let skipTZ = false, skipKE = false;
   if (_fdb) {
     try {
-      const snap = await _fdb.collection('countries').doc('TZ').collection('cylinders').limit(1).get();
-      if (!snap.empty) {
+      const [tzSnap, keSnap] = await Promise.all([
+        _fdb.collection('countries').doc('TZ').collection('cylinders').limit(1).get(),
+        _fdb.collection('countries').doc('KE').collection('cylinders').limit(1).get(),
+      ]);
+      skipTZ = !tzSnap.empty;
+      skipKE = !keSnap.empty;
+      if (skipTZ && skipKE) {
         await _idbPut('meta', { key: SEED_KEY, value: true });
         return;
       }
-    } catch (e) { /* offline — fall through */ }
+    } catch (e) { /* offline — fall through and seed both */ }
   }
 
   const hadFirestore = !!_fdb;
   try {
-    await _doSeed();
+    await _doSeed(skipTZ, skipKE);
   } catch (seedErr) {
     console.error('Seeding failed:', seedErr);
     if (hadFirestore) {
       console.warn('Firestore seeding failed — retrying with IndexedDB only');
-      _fdb = null; // keep null: reads must also come from IDB, not empty Firestore
+      _fdb = null;
       await seedDemoData();
     }
   }
 }
 
-async function _doSeed() {
+async function _doSeed(skipTZ = false, skipKE = false) {
   const now   = Date.now();
   const DAY   = 24 * 60 * 60 * 1000;
   const MONTH = 30 * DAY;
@@ -1608,6 +1614,7 @@ async function _doSeed() {
   }
 
   // ── Tanzania (TZ) ─────────────────────────────────────────────────────────
+  if (!skipTZ) {
   _activeCountry = 'TZ';
   if (_fdb) _seedBatch = [];
 
@@ -1694,8 +1701,10 @@ async function _doSeed() {
   if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
   for (const lic of DEMO_LICENSES)     { await txPut('licenses',     lic); }
   for (const ins of DEMO_INSPECTIONS)  { await txPut('inspections',  ins); }
+  } // end if (!skipTZ)
 
   // ── Kenya (KE) ────────────────────────────────────────────────────────────
+  if (!skipKE) {
   _activeCountry = 'KE';
   if (_fdb) _seedBatch = [];
 
@@ -1779,8 +1788,9 @@ async function _doSeed() {
   if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
   for (const lic of DEMO_LICENSES_KE)    { await txPut('licenses',    lic); }
   for (const ins of DEMO_INSPECTIONS_KE) { await txPut('inspections', ins); }
+  } // end if (!skipKE)
 
-  _activeCountry = 'TZ';
+  _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
   await _idbPut('meta', { key: SEED_KEY, value: true });
 }
 
