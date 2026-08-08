@@ -1104,9 +1104,11 @@ function _cacheInvalidate(storeName) { delete _txCache[_cacheKey(storeName)]; }
 async function txGet(storeName, key) {
   if (_fdb && FS_STORES.has(storeName)) {
     const k = _cacheKey(storeName);
+    // Serve from collection cache when available — no extra Firestore read
     if (_txCache[k]) {
       return _txCache[k].find(r => String(r.id) === String(key));
     }
+    // Collection not yet loaded: fetch just this one document
     const snap = await _fsColl(storeName).doc(String(key)).get();
     return snap.exists ? snap.data() : undefined;
   }
@@ -1179,12 +1181,9 @@ async function txClearStore(storeName) {
 
 async function txGetIndex(storeName, indexName, value) {
   if (_fdb && FS_STORES.has(storeName)) {
-    const k = _cacheKey(storeName);
-    if (_txCache[k]) {
-      return _txCache[k].filter(r => r[indexName] === value);
-    }
-    const snap = await _fsColl(storeName).where(indexName, '==', value).get();
-    return snap.docs.map(d => d.data());
+    // Always go through txGetAll so the collection cache absorbs the read
+    const all = await txGetAll(storeName);
+    return all.filter(r => r[indexName] === value);
   }
   return _idbGetIndex(storeName, indexName, value);
 }
@@ -1473,7 +1472,7 @@ loginForm.addEventListener('submit', (e) => {
 // SESSION APPLICATION
 // ══════════════════════════════════════════════════════════════════════════════
 
-function applySession() {
+async function applySession() {
   const s = Auth.session;
   if (!s) return;
 
@@ -1529,7 +1528,14 @@ function applySession() {
   // Navigate to first available view
   showView(s.role === 'cylinder-producer' ? 'orders' : 'reports');
 
-  // Refresh data-bound views
+  // Pre-warm the two most-read collections before render functions fire,
+  // so every subsequent txGet/txGetIndex call is served from cache.
+  await Promise.all([
+    txGetAll('cylinders'),
+    txGetAll('events'),
+  ]);
+
+  // Refresh data-bound views (all cache hits from here)
   renderCylinders();
   renderAlerts();
   renderReports();
