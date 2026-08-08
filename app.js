@@ -2146,7 +2146,18 @@ function renderCylindersMap(cyls) {
       if (c) { lat = c[0]; lng = c[1]; }
     }
     if (!lat) return;
-    markers.push({ lat, lng, color: statusColor[cyl.status] || '#6b7280', label: cyl.serial, tooltip: `${cyl.serial} · ${cyl.company} · ${cyl.status}` });
+    const statusLabel = { 'in-refill':'In Refill', 'in-circulation':'In Circulation', revalidation:'Revalidation', 'in-use':'In Use' }[cyl.status] || cyl.status;
+    markers.push({ lat, lng, color: statusColor[cyl.status] || '#6b7280', label: cyl.serial,
+      tooltip: `${cyl.serial} · ${cyl.company} · ${cyl.status}`,
+      detailHtml: `<div style="min-width:180px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px">🛢 ${escapeHtml(cyl.serial)}</div>
+        <div style="margin-bottom:3px">🏢 ${escapeHtml(cyl.company || '—')}</div>
+        <div style="margin-bottom:3px">🏭 ${escapeHtml(cyl.manufacturer || '—')}</div>
+        <div style="margin-bottom:3px">📦 Size: ${escapeHtml(cyl.size || '—')}</div>
+        <div style="margin-bottom:3px">📍 ${escapeHtml((locData?.location) || (locData?.region) || '—')}</div>
+        <div style="margin-top:6px"><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${statusColor[cyl.status] || '#6b7280'}22;color:${statusColor[cyl.status] || '#6b7280'}">${statusLabel}</span></div>
+      </div>` });
+
   });
   const legend = [
     { color:'#3b82f6', label:'In Refill' }, { color:'#22c55e', label:'In Circulation' },
@@ -2943,8 +2954,16 @@ function renderAlertsMap() {
   const markers = _alertsData.map(al => {
     const [lat, lng] = _resolveAlertLatLng(al);
     const isCrit = al.severity === 'critical';
+    const cyl = al.cylinder;
     return { lat, lng, color: isCrit ? '#dc2626' : '#f59e0b', pulse: isCrit,
-      tooltip: al.title, label: isCrit ? '!' : '⚠' };
+      tooltip: al.title, label: isCrit ? '!' : '⚠',
+      detailHtml: `<div style="min-width:180px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px;color:${isCrit ? '#dc2626' : '#b45309'}">${isCrit ? '🚨' : '⚠️'} ${escapeHtml(al.title)}</div>
+        ${al.description ? `<div style="margin-bottom:4px;color:var(--muted,#64748b)">${escapeHtml(al.description)}</div>` : ''}
+        ${cyl ? `<div style="margin-bottom:3px">🛢 ${escapeHtml(cyl.serial || cyl.id || '—')}</div>
+        <div style="margin-bottom:3px">🏢 ${escapeHtml(cyl.company || '—')}</div>` : ''}
+        <div style="margin-top:6px"><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${isCrit ? '#fee2e2' : '#fef3c7'};color:${isCrit ? '#dc2626' : '#92400e'}">${isCrit ? 'Critical' : 'Warning'}</span></div>
+      </div>` };
   });
   const legend = [{ color:'#dc2626', label:'Critical' }, { color:'#f59e0b', label:'Warning' }];
   mapEl.innerHTML = buildInteractiveMap('alertmap', markers, legend, 280);
@@ -3186,6 +3205,18 @@ async function renderReports() {
         <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.utilLabel')}</div>
       </div>
       ${role === 'ewura' ? (() => {
+        const cutoff30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const refills30 = events.filter(ev => ev.type === 'refilled' && ev.timestamp >= cutoff30).length;
+        const dailyDemand = refills30 > 0 ? refills30 / 30 : 0;
+        const stockDays = dailyDemand > 0 ? Math.round((inUse + circFull) / dailyDemand) : 0;
+        const stockColor = stockDays >= 30 ? 'var(--green)' : stockDays >= 15 ? 'var(--amber)' : 'var(--red)';
+        return `<div class="report-card" style="border-color:${stockColor}">
+          <span class="report-card-value" style="color:${stockColor}">${stockDays}</span>
+          <div class="report-card-label">${t('dash.nationalStockDays') || 'National Stock Level'}</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days of supply · ${refills30} refills/30d</div>
+        </div>`;
+      })() : ''}
+      ${role === 'ewura' ? (() => {
         const INSP_TYPES_D = new Set(['inspected','ewura-monitored']);
         const inspEvsD = events.filter(e => INSP_TYPES_D.has(e.type));
         const inspCompD = inspEvsD.filter(e => e.compliant !== false).length;
@@ -3423,12 +3454,24 @@ async function renderNetwork() {
 
   const netMapEl = $('network-map');
   if (netMapEl) {
-    const netMarkers = DEMO_NETWORK.map(n => ({
-      lat: n.lat, lng: n.lng,
-      color: n.type === 'Distributor' ? '#3b82f6' : '#22c55e',
-      pulse: n.status === 'inactive',
-      tooltip: `${n.name} · ${n.type} · ${n.city}`,
-    }));
+    const netMarkers = DEMO_NETWORK.map(n => {
+      const counts = partnerCounts[n.name] || { total: 0, full: 0, empty: 0 };
+      return {
+        lat: n.lat, lng: n.lng,
+        color: n.type === 'Distributor' ? '#3b82f6' : '#22c55e',
+        pulse: n.status === 'inactive',
+        tooltip: `${n.name} · ${n.type} · ${n.city}`,
+        detailHtml: `<div style="min-width:190px;font-size:13px">
+          <div style="font-weight:700;margin-bottom:6px">${escapeHtml(n.name)}</div>
+          <div style="margin-bottom:3px">🏷 ${escapeHtml(n.type)} &nbsp;·&nbsp; <span style="color:${n.status === 'active' ? '#16a34a' : '#dc2626'}">${escapeHtml(n.status)}</span></div>
+          <div style="margin-bottom:3px">📍 ${escapeHtml(n.city)}${n.address ? ' · ' + escapeHtml(n.address) : ''}</div>
+          ${n.contact ? `<div style="margin-bottom:3px">📞 ${escapeHtml(n.contact)}</div>` : ''}
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0">
+            🔥 ${counts.total} cylinders &nbsp;·&nbsp; 🧯 ${counts.full} full &nbsp;·&nbsp; 📭 ${counts.empty} empty
+          </div>
+        </div>`,
+      };
+    });
     const netLegend = [{ color:'#3b82f6', label:'Distributor' }, { color:'#22c55e', label:'Retailer' }];
     netMapEl.innerHTML = buildInteractiveMap('netmap', netMarkers, netLegend, 300);
     initInteractiveMap('netmap', netMarkers);
@@ -4979,6 +5022,16 @@ async function renderBulkMonitor() {
     pulse: tk.status === 'in-transit',
     big: true,
     tooltip: `${tk.plate} · ${tk.operator} · ${statusLbl(tk.status)} · ${tk.capacity}`,
+    detailHtml: `<div style="min-width:190px;font-size:13px">
+      <div style="font-weight:700;margin-bottom:6px">🚛 ${escapeHtml(tk.plate)}</div>
+      <div style="margin-bottom:3px">🏭 ${escapeHtml(tk.operator)}</div>
+      <div style="margin-bottom:3px">🛢 Capacity: ${escapeHtml(tk.capacity)}</div>
+      <div style="margin-bottom:3px">📍 ${escapeHtml(tk.from)} → ${escapeHtml(tk.to)}</div>
+      ${tk.speed > 0 ? `<div style="margin-bottom:3px">⚡ ${tk.speed} km/h</div>` : ''}
+      ${tk.routePct > 0 && tk.routePct < 100 ? `<div style="margin-bottom:3px">🔵 ${tk.routePct}% route complete</div>` : ''}
+      <div style="margin-bottom:3px">🕒 ${escapeHtml(tk.lastUpdate)}</div>
+      <div style="margin-top:6px"><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${tankerHexColor[tk.status] || '#6b7280'}22;color:${tankerHexColor[tk.status] || '#6b7280'}">${statusLbl(tk.status)}</span></div>
+    </div>`,
   }));
   const legend = [
     { color:'#3b82f6', label:'In Transit' }, { color:'#f59e0b', label:'At Terminal' },
@@ -5346,7 +5399,15 @@ async function renderInspections() {
       const lat = net ? net.lat : rc[0];
       const lng = net ? net.lng : rc[1];
       return { lat, lng, color: statusColor[ins.status] || '#6b7280', pulse: ins.status === 'overdue',
-        tooltip: `${ins.company} · ${ins.region} · ${ins.status} · ${ins.scheduledDate}` };
+        tooltip: `${ins.company} · ${ins.region} · ${ins.status} · ${ins.scheduledDate}`,
+        detailHtml: `<div style="min-width:180px;font-size:13px">
+          <div style="font-weight:700;margin-bottom:6px">🔍 ${escapeHtml(ins.company)}</div>
+          <div style="margin-bottom:3px">📍 ${escapeHtml(ins.region)}</div>
+          <div style="margin-bottom:3px">👤 Auditor: ${escapeHtml(ins.auditor)}</div>
+          <div style="margin-bottom:3px">📅 ${escapeHtml(ins.scheduledDate)}</div>
+          ${ins.notes ? `<div style="margin-bottom:3px;color:var(--muted,#64748b);font-size:12px">${escapeHtml(ins.notes)}</div>` : ''}
+          <div style="margin-top:6px"><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${statusColor[ins.status] || '#6b7280'}22;color:${statusColor[ins.status] || '#6b7280'}">${escapeHtml(ins.status)}</span></div>
+        </div>` };
     }).filter(Boolean);
     const inspLegend = [{ color:'#dc2626', label:'Overdue' }, { color:'#3b82f6', label:'Scheduled' }, { color:'#22c55e', label:'Completed' }];
     inspMapEl.innerHTML = buildInteractiveMap('inspmap', inspMarkers, inspLegend, 280);
@@ -5624,8 +5685,13 @@ async function renderOrders() {
       });
     });
   }
+  const isCylProd = Auth.session?.role === 'cylinder-producer';
+  const stampTab = ordersEl.querySelector('.orders-subtab[data-section="orders-stamp"]');
+  const stampSection = $('orders-stamp');
+  if (stampTab) stampTab.style.display = isCylProd ? 'none' : '';
+  if (stampSection && isCylProd) stampSection.style.display = 'none';
   await renderTagOrders();
-  await renderStampOrders();
+  if (!isCylProd) await renderStampOrders();
 }
 
 async function renderTagOrders() {
