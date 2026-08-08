@@ -1511,9 +1511,6 @@ function applySession() {
     registerCylBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   }
 
-  // Bulk register button: LPGMC and Cylinder Producer
-  const _bulkBtn = $('bulk-register-btn');
-  if (_bulkBtn) _bulkBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   // Tag/stamp order buttons: LPGMC only
   const _tagOrderBtn = $('tag-order-place-btn');
   if (_tagOrderBtn) _tagOrderBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
@@ -2019,7 +2016,6 @@ async function openRegisterModal(tagId, openInBatchMode) {
 if (registerCylBtn) {
   registerCylBtn.addEventListener('click', () => openRegisterModal('', false));
 }
-$('bulk-register-btn')?.addEventListener('click', () => openRegisterModal('', true));
 
 if (regTagScanBtn) {
   regTagScanBtn.addEventListener('click', () => {
