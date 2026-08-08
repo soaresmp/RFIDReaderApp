@@ -69,6 +69,7 @@ const TRANSLATIONS = {
     'recall.initiate':'Initiate Recall','recall.operator':'Operator','recall.dateFrom':'Manufacture From','recall.dateTo':'Manufacture To','recall.reason':'Reason / Safety Notice','recall.submit':'Issue Recall','recall.saved':'Recall issued — affected cylinders now flagged in alerts.',
     'dash.avgRefillCycle':'Avg Refill Cycle','dash.utilisationRate':'Utilisation Rate',
     'dash.daysLabel':'days received→refilled','dash.utilLabel':'in-use + in-circ / total',
+    'dash.nationalStock':'National Stock','dash.nationalStockSub':'days',
     'kpi.filled':'filled','kpi.empty':'empty','kpi.full':'full',
     'kpi.activeDistributors':'Active Distributors','kpi.activeRetailers':'Active Retailers',
     'passport.eventHistory':'Event History','passport.sortNewest':'Newest first','passport.sortOldest':'Oldest first',
@@ -307,6 +308,19 @@ const TRANSLATIONS = {
     'reg.cancel':'Cancel','reg.submit':'Register Cylinder',
     'reg.serialRequired':'Serial number is required.','reg.serialExists':'Serial already registered.',
     'reg.ready':'Ready to register:','reg.readySerial':'Serial:',
+    'reg.approvedOrder':'Approved Tag Order','reg.approvedOrderPlh':'— Select approved order —',
+    'reg.orderMfr':'Manufacturer','reg.orderMfrPlh':'— selected from order —',
+    'reg.orderLpgmc':'LPGMC Operator','reg.orderLpgmcPlh':'— selected from order —',
+    'reg.orderSize':'Cylinder kg','reg.orderSizePlh':'— selected from order —',
+    'reg.batchDetails':'Batch Details',
+    'reg.batchNumber':'Batch Number','reg.batchNumberPlh':'e.g. BATCH-2024-001',
+    'reg.mfgDateLabel':'Date of Manufacture',
+    'reg.rfidTagsSection':'RFID Tags',
+    'reg.modeSingle':'📡 Single scan','reg.modeBatch':'📋 Batch',
+    'reg.tagPlh':'Scan RFID tag or enter manually',
+    'reg.uploadCsvLabel':'Upload CSV / TXT file',
+    'reg.pasteTagsLabel':'Scan or paste RFID tags (one per line)',
+    'reg.registerCylBtn':'+ Register Cylinder',
     'partner.location':'Location','partner.region':'Region','partner.city':'City',
     'partner.address':'Address','partner.contact':'Contact','partner.contactPerson':'Contact Person',
     'partner.status':'Status','partner.coords':'Coordinates',
@@ -360,6 +374,7 @@ const TRANSLATIONS = {
     'recall.initiate':'Anzisha Kumbukumbu','recall.operator':'Mwendeshaji','recall.dateFrom':'Tarehe ya Uzalishaji (Kutoka)','recall.dateTo':'Tarehe ya Uzalishaji (Hadi)','recall.reason':'Sababu / Taarifa ya Usalama','recall.submit':'Toa Recall','recall.saved':'Recall imetolewa — silinda zilizoathiriwa zimeonyeshwa katika tahadhari.',
     'dash.avgRefillCycle':'Wastani wa Kujaza','dash.utilisationRate':'Kiwango cha Matumizi',
     'dash.daysLabel':'siku (zilipokelewa→kujazwa)','dash.utilLabel':'inatumika + mzunguko / jumla',
+    'dash.nationalStock':'Hifadhi ya Kitaifa','dash.nationalStockSub':'siku',
     'kpi.filled':'imejazwa','kpi.empty':'tupu','kpi.full':'kamili',
     'kpi.activeDistributors':'Wasambazaji Wanaofanya Kazi','kpi.activeRetailers':'Wauzaji Wanaofanya Kazi',
     'passport.eventHistory':'Historia ya Matukio','passport.sortNewest':'Mpya kwanza','passport.sortOldest':'Kongwe kwanza',
@@ -598,6 +613,19 @@ const TRANSLATIONS = {
     'reg.cancel':'Ghairi','reg.submit':'Sajili Mtungi',
     'reg.serialRequired':'Nambari ya mfululizo inahitajika.','reg.serialExists':'Nambari ya mfululizo tayari imesajiliwa.',
     'reg.ready':'Tayari kusajili:','reg.readySerial':'Nambari ya Mfululizo:',
+    'reg.approvedOrder':'Agizo la Lebo Lililoidhinishwa','reg.approvedOrderPlh':'— Chagua agizo lililoidhinishwa —',
+    'reg.orderMfr':'Mtengenezaji','reg.orderMfrPlh':'— linachaguliwa kutoka kwa agizo —',
+    'reg.orderLpgmc':'Mwendeshaji wa LPGMC','reg.orderLpgmcPlh':'— linachaguliwa kutoka kwa agizo —',
+    'reg.orderSize':'Kilo za Mtungi','reg.orderSizePlh':'— linachaguliwa kutoka kwa agizo —',
+    'reg.batchDetails':'Maelezo ya Kundi',
+    'reg.batchNumber':'Nambari ya Kundi','reg.batchNumberPlh':'mfano: BATCH-2024-001',
+    'reg.mfgDateLabel':'Tarehe ya Utengenezaji',
+    'reg.rfidTagsSection':'Lebo za RFID',
+    'reg.modeSingle':'📡 Changanua Moja','reg.modeBatch':'📋 Kundi',
+    'reg.tagPlh':'Changanua lebo ya RFID au ingiza mwenyewe',
+    'reg.uploadCsvLabel':'Pakia faili la CSV / TXT',
+    'reg.pasteTagsLabel':'Changanua au bando lebo za RFID (moja kwa mstari)',
+    'reg.registerCylBtn':'+ Sajili Mtungi',
     'partner.location':'Mahali','partner.region':'Mkoa','partner.city':'Mji',
     'partner.address':'Anwani','partner.contact':'Mawasiliano','partner.contactPerson':'Mtu wa Mawasiliano',
     'partner.status':'Hali','partner.coords':'Kuratibu',
@@ -3218,8 +3246,8 @@ async function renderReports() {
         const stockColor = stockDays >= 30 ? 'var(--green)' : stockDays >= 15 ? 'var(--amber)' : 'var(--red)';
         return `<div class="report-card" style="border-color:${stockColor}">
           <span class="report-card-value" style="color:${stockColor}">${stockDays}</span>
-          <div class="report-card-label">National Stock</div>
-          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">days · ${refills30} refills/30d</div>
+          <div class="report-card-label">${t('dash.nationalStock')}</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.nationalStockSub')} · ${refills30} refills/30d</div>
         </div>`;
       })() : ''}
       ${role === 'ewura' ? (() => {

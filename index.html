@@ -829,7 +829,7 @@
           <div class="page-header">
             <h2 class="page-title">📋 Orders</h2>
             <div class="page-actions">
-              <button id="orders-register-cyl-btn" class="btn btn-primary" type="button" style="display:none">+ Register Cylinder</button>
+              <button id="orders-register-cyl-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="reg.registerCylBtn">+ Register Cylinder</button>
               <button id="tag-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Tag Order</button>
               <button id="stamp-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Stamp Order</button>
             </div>
@@ -914,56 +914,56 @@
   <div id="modal-register" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Register Cylinder">
     <div class="modal">
       <div class="modal-header">
-        <h2>Register Cylinder(s)</h2>
+        <h2 data-i18n="reg.title">Register Cylinder</h2>
         <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <!-- Approved Order — first field -->
         <div class="form-group">
-          <label>Approved Tag Order</label>
+          <label data-i18n="reg.approvedOrder">Approved Tag Order</label>
           <select id="reg-tag-order" class="form-control">
-            <option value="">— Select approved order —</option>
+            <option value="" data-i18n="reg.approvedOrderPlh">— Select approved order —</option>
           </select>
         </div>
 
         <!-- Auto-filled from order (read-only) -->
         <div class="form-group">
-          <label>Manufacturer</label>
-          <input id="reg-order-mfr" type="text" class="form-control" disabled placeholder="— selected from order —" />
+          <label data-i18n="reg.orderMfr">Manufacturer</label>
+          <input id="reg-order-mfr" type="text" class="form-control" disabled data-i18n-placeholder="reg.orderMfrPlh" placeholder="— selected from order —" />
         </div>
         <div class="form-group">
-          <label>LPGMC Operator</label>
-          <input id="reg-order-lpgmc" type="text" class="form-control" disabled placeholder="— selected from order —" />
+          <label data-i18n="reg.orderLpgmc">LPGMC Operator</label>
+          <input id="reg-order-lpgmc" type="text" class="form-control" disabled data-i18n-placeholder="reg.orderLpgmcPlh" placeholder="— selected from order —" />
         </div>
         <div class="form-group">
-          <label>Cylinder kg</label>
-          <input id="reg-order-size" type="text" class="form-control" disabled placeholder="— selected from order —" />
+          <label data-i18n="reg.orderSize">Cylinder kg</label>
+          <input id="reg-order-size" type="text" class="form-control" disabled data-i18n-placeholder="reg.orderSizePlh" placeholder="— selected from order —" />
         </div>
 
         <!-- Batch Details -->
-        <div class="form-section-title">Batch Details</div>
+        <div class="form-section-title" data-i18n="reg.batchDetails">Batch Details</div>
         <div class="form-group">
-          <label>Batch Number</label>
-          <input id="reg-batch" type="text" class="form-control" placeholder="e.g. BATCH-2024-001" maxlength="32" />
+          <label data-i18n="reg.batchNumber">Batch Number</label>
+          <input id="reg-batch" type="text" class="form-control" data-i18n-placeholder="reg.batchNumberPlh" placeholder="e.g. BATCH-2024-001" maxlength="32" />
         </div>
         <div class="form-group">
-          <label>Date of Manufacture</label>
+          <label data-i18n="reg.mfgDateLabel">Date of Manufacture</label>
           <input id="reg-manufacture-date" type="date" class="form-control" />
         </div>
 
         <!-- RFID Tag(s) — mode toggle -->
-        <div class="form-section-title">RFID Tags</div>
+        <div class="form-section-title" data-i18n="reg.rfidTagsSection">RFID Tags</div>
         <div style="display:flex;gap:6px;margin-bottom:14px">
-          <button class="reg-mode-btn" data-mode="single" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--blue,#3b82f6);background:var(--blue,#3b82f6);color:#fff;font-size:13px;font-weight:600;cursor:pointer">📡 Single scan</button>
-          <button class="reg-mode-btn" data-mode="batch" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--border,#e2e8f0);background:transparent;color:var(--muted,#64748b);font-size:13px;font-weight:500;cursor:pointer">📋 Batch</button>
+          <button class="reg-mode-btn" data-mode="single" data-i18n="reg.modeSingle" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--blue,#3b82f6);background:var(--blue,#3b82f6);color:#fff;font-size:13px;font-weight:600;cursor:pointer">📡 Single scan</button>
+          <button class="reg-mode-btn" data-mode="batch" data-i18n="reg.modeBatch" style="flex:1;padding:7px 0;border-radius:8px;border:2px solid var(--border,#e2e8f0);background:transparent;color:var(--muted,#64748b);font-size:13px;font-weight:500;cursor:pointer">📋 Batch</button>
         </div>
 
         <!-- Single scan panel -->
         <div id="reg-mode-single">
           <div class="form-group">
             <div class="input-with-action">
-              <input id="reg-tag" type="text" class="form-control font-mono" placeholder="Scan RFID tag or enter manually" maxlength="24" />
-              <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button">📡 Scan</button>
+              <input id="reg-tag" type="text" class="form-control font-mono" data-i18n-placeholder="reg.tagPlh" placeholder="Scan RFID tag or enter manually" maxlength="24" />
+              <button id="reg-tag-scan-btn" class="btn btn-sm btn-outline" type="button" data-i18n="reg.scan">📡 Scan</button>
             </div>
           </div>
         </div>
@@ -971,27 +971,27 @@
         <!-- Batch panel -->
         <div id="reg-mode-batch" style="display:none">
           <div class="form-group">
-            <label>Upload CSV / TXT file</label>
+            <label data-i18n="reg.uploadCsvLabel">Upload CSV / TXT file</label>
             <input id="reg-batch-file" type="file" accept=".csv,.txt" class="form-control" />
           </div>
           <div class="form-group">
-            <label>Scan or paste RFID tags (one per line)</label>
+            <label data-i18n="reg.pasteTagsLabel">Scan or paste RFID tags (one per line)</label>
             <div class="input-with-action" style="align-items:flex-start">
               <textarea id="reg-batch-ids" class="form-control font-mono" rows="5" placeholder="E280116060XXXXXXXXXXXX&#10;E280116060XXXXXXXXXXXX" style="resize:vertical"></textarea>
-              <button id="reg-batch-scan-btn" class="btn btn-sm btn-outline" type="button" style="flex-shrink:0;margin-top:0">📡 Scan</button>
+              <button id="reg-batch-scan-btn" class="btn btn-sm btn-outline" type="button" style="flex-shrink:0;margin-top:0" data-i18n="reg.scan">📡 Scan</button>
             </div>
           </div>
           <div id="reg-batch-preview" style="font-size:13px;color:var(--muted,#64748b);min-height:20px;margin-bottom:8px"></div>
         </div>
 
         <div class="form-group">
-          <label>Notes</label>
-          <textarea id="reg-notes" class="form-control" rows="2" placeholder="Optional"></textarea>
+          <label data-i18n="reg.notes">Notes</label>
+          <textarea id="reg-notes" class="form-control" rows="2" data-i18n-placeholder="reg.notesPlh" placeholder="Optional notes…"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" data-close="modal-register" type="button">Cancel</button>
-        <button id="reg-submit-btn" class="btn btn-primary" type="button">Register</button>
+        <button class="btn btn-outline" data-close="modal-register" type="button" data-i18n="reg.cancel">Cancel</button>
+        <button id="reg-submit-btn" class="btn btn-primary" type="button" data-i18n="reg.submit">Register Cylinder</button>
       </div>
     </div>
   </div>
