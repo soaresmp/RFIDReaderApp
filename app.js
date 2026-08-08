@@ -6,11 +6,11 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 3;
-const SEED_KEY   = 'seeded-v18';
+const SEED_KEY   = 'seeded-v19';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
-const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections', 'recalls']);
+const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections', 'recalls', 'tag-orders', 'stamp-orders']);
 let _fdb = null;
 let _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
 
@@ -891,23 +891,25 @@ const ROLE_EVENTS = {
 };
 
 const ROLE_TABS = {
-  lpgmc:           ['reports', 'cylinders', 'network', 'alerts', 'mgmt-reports'],
-  revalidator:     ['reports', 'scan', 'cylinders'],
-  ewura:           ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'mgmt-reports', 'network', 'bulk-monitor'],
-  'field-auditor': ['reports', 'scan', 'cylinders'],
-  tra:             ['reports', 'scan', 'cylinders'],
-  distributor:     ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
-  retailer:        ['reports', 'cylinders', 'mgmt-reports'],
+  lpgmc:              ['reports', 'cylinders', 'tag-orders', 'stamp-orders', 'stock-report', 'network', 'alerts', 'mgmt-reports'],
+  revalidator:        ['reports', 'scan', 'cylinders'],
+  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'tag-orders', 'stamp-orders', 'stock-report', 'mgmt-reports', 'network', 'bulk-monitor'],
+  'field-auditor':    ['reports', 'scan', 'cylinders'],
+  tra:                ['reports', 'scan', 'cylinders'],
+  distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
+  retailer:           ['reports', 'cylinders', 'mgmt-reports'],
+  'cylinder-producer':['tag-orders', 'cylinders'],
 };
 
 const ROLE_LABELS = {
-  lpgmc:           'LPGMC',
-  revalidator:     'Revalidator',
-  ewura:           'Regulator',
-  'field-auditor': 'Field Auditor',
-  tra:             'TRA',
-  distributor:     'Distributor',
-  retailer:        'Retailer',
+  lpgmc:              'LPGMC',
+  revalidator:        'Revalidator',
+  ewura:              'Regulator',
+  'field-auditor':    'Field Auditor',
+  tra:                'TRA',
+  distributor:        'Distributor',
+  retailer:           'Retailer',
+  'cylinder-producer':'Cylinder Producer',
 };
 
 const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
@@ -1325,7 +1327,9 @@ function _idbGetIndex(storeName, indexName, value) {
 }
 
 // ── In-memory cache for txGetAll — keyed by "storeName:country" ──────────────
-// Invalidated on every txPut / txDelete / txClearStore so reads stay consistent.
+// Write-coherent: txPut upserts in cache array; txDelete splices from cache array.
+// txGet / txGetIndex serve from cache when the array is already loaded, avoiding
+// repeat full-collection Firestore reads after the first load.
 const _txCache = {};
 function _cacheKey(storeName) { return storeName + ':' + _activeCountry; }
 function _cacheInvalidate(storeName) { delete _txCache[_cacheKey(storeName)]; }
@@ -1333,6 +1337,10 @@ function _cacheInvalidate(storeName) { delete _txCache[_cacheKey(storeName)]; }
 // ── Public tx* API — routes FS_STORES to Firestore under /countries/{_activeCountry}/ ──
 async function txGet(storeName, key) {
   if (_fdb && FS_STORES.has(storeName)) {
+    const k = _cacheKey(storeName);
+    if (_txCache[k]) {
+      return _txCache[k].find(r => String(r.id) === String(key));
+    }
     const snap = await _fsColl(storeName).doc(String(key)).get();
     return snap.exists ? snap.data() : undefined;
   }
@@ -1351,27 +1359,42 @@ async function txGetAll(storeName) {
 }
 
 async function txPut(storeName, record) {
-  _cacheInvalidate(storeName);
   if (_fdb && FS_STORES.has(storeName)) {
     if (_seedBatch !== null) return _fsBatchAdd(storeName, record);
+    let docId;
     if (record.id != null) {
       await _fsColl(storeName).doc(String(record.id)).set(record);
-      return record.id;
+      docId = record.id;
     } else {
       const ref = await _fsColl(storeName).add(record);
       record.id = ref.id;
-      return ref.id;
+      docId = ref.id;
     }
+    // Patch cache in-place instead of invalidating
+    const k = _cacheKey(storeName);
+    if (_txCache[k]) {
+      const idx = _txCache[k].findIndex(r => String(r.id) === String(docId));
+      if (idx >= 0) _txCache[k][idx] = record;
+      else _txCache[k].push(record);
+    }
+    return docId;
   }
+  _cacheInvalidate(storeName);
   return _idbPut(storeName, record);
 }
 
 async function txDelete(storeName, key) {
-  _cacheInvalidate(storeName);
   if (_fdb && FS_STORES.has(storeName)) {
     await _fsColl(storeName).doc(String(key)).delete();
+    // Splice from cache in-place
+    const k = _cacheKey(storeName);
+    if (_txCache[k]) {
+      const idx = _txCache[k].findIndex(r => String(r.id) === String(key));
+      if (idx >= 0) _txCache[k].splice(idx, 1);
+    }
     return;
   }
+  _cacheInvalidate(storeName);
   return _idbDelete(storeName, key);
 }
 
@@ -1391,6 +1414,10 @@ async function txClearStore(storeName) {
 
 async function txGetIndex(storeName, indexName, value) {
   if (_fdb && FS_STORES.has(storeName)) {
+    const k = _cacheKey(storeName);
+    if (_txCache[k]) {
+      return _txCache[k].filter(r => r[indexName] === value);
+    }
     const snap = await _fsColl(storeName).where(indexName, '==', value).get();
     return snap.docs.map(d => d.data());
   }
@@ -1447,30 +1474,110 @@ function buildGeneratedCylinders() {
   return result;
 }
 
+// ── Tag-order & stamp-order seed data ────────────────────────────────────────
+
+const _TAG_ORDER_SEED = {
+  TZ: [
+    { id:'TO-TZ-001', lpgmc:'Vivo LPG',       quantity:500, tagType:'UHF RFID Gen2', manufacturer:'Tageos RFID Solutions', manufacturerCountry:'France',  status:'delivered',  requestedDate:'2025-10-15T09:00:00Z', approvedDate:'2025-10-18T14:00:00Z', dispatchDate:'2025-10-25T10:00:00Z', deliveryDate:'2025-11-05T09:00:00Z', notes:'Standard UHF tags for initial cylinder registration' },
+    { id:'TO-TZ-002', lpgmc:'Total Energies', quantity:300, tagType:'UHF RFID Gen2', manufacturer:'Zebra Technologies',     manufacturerCountry:'USA',     status:'dispatched', requestedDate:'2026-01-10T10:00:00Z', approvedDate:'2026-01-12T16:00:00Z', dispatchDate:'2026-01-20T11:00:00Z', deliveryDate:null, notes:'Second batch' },
+    { id:'TO-TZ-003', lpgmc:'Shell Gas',      quantity:200, tagType:'UHF RFID Gen2', manufacturer:'Alien Technology',       manufacturerCountry:'USA',     status:'approved',   requestedDate:'2026-03-05T09:30:00Z', approvedDate:'2026-03-08T11:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
+    { id:'TO-TZ-004', lpgmc:'Lake Gas',       quantity:100, tagType:'HF RFID ISO',   manufacturer:'TagsysRFID',             manufacturerCountry:'France',  status:'pending',    requestedDate:'2026-04-20T14:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'First order for Mwanza operations' },
+  ],
+  KE: [
+    { id:'TO-KE-001', lpgmc:'Total Energies Kenya', quantity:400, tagType:'UHF RFID Gen2', manufacturer:'Impinj Inc.',         manufacturerCountry:'USA',    status:'delivered',  requestedDate:'2025-11-10T09:00:00Z', approvedDate:'2025-11-13T11:00:00Z', dispatchDate:'2025-11-20T09:00:00Z', deliveryDate:'2025-12-01T10:00:00Z', notes:'Initial Kenya fleet registration' },
+    { id:'TO-KE-002', lpgmc:'Vivo Energy Kenya',    quantity:250, tagType:'UHF RFID Gen2', manufacturer:'Tageos RFID Solutions', manufacturerCountry:'France', status:'dispatched', requestedDate:'2026-02-08T10:00:00Z', approvedDate:'2026-02-11T14:00:00Z', dispatchDate:'2026-02-18T09:00:00Z', deliveryDate:null, notes:'' },
+    { id:'TO-KE-003', lpgmc:'Africa Gas & Oil',     quantity:150, tagType:'UHF RFID Gen2', manufacturer:'Zebra Technologies',     manufacturerCountry:'USA',    status:'approved',   requestedDate:'2026-04-01T11:00:00Z', approvedDate:'2026-04-03T15:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
+    { id:'TO-KE-004', lpgmc:'Hashi Energy',         quantity: 80, tagType:'HF RFID ISO',   manufacturer:'HID Global',             manufacturerCountry:'USA',    status:'pending',    requestedDate:'2026-05-15T09:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'Pilot run for Nairobi stations' },
+  ],
+};
+
+const _STAMP_ORDER_SEED = {
+  TZ: [
+    { id:'SO-TZ-001', lpgmc:'Vivo LPG',       quantity:2000, stampType:'Holographic Security Stamp', status:'delivered',  requestedDate:'2025-11-01T10:00:00Z', approvedDate:'2025-11-04T14:00:00Z', dispatchDate:'2025-11-10T09:00:00Z', deliveryDate:'2025-11-15T11:00:00Z', notes:'Quarterly refill stamp order' },
+    { id:'SO-TZ-002', lpgmc:'Total Energies', quantity:1500, stampType:'Holographic Security Stamp', status:'dispatched', requestedDate:'2026-02-15T09:00:00Z', approvedDate:'2026-02-17T10:00:00Z', dispatchDate:'2026-02-20T12:00:00Z', deliveryDate:null, notes:'' },
+    { id:'SO-TZ-003', lpgmc:'Shell Gas',      quantity: 800, stampType:'Tamper-Evident Valve Seal',  status:'approved',   requestedDate:'2026-04-10T11:00:00Z', approvedDate:'2026-04-12T09:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
+    { id:'SO-TZ-004', lpgmc:'Lake Gas',       quantity: 600, stampType:'Tamper-Evident Valve Seal',  status:'pending',    requestedDate:'2026-05-02T14:30:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'For Mwanza refilling station' },
+  ],
+  KE: [
+    { id:'SO-KE-001', lpgmc:'Total Energies Kenya', quantity:1800, stampType:'Holographic Security Stamp', status:'delivered',  requestedDate:'2025-12-05T10:00:00Z', approvedDate:'2025-12-08T11:00:00Z', dispatchDate:'2025-12-14T09:00:00Z', deliveryDate:'2025-12-20T10:00:00Z', notes:'Q4 2025 stamp order' },
+    { id:'SO-KE-002', lpgmc:'Vivo Energy Kenya',    quantity:1200, stampType:'Holographic Security Stamp', status:'dispatched', requestedDate:'2026-03-10T09:00:00Z', approvedDate:'2026-03-12T14:00:00Z', dispatchDate:'2026-03-18T11:00:00Z', deliveryDate:null, notes:'' },
+    { id:'SO-KE-003', lpgmc:'Africa Gas & Oil',     quantity: 700, stampType:'Tamper-Evident Valve Seal',  status:'approved',   requestedDate:'2026-04-20T10:00:00Z', approvedDate:'2026-04-22T15:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
+    { id:'SO-KE-004', lpgmc:'Hashi Energy',         quantity: 400, stampType:'Tamper-Evident Valve Seal',  status:'pending',    requestedDate:'2026-05-20T14:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'Initial order' },
+  ],
+};
+
+const DEMO_MANUFACTURERS = [
+  { id:'MFR-001', name:'Tageos RFID Solutions', country:'France',  type:'RFID Tags',     contact:'contact@tageos.com' },
+  { id:'MFR-002', name:'Zebra Technologies',    country:'USA',     type:'RFID Tags',     contact:'rfid@zebra.com' },
+  { id:'MFR-003', name:'Alien Technology',      country:'USA',     type:'RFID Tags',     contact:'sales@alientechnology.com' },
+  { id:'MFR-004', name:'Impinj Inc.',           country:'USA',     type:'RFID Tags',     contact:'sales@impinj.com' },
+  { id:'MFR-005', name:'HID Global',            country:'USA',     type:'RFID Tags',     contact:'sales@hidglobal.com' },
+  { id:'MFR-006', name:'TagsysRFID',            country:'France',  type:'RFID Tags',     contact:'contact@tagsysrfid.com' },
+  { id:'MFR-007', name:'TrustSecure Stamps Ltd',country:'Tanzania',type:'Security Stamps', contact:'info@trustsecure.co.tz' },
+  { id:'MFR-008', name:'SecurePrint Africa',    country:'Kenya',   type:'Security Stamps', contact:'info@secureprint.co.ke' },
+];
+
+async function _doSeedOrders(country) {
+  const prev = _activeCountry;
+  _activeCountry = country;
+  const orders = _TAG_ORDER_SEED[country] || [];
+  const stamps = _STAMP_ORDER_SEED[country] || [];
+  for (const o of orders) { await txPut('tag-orders',   { ...o, country }); }
+  for (const s of stamps) { await txPut('stamp-orders', { ...s, country }); }
+  _activeCountry = prev;
+}
+
 async function seedDemoData() {
   const localSeeded = await _idbGet('meta', SEED_KEY);
-  if (localSeeded) return;
+  if (localSeeded) {
+    // Still check whether orders need seeding (new feature, independent of main seed)
+    if (_fdb) {
+      try {
+        const [tzOrdersSnap, keOrdersSnap] = await Promise.all([
+          _fdb.collection('countries').doc('TZ').collection('tag-orders').limit(1).get(),
+          _fdb.collection('countries').doc('KE').collection('tag-orders').limit(1).get(),
+        ]);
+        if (tzOrdersSnap.empty) await _doSeedOrders('TZ');
+        if (keOrdersSnap.empty) await _doSeedOrders('KE');
+      } catch (e) { /* offline */ }
+    }
+    return;
+  }
 
-  // Check each country independently — KE may be missing even when TZ exists
+  // Check each country independently — KE may be missing licenses/inspections even when cylinders exist
   let skipTZ = false, skipKE = false;
   if (_fdb) {
     try {
-      const [tzSnap, keSnap] = await Promise.all([
+      const [tzCylSnap, keCylSnap, keLicSnap] = await Promise.all([
         _fdb.collection('countries').doc('TZ').collection('cylinders').limit(1).get(),
         _fdb.collection('countries').doc('KE').collection('cylinders').limit(1).get(),
+        _fdb.collection('countries').doc('KE').collection('licenses').limit(1).get(),
       ]);
-      skipTZ = !tzSnap.empty;
-      skipKE = !keSnap.empty;
+      skipTZ = !tzCylSnap.empty;
+      // Only skip KE if BOTH cylinders AND licenses exist — licenses/inspections were missing in older seeds
+      skipKE = !keCylSnap.empty && !keLicSnap.empty;
       if (skipTZ && skipKE) {
         await _idbPut('meta', { key: SEED_KEY, value: true });
+        // Seed orders if missing
+        try {
+          const [tzOrd, keOrd] = await Promise.all([
+            _fdb.collection('countries').doc('TZ').collection('tag-orders').limit(1).get(),
+            _fdb.collection('countries').doc('KE').collection('tag-orders').limit(1).get(),
+          ]);
+          if (tzOrd.empty) await _doSeedOrders('TZ');
+          if (keOrd.empty) await _doSeedOrders('KE');
+        } catch (e) { /* offline */ }
         return;
       }
     } catch (e) { /* offline — fall through and seed both */ }
   }
 
+  // If KE cylinders exist but licenses are missing, only reseed KE licenses/inspections
+  const skipKECylinders = skipKE ? false : (_fdb ? await _fdb.collection('countries').doc('KE').collection('cylinders').limit(1).get().then(s => !s.empty).catch(() => false) : false);
+
   const hadFirestore = !!_fdb;
   try {
-    await _doSeed(skipTZ, skipKE);
+    await _doSeed(skipTZ, skipKE, skipKECylinders);
   } catch (seedErr) {
     console.error('Seeding failed:', seedErr);
     if (hadFirestore) {
@@ -1481,7 +1588,7 @@ async function seedDemoData() {
   }
 }
 
-async function _doSeed(skipTZ = false, skipKE = false) {
+async function _doSeed(skipTZ = false, skipKE = false, skipKECylinders = false) {
   const now   = Date.now();
   const DAY   = 24 * 60 * 60 * 1000;
   const MONTH = 30 * DAY;
@@ -1708,12 +1815,13 @@ async function _doSeed(skipTZ = false, skipKE = false) {
   _activeCountry = 'KE';
   if (_fdb) _seedBatch = [];
 
-  await txClearStore('cylinders');
-  await txClearStore('events');
+  if (!skipKECylinders) {
+    await txClearStore('cylinders');
+    await txClearStore('events');
+    for (const cyl of DEMO_CYLINDERS_KE) { await txPut('cylinders', cyl); }
+  }
   await txClearStore('licenses');
   await txClearStore('inspections');
-
-  for (const cyl of DEMO_CYLINDERS_KE) { await txPut('cylinders', cyl); }
 
   const KE_RETAILERS = [
     { name:'Westlands Gas Shop',      region:'Nairobi'     },
@@ -1746,8 +1854,10 @@ async function _doSeed(skipTZ = false, skipKE = false) {
     { name:'Kisii Gas Distributors',    region:'Kisii'       },
   ];
 
-  await seedNamedCylEvents(DEMO_CYLINDERS_KE, KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
-  await seedGeneratedCylEvents(buildKenyaCylinders(), KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
+  if (!skipKECylinders) {
+    await seedNamedCylEvents(DEMO_CYLINDERS_KE, KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
+    await seedGeneratedCylEvents(buildKenyaCylinders(), KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
+  }
 
   const keMisplacedPairs = [
     { cylId:'E280116060000204C3F04F85', company:'Total Energies Kenya', intendedDist:'Nairobi Gas Supplies',     intendedRegion:'Nairobi',      actualDist:'Mombasa Gas Depot',         actualRegion:'Mombasa'   },
@@ -1755,10 +1865,12 @@ async function _doSeed(skipTZ = false, skipKE = false) {
     { cylId:'E280116060000204C3F04FB4', company:'Africa Gas & Oil',     intendedDist:'Thika Gas Supplies',       intendedRegion:'Kiambu',       actualDist:'Machakos Gas Distributors', actualRegion:'Machakos'  },
     { cylId:'E280116060000204C3F04F88', company:'Total Energies Kenya', intendedDist:'Eldoret Gas Distributors', intendedRegion:'Uasin Gishu',  actualDist:'Nairobi Gas Supplies',      actualRegion:'Nairobi'   },
   ];
-  for (const mp of keMisplacedPairs) {
-    const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
-    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,    location:mp.company,    destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
-    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
+  if (!skipKECylinders) {
+    for (const mp of keMisplacedPairs) {
+      const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
+      await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,    location:mp.company,    destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
+      await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
+    }
   }
 
   const KE_INSP_SEED = [
@@ -1783,14 +1895,19 @@ async function _doSeed(skipTZ = false, skipKE = false) {
     { cylId:'E280116060000204C3F04F87', type:'inspected',      ts:'2026-06-04T14:00:00Z', compliant:true  },
     { cylId:'E280116060000204C3F04FA5', type:'inspected',      ts:'2026-06-09T11:00:00Z', compliant:true  },
   ];
-  for (const s of KE_INSP_SEED) {
-    await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='epra-monitored'?'EPRA':'Field Inspection Unit', compliant:s.compliant });
+  if (!skipKECylinders) {
+    for (const s of KE_INSP_SEED) {
+      await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='epra-monitored'?'EPRA':'Field Inspection Unit', compliant:s.compliant });
+    }
   }
 
   if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
   for (const lic of DEMO_LICENSES_KE)    { await txPut('licenses',    lic); }
   for (const ins of DEMO_INSPECTIONS_KE) { await txPut('inspections', ins); }
+  await _doSeedOrders('KE');
   } // end if (!skipKE)
+
+  if (!skipTZ) await _doSeedOrders('TZ');
 
   _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
   await _idbPut('meta', { key: SEED_KEY, value: true });
@@ -2029,6 +2146,9 @@ function selectRole(role) {
     const rets = _network.filter(n => n.type === 'Retailer');
     loginCompSel.innerHTML = rets.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
     loginCompSel.style.display = '';
+  } else if (role === 'cylinder-producer') {
+    loginCompText.placeholder = 'e.g. Tageos RFID Solutions';
+    loginCompText.style.display = '';
   } else {
     loginCompText.placeholder = role === 'tra'           ? 'TRA'
       : role === 'revalidator'   ? 'e.g. ProRevalid Ltd'
@@ -2116,6 +2236,11 @@ function applySession() {
   // Bulk register button: LPGMC only
   const _bulkBtn = $('bulk-register-btn');
   if (_bulkBtn) _bulkBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+  // Tag/stamp order buttons: LPGMC only
+  const _tagOrderBtn = $('tag-order-place-btn');
+  if (_tagOrderBtn) _tagOrderBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+  const _stampOrderBtn = $('stamp-order-place-btn');
+  if (_stampOrderBtn) _stampOrderBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   // Reception button: LPGMC, distributor, retailer
   const _recBtn = $('reception-btn');
   if (_recBtn) _recBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
@@ -2123,8 +2248,8 @@ function applySession() {
   const _shipBtn = $('shipment-btn');
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
 
-  // Navigate to dashboard (reset)
-  showView('reports');
+  // Navigate to first available view
+  showView(s.role === 'cylinder-producer' ? 'tag-orders' : 'reports');
 
   // Refresh data-bound views
   renderCylinders();
@@ -2179,17 +2304,20 @@ function showView(name) {
   if (tabEl) tabEl.classList.add('active');
 
   headerSubtitle.textContent = {
-    scan:           'Scanning',
-    cylinders:      'Cylinders',
-    alerts:         'Alerts',
-    reports:        'Dashboard',
-    licenses:       'Licenses',
-    network:        'Network',
-    'mgmt-reports': 'Management Reports',
-    'bulk-monitor': 'Bullet Tanks',
-    'market-intel': 'Market Intelligence',
-    inspections:    'Field Inspections',
-    recalls:        'Cylinder Recalls',
+    scan:             'Scanning',
+    cylinders:        'Cylinders',
+    alerts:           'Alerts',
+    reports:          'Dashboard',
+    licenses:         'Licenses',
+    network:          'Network',
+    'mgmt-reports':   'Management Reports',
+    'bulk-monitor':   'Bullet Tanks',
+    'market-intel':   'Market Intelligence',
+    inspections:      'Field Inspections',
+    recalls:          'Cylinder Recalls',
+    'tag-orders':     'RFID Tag Orders',
+    'stamp-orders':   'Refill Stamp Orders',
+    'stock-report':   'LPG Stock Report',
   }[name] || name;
 
   // Lazy render
@@ -2203,6 +2331,9 @@ function showView(name) {
   if (name === 'market-intel')  renderMarketIntel();
   if (name === 'inspections')   renderInspections();
   if (name === 'recalls')       renderRecalls();
+  if (name === 'tag-orders')    renderTagOrders();
+  if (name === 'stamp-orders')  renderStampOrders();
+  if (name === 'stock-report')  renderStockReport();
 
   // Invalidate Leaflet map sizes after view becomes visible
   requestAnimationFrame(() => {
@@ -3422,6 +3553,23 @@ function initInteractiveMap(mapId, markers) {
   }
 
   _leafletMaps.set(mapId, map);
+
+  // Fullscreen control
+  const container = document.getElementById(`${mapId}_imap`);
+  if (container) {
+    const fsBtn = document.createElement('button');
+    fsBtn.className = 'imap-fullscreen-btn';
+    fsBtn.title = 'Toggle fullscreen';
+    fsBtn.innerHTML = '⛶';
+    fsBtn.addEventListener('click', () => {
+      const isFs = container.classList.toggle('imap-fullscreen');
+      fsBtn.innerHTML = isFs ? '✕' : '⛶';
+      fsBtn.title = isFs ? 'Exit fullscreen' : 'Toggle fullscreen';
+      requestAnimationFrame(() => map.invalidateSize());
+    });
+    const toolbar = container.querySelector('.imap-toolbar');
+    if (toolbar) toolbar.appendChild(fsBtn);
+  }
 }
 
 function _resolveAlertLatLng(al) {
@@ -6123,6 +6271,384 @@ $('signup-submit-btn')?.addEventListener('click', () => {
   ['signup-license','signup-fullname','signup-email','signup-password','signup-password2'].forEach(id => { const el = $(id); if (el) el.value = ''; });
   showSnackbar('Registration submitted! Your account is pending EWURA approval.', 'success');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TAG ORDERS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _orderStatusBadge(status) {
+  const map = {
+    pending:    { label:'Pending',    bg:'#fef3c7', color:'#92400e' },
+    approved:   { label:'Approved',   bg:'#dbeafe', color:'#1e40af' },
+    dispatched: { label:'Dispatched', bg:'#ede9fe', color:'#6d28d9' },
+    delivered:  { label:'Delivered',  bg:'#dcfce7', color:'#15803d' },
+    rejected:   { label:'Rejected',   bg:'#fee2e2', color:'#dc2626' },
+  };
+  const s = map[status] || { label: status, bg:'#f1f5f9', color:'#475569' };
+  return `<span style="background:${s.bg};color:${s.color};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${s.label}</span>`;
+}
+
+async function renderTagOrders() {
+  const el = $('view-tag-orders');
+  if (!el) return;
+  const role = Auth.session ? Auth.session.role : null;
+  const company = Auth.session ? Auth.session.company : null;
+  const orders = await txGetAll('tag-orders');
+
+  const visible = role === 'lpgmc'
+    ? orders.filter(o => o.lpgmc === company)
+    : orders;
+
+  visible.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
+
+  const canApprove  = role === 'ewura';
+  const canDispatch = role === 'cylinder-producer';
+  const canPlace    = role === 'lpgmc';
+
+  const listEl = $('tag-orders-list');
+  if (!listEl) return;
+
+  if (!visible.length) {
+    listEl.innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">No RFID tag orders found.</p>';
+    return;
+  }
+
+  listEl.innerHTML = visible.map(o => `
+    <div class="order-card" data-id="${escapeHtml(o.id)}">
+      <div class="order-card-header">
+        <div>
+          <span class="order-card-id font-mono">${escapeHtml(o.id)}</span>
+          ${_orderStatusBadge(o.status)}
+        </div>
+        <div style="font-size:12px;color:var(--muted)">${o.requestedDate ? o.requestedDate.slice(0,10) : ''}</div>
+      </div>
+      <div class="order-card-body">
+        <div class="order-card-row"><span>LPGMC</span><strong>${escapeHtml(o.lpgmc)}</strong></div>
+        <div class="order-card-row"><span>Quantity</span><strong>${o.quantity.toLocaleString()} tags</strong></div>
+        <div class="order-card-row"><span>Tag Type</span><strong>${escapeHtml(o.tagType)}</strong></div>
+        <div class="order-card-row"><span>Manufacturer</span><strong>${escapeHtml(o.manufacturer)} (${escapeHtml(o.manufacturerCountry)})</strong></div>
+        ${o.approvedDate ? `<div class="order-card-row"><span>Approved</span><strong>${o.approvedDate.slice(0,10)}</strong></div>` : ''}
+        ${o.dispatchDate ? `<div class="order-card-row"><span>Dispatched</span><strong>${o.dispatchDate.slice(0,10)}</strong></div>` : ''}
+        ${o.deliveryDate ? `<div class="order-card-row"><span>Delivered</span><strong>${o.deliveryDate.slice(0,10)}</strong></div>` : ''}
+        ${o.notes ? `<div class="order-card-row"><span>Notes</span><span>${escapeHtml(o.notes)}</span></div>` : ''}
+      </div>
+      <div class="order-card-actions">
+        ${canApprove && o.status === 'pending' ? `
+          <button class="btn btn-sm btn-green tag-order-approve" data-id="${escapeHtml(o.id)}">Approve</button>
+          <button class="btn btn-sm btn-outline-red tag-order-reject" data-id="${escapeHtml(o.id)}">Reject</button>
+        ` : ''}
+        ${canDispatch && o.status === 'approved' ? `
+          <button class="btn btn-sm btn-primary tag-order-dispatch" data-id="${escapeHtml(o.id)}">Mark Dispatched</button>
+        ` : ''}
+        ${canDispatch && o.status === 'dispatched' ? `
+          <button class="btn btn-sm btn-green tag-order-deliver" data-id="${escapeHtml(o.id)}">Mark Delivered</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // Action handlers
+  listEl.querySelectorAll('.tag-order-approve').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'approved';
+      order.approvedDate = new Date().toISOString();
+      await txPut('tag-orders', order);
+      showSnackbar('Order approved.', 'success');
+      renderTagOrders();
+    });
+  });
+  listEl.querySelectorAll('.tag-order-reject').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'rejected';
+      await txPut('tag-orders', order);
+      showSnackbar('Order rejected.', 'error');
+      renderTagOrders();
+    });
+  });
+  listEl.querySelectorAll('.tag-order-dispatch').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'dispatched';
+      order.dispatchDate = new Date().toISOString();
+      await txPut('tag-orders', order);
+      showSnackbar('Order marked as dispatched.', 'success');
+      renderTagOrders();
+    });
+  });
+  listEl.querySelectorAll('.tag-order-deliver').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'delivered';
+      order.deliveryDate = new Date().toISOString();
+      await txPut('tag-orders', order);
+      showSnackbar('Order marked as delivered.', 'success');
+      renderTagOrders();
+    });
+  });
+}
+
+$('tag-order-place-btn')?.addEventListener('click', () => openModal('modal-tag-order'));
+
+$('tag-order-submit-btn')?.addEventListener('click', async () => {
+  const qty      = parseInt($('to-quantity')?.value) || 0;
+  const tagType  = $('to-tag-type')?.value || '';
+  const mfr      = $('to-manufacturer')?.value || '';
+  const notes    = $('to-notes')?.value?.trim() || '';
+  if (qty < 1) { showSnackbar('Enter a valid quantity.', 'error'); return; }
+  if (!mfr)    { showSnackbar('Select a manufacturer.', 'error'); return; }
+  const mfrObj = DEMO_MANUFACTURERS.find(m => m.id === mfr);
+  const s = Auth.session;
+  const id = 'TO-' + _activeCountry + '-' + Date.now();
+  await txPut('tag-orders', {
+    id, country: _activeCountry, lpgmc: s.company,
+    quantity: qty, tagType, manufacturer: mfrObj ? mfrObj.name : mfr,
+    manufacturerCountry: mfrObj ? mfrObj.country : '',
+    status: 'pending', requestedDate: new Date().toISOString(),
+    approvedDate: null, dispatchDate: null, deliveryDate: null, notes,
+  });
+  closeModal('modal-tag-order');
+  showSnackbar('RFID tag order submitted for Regulator approval.', 'success');
+  renderTagOrders();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STAMP ORDERS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function renderStampOrders() {
+  const el = $('view-stamp-orders');
+  if (!el) return;
+  const role = Auth.session ? Auth.session.role : null;
+  const company = Auth.session ? Auth.session.company : null;
+  const orders = await txGetAll('stamp-orders');
+
+  const visible = role === 'lpgmc'
+    ? orders.filter(o => o.lpgmc === company)
+    : orders;
+
+  visible.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
+
+  const canApprove = role === 'ewura';
+  const canPlace   = role === 'lpgmc';
+
+  const listEl = $('stamp-orders-list');
+  if (!listEl) return;
+
+  if (!visible.length) {
+    listEl.innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">No stamp orders found.</p>';
+    return;
+  }
+
+  listEl.innerHTML = visible.map(o => `
+    <div class="order-card" data-id="${escapeHtml(o.id)}">
+      <div class="order-card-header">
+        <div>
+          <span class="order-card-id font-mono">${escapeHtml(o.id)}</span>
+          ${_orderStatusBadge(o.status)}
+        </div>
+        <div style="font-size:12px;color:var(--muted)">${o.requestedDate ? o.requestedDate.slice(0,10) : ''}</div>
+      </div>
+      <div class="order-card-body">
+        <div class="order-card-row"><span>LPGMC</span><strong>${escapeHtml(o.lpgmc)}</strong></div>
+        <div class="order-card-row"><span>Quantity</span><strong>${o.quantity.toLocaleString()} stamps</strong></div>
+        <div class="order-card-row"><span>Stamp Type</span><strong>${escapeHtml(o.stampType)}</strong></div>
+        ${o.approvedDate ? `<div class="order-card-row"><span>Approved</span><strong>${o.approvedDate.slice(0,10)}</strong></div>` : ''}
+        ${o.dispatchDate ? `<div class="order-card-row"><span>Dispatched</span><strong>${o.dispatchDate.slice(0,10)}</strong></div>` : ''}
+        ${o.deliveryDate ? `<div class="order-card-row"><span>Delivered</span><strong>${o.deliveryDate.slice(0,10)}</strong></div>` : ''}
+        ${o.notes ? `<div class="order-card-row"><span>Notes</span><span>${escapeHtml(o.notes)}</span></div>` : ''}
+      </div>
+      <div class="order-card-actions">
+        ${canApprove && o.status === 'pending' ? `
+          <button class="btn btn-sm btn-green stamp-order-approve" data-id="${escapeHtml(o.id)}">Approve</button>
+          <button class="btn btn-sm btn-outline-red stamp-order-reject" data-id="${escapeHtml(o.id)}">Reject</button>
+        ` : ''}
+        ${canApprove && o.status === 'approved' ? `
+          <button class="btn btn-sm btn-primary stamp-order-dispatch" data-id="${escapeHtml(o.id)}">Mark Dispatched</button>
+        ` : ''}
+        ${canApprove && o.status === 'dispatched' ? `
+          <button class="btn btn-sm btn-green stamp-order-deliver" data-id="${escapeHtml(o.id)}">Mark Delivered</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('.stamp-order-approve').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'approved';
+      order.approvedDate = new Date().toISOString();
+      await txPut('stamp-orders', order);
+      showSnackbar('Stamp order approved.', 'success');
+      renderStampOrders();
+    });
+  });
+  listEl.querySelectorAll('.stamp-order-reject').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'rejected';
+      await txPut('stamp-orders', order);
+      showSnackbar('Stamp order rejected.', 'error');
+      renderStampOrders();
+    });
+  });
+  listEl.querySelectorAll('.stamp-order-dispatch').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'dispatched';
+      order.dispatchDate = new Date().toISOString();
+      await txPut('stamp-orders', order);
+      showSnackbar('Stamp order marked as dispatched.', 'success');
+      renderStampOrders();
+    });
+  });
+  listEl.querySelectorAll('.stamp-order-deliver').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      order.status = 'delivered';
+      order.deliveryDate = new Date().toISOString();
+      await txPut('stamp-orders', order);
+      showSnackbar('Stamp order marked as delivered.', 'success');
+      renderStampOrders();
+    });
+  });
+}
+
+$('stamp-order-place-btn')?.addEventListener('click', () => openModal('modal-stamp-order'));
+
+$('stamp-order-submit-btn')?.addEventListener('click', async () => {
+  const qty       = parseInt($('so-quantity')?.value) || 0;
+  const stampType = $('so-stamp-type')?.value || '';
+  const notes     = $('so-notes')?.value?.trim() || '';
+  if (qty < 1)       { showSnackbar('Enter a valid quantity.', 'error'); return; }
+  if (!stampType)    { showSnackbar('Select a stamp type.', 'error'); return; }
+  const s = Auth.session;
+  const id = 'SO-' + _activeCountry + '-' + Date.now();
+  await txPut('stamp-orders', {
+    id, country: _activeCountry, lpgmc: s.company,
+    quantity: qty, stampType,
+    status: 'pending', requestedDate: new Date().toISOString(),
+    approvedDate: null, dispatchDate: null, deliveryDate: null, notes,
+  });
+  closeModal('modal-stamp-order');
+  showSnackbar('Stamp order submitted for Regulator approval.', 'success');
+  renderStampOrders();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STOCK REPORT VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function renderStockReport() {
+  const el = $('view-stock-report');
+  if (!el) return;
+  const role    = Auth.session ? Auth.session.role : null;
+  const company = Auth.session ? Auth.session.company : null;
+
+  const cyls   = await txGetAll('cylinders');
+  const events = await txGetAll('events');
+
+  const isLpgmc = role === 'lpgmc';
+  const lpgmcFilter = isLpgmc ? company : null;
+
+  // National / company-level cylinder counts
+  const filteredCyls = lpgmcFilter ? cyls.filter(c => c.company === lpgmcFilter) : cyls;
+
+  const statusCount = {};
+  filteredCyls.forEach(c => { statusCount[c.status] = (statusCount[c.status] || 0) + 1; });
+
+  const filled   = (statusCount['in-use'] || 0) + (statusCount['in-circulation'] || 0);
+  const empty    = (statusCount['in-circ-empty'] || 0) + (statusCount['in-refill-empty'] || 0) + (statusCount['in-refill'] || 0);
+  const revalCnt = statusCount['revalidation'] || 0;
+  const total    = filteredCyls.length;
+
+  // Tanker volume (always national, from DEMO_BULK_TANKERS)
+  const activeTankers   = DEMO_BULK_TANKERS.filter(t => t.status === 'in-transit');
+  const totalTankerVol  = DEMO_BULK_TANKERS.reduce((s, t) => s + (t.capacity || 0), 0);
+  const inTransitVol    = activeTankers.reduce((s, t) => s + (t.capacity || 0), 0);
+
+  // Recent refill events (last 30 days)
+  const cutoff    = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const recentRef = events.filter(ev => ev.type === 'refilled' && ev.timestamp >= cutoff
+    && (!lpgmcFilter || ev.company === lpgmcFilter));
+
+  // Per-LPGMC breakdown (for regulator view)
+  const lpgmcList = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+  const perLpgmc  = lpgmcList.map(name => {
+    const lCyls = cyls.filter(c => c.company === name);
+    const lFilled = lCyls.filter(c => ['in-use','in-circulation'].includes(c.status)).length;
+    const lEmpty  = lCyls.filter(c => ['in-circ-empty','in-refill-empty','in-refill'].includes(c.status)).length;
+    const lReval  = lCyls.filter(c => c.status === 'revalidation').length;
+    const lRef30  = events.filter(ev => ev.type === 'refilled' && ev.company === name && ev.timestamp >= cutoff).length;
+    return { name, total: lCyls.length, filled: lFilled, empty: lEmpty, reval: lReval, refills30: lRef30 };
+  });
+
+  const stockEl = $('stock-report-content');
+  if (!stockEl) return;
+
+  const scopeLabel = lpgmcFilter ? escapeHtml(lpgmcFilter) : 'National';
+
+  stockEl.innerHTML = `
+    <div class="stock-section">
+      <h3 class="stock-section-title">${scopeLabel} — Cylinder Stock Summary</h3>
+      <div class="kpi-grid" style="margin-bottom:16px">
+        <div class="kpi-card"><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-label">Total Cylinders</div></div>
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${filled.toLocaleString()}</div><div class="kpi-label">Filled / In Market</div></div>
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--orange)">${empty.toLocaleString()}</div><div class="kpi-label">Empty / In-Refill</div></div>
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${revalCnt.toLocaleString()}</div><div class="kpi-label">Under Revalidation</div></div>
+      </div>
+    </div>
+
+    <div class="stock-section">
+      <h3 class="stock-section-title">Bulk Tanker Incoming Volume</h3>
+      <div class="kpi-grid" style="margin-bottom:16px">
+        <div class="kpi-card"><div class="kpi-value">${DEMO_BULK_TANKERS.length}</div><div class="kpi-label">Total Tankers</div></div>
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${activeTankers.length}</div><div class="kpi-label">In-Transit</div></div>
+        <div class="kpi-card"><div class="kpi-value">${totalTankerVol.toLocaleString()} t</div><div class="kpi-label">Fleet Capacity</div></div>
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${inTransitVol.toLocaleString()} t</div><div class="kpi-label">In-Transit Volume</div></div>
+      </div>
+    </div>
+
+    <div class="stock-section">
+      <h3 class="stock-section-title">Refill Activity — Last 30 Days</h3>
+      <div class="kpi-grid" style="margin-bottom:16px">
+        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${recentRef.length.toLocaleString()}</div><div class="kpi-label">Refill Events${lpgmcFilter ? '' : ' (National)'}</div></div>
+      </div>
+    </div>
+
+    ${!lpgmcFilter ? `
+    <div class="stock-section">
+      <h3 class="stock-section-title">Per-LPGMC Breakdown</h3>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="width:100%;min-width:560px">
+          <thead><tr>
+            <th>LPGMC</th><th>Total</th><th>Filled</th><th>Empty</th><th>Reval.</th><th>Refills (30d)</th>
+          </tr></thead>
+          <tbody>
+            ${perLpgmc.map(l => `<tr>
+              <td>${escapeHtml(l.name)}</td>
+              <td>${l.total}</td>
+              <td style="color:var(--green)">${l.filled}</td>
+              <td style="color:var(--orange)">${l.empty}</td>
+              <td style="color:var(--blue)">${l.reval}</td>
+              <td>${l.refills30}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVICE WORKER

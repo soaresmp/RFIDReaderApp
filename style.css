@@ -2330,3 +2330,103 @@ body.nav-open .nav-backdrop { display: block; }
 .lmap-legend-pulse {
   animation: lmap-pulse-anim 2s ease-in-out infinite;
 }
+
+/* ── Fullscreen map ───────────────────────────────────────────────────────── */
+.imap-fullscreen-btn {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text, #0f172a);
+  margin-left: auto;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.imap-fullscreen-btn:hover { background: var(--hover, #f1f5f9); }
+.imap-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1200 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+.imap-fullscreen .imap-toolbar { flex-shrink: 0; }
+.imap-fullscreen > [id$="_lmap"] { flex: 1 !important; height: auto !important; }
+.imap-toolbar { display: flex; align-items: center; }
+
+/* ── Order cards ─────────────────────────────────────────────────────────── */
+.order-card {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #f8fafc);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.order-card-id {
+  font-size: 12px;
+  color: var(--muted, #64748b);
+  margin-right: 8px;
+}
+.order-card-body {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 16px;
+}
+.order-card-row {
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+  align-items: baseline;
+}
+.order-card-row > span:first-child {
+  color: var(--muted, #64748b);
+  min-width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.order-card-actions {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Stock report sections ───────────────────────────────────────────────── */
+.stock-section { margin-bottom: 24px; }
+.stock-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+.data-table { border-collapse: collapse; font-size: 13px; }
+.data-table th, .data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  text-align: left;
+}
+.data-table th {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted, #64748b);
+  background: var(--surface, #f8fafc);
+}

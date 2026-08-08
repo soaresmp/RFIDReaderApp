@@ -215,6 +215,15 @@
             <div class="role-card-chevron">›</div>
           </div>
 
+          <div class="role-card" data-role="cylinder-producer" tabindex="0" role="button" aria-pressed="false">
+            <div class="role-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/><path d="M7 10h2M15 10h2"/></svg></div>
+            <div class="role-card-body">
+              <div class="role-card-title">Cylinder Producer</div>
+              <div class="role-card-desc">Manufacturer · Apply RFID Tags · Register Cylinders · Fulfil Tag Orders</div>
+            </div>
+            <div class="role-card-chevron">›</div>
+          </div>
+
           <!-- Hidden roles (kept in code) -->
           <div class="role-card" data-role="revalidator" tabindex="0" role="button" aria-pressed="false" style="display:none">
             <div class="role-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
@@ -489,6 +498,15 @@
           </button>
           <button class="nav-tab" data-view="recalls" id="nav-recalls" style="display:none">
             <span class="nav-label">Recalls</span>
+          </button>
+          <button class="nav-tab" data-view="tag-orders" id="nav-tag-orders" style="display:none">
+            <span class="nav-label">RFID Tag Orders</span>
+          </button>
+          <button class="nav-tab" data-view="stamp-orders" id="nav-stamp-orders" style="display:none">
+            <span class="nav-label">Stamp Orders</span>
+          </button>
+          <button class="nav-tab" data-view="stock-report" id="nav-stock-report" style="display:none">
+            <span class="nav-label">Stock Report</span>
           </button>
           <button class="nav-tab" data-view="mgmt-reports" id="nav-mgmt-reports" style="display:none">
             <span class="nav-label" data-i18n="nav.reports">Reports</span>
@@ -808,6 +826,36 @@
             <h2 class="page-title" data-i18n="page.marketIntel">📊 Market Intelligence</h2>
           </div>
           <div id="market-intel-body"></div>
+        </div>
+
+        <!-- ── TAG ORDERS VIEW ────────────────────────────────────────────── -->
+        <div id="view-tag-orders" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📡 RFID Tag Orders</h2>
+            <div class="page-actions">
+              <button id="tag-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Tag Order</button>
+            </div>
+          </div>
+          <div id="tag-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <!-- ── STAMP ORDERS VIEW ──────────────────────────────────────────── -->
+        <div id="view-stamp-orders" class="view">
+          <div class="page-header">
+            <h2 class="page-title">🔖 Refill Stamp Orders</h2>
+            <div class="page-actions">
+              <button id="stamp-order-place-btn" class="btn btn-primary" type="button" style="display:none">+ Place Stamp Order</button>
+            </div>
+          </div>
+          <div id="stamp-orders-list" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <!-- ── STOCK REPORT VIEW ──────────────────────────────────────────── -->
+        <div id="view-stock-report" class="view">
+          <div class="page-header">
+            <h2 class="page-title">📦 LPG Stock Report</h2>
+          </div>
+          <div id="stock-report-content"></div>
         </div>
 
       </main><!-- /content-area -->
@@ -1314,6 +1362,85 @@
       <div class="modal-footer">
         <button id="bulk-register-confirm-btn" class="btn btn-primary" type="button" data-i18n="btn.registerCylinders">Register Cylinders</button>
         <button class="btn btn-outline" data-close="modal-bulk-register" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Place RFID Tag Order modal (LPGMC) -->
+  <div id="modal-tag-order" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Place RFID Tag Order">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📡 Place RFID Tag Order</h2>
+        <button class="modal-close" data-close="modal-tag-order" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Request RFID tags from a manufacturer. Each tag corresponds to one cylinder. The order requires Regulator approval before dispatch.</p>
+        <div class="form-group">
+          <label>Quantity (tags / cylinders)</label>
+          <input id="to-quantity" type="number" min="1" class="form-control" placeholder="e.g. 500" />
+        </div>
+        <div class="form-group">
+          <label>Tag Type</label>
+          <select id="to-tag-type" class="form-control">
+            <option value="UHF RFID Gen2">UHF RFID Gen2 (standard — recommended)</option>
+            <option value="HF RFID ISO">HF RFID ISO 15693</option>
+            <option value="NFC">NFC (ISO 14443)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Manufacturer</label>
+          <select id="to-manufacturer" class="form-control">
+            <option value="">— Select manufacturer —</option>
+            <option value="MFR-001">Tageos RFID Solutions (France)</option>
+            <option value="MFR-002">Zebra Technologies (USA)</option>
+            <option value="MFR-003">Alien Technology (USA)</option>
+            <option value="MFR-004">Impinj Inc. (USA)</option>
+            <option value="MFR-005">HID Global (USA)</option>
+            <option value="MFR-006">TagsysRFID (France)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes <span style="color:var(--dim);font-size:11px">(optional)</span></label>
+          <textarea id="to-notes" class="form-control" rows="2" placeholder="Any special requirements…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-tag-order" type="button">Cancel</button>
+        <button id="tag-order-submit-btn" class="btn btn-primary" type="button">Submit Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Place Refill Stamp Order modal (LPGMC) -->
+  <div id="modal-stamp-order" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="Place Stamp Order">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🔖 Place Refill Stamp Order</h2>
+        <button class="modal-close" data-close="modal-stamp-order" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Request tamper-evident refill stamps. Stamps are applied to the cylinder valve after each refill at LPGMC sites. The order requires Regulator approval.</p>
+        <div class="form-group">
+          <label>Quantity (stamps)</label>
+          <input id="so-quantity" type="number" min="1" class="form-control" placeholder="e.g. 2000" />
+        </div>
+        <div class="form-group">
+          <label>Stamp Type</label>
+          <select id="so-stamp-type" class="form-control">
+            <option value="">— Select stamp type —</option>
+            <option value="Holographic Security Stamp">Holographic Security Stamp</option>
+            <option value="Tamper-Evident Valve Seal">Tamper-Evident Valve Seal</option>
+            <option value="QR-Linked Refill Label">QR-Linked Refill Label</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes <span style="color:var(--dim);font-size:11px">(optional)</span></label>
+          <textarea id="so-notes" class="form-control" rows="2" placeholder="Any special requirements…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modal-stamp-order" type="button">Cancel</button>
+        <button id="stamp-order-submit-btn" class="btn btn-primary" type="button">Submit Order</button>
       </div>
     </div>
   </div>
