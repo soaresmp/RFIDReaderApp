@@ -726,19 +726,93 @@ const DEMO_NETWORK = [
 ];
 
 const DEMO_BULK_TANKERS = [
-  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200 },
-  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacity:'22,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',         lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.4500, toLng:38.7000 },
-  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'at-terminal', from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',          lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-3.3869, toLng:36.6830 },
-  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacity:'25,000L', status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',        lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100, fromLat:-6.7924, fromLng:39.2083, toLat:-2.5164, toLng:32.9175 },
-  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacity:'30,000L', status:'loading',     from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200 },
-  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacity:'20,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',      lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65,  fromLat:-6.7924, fromLng:39.2083, toLat:-8.9094, toLng:33.4607 },
-  { id:'BT-007', plate:'T 310 ARU', operator:'Shell Gas',      capacity:'18,000L', status:'delivered',   from:'Arusha Distribution Hub',      to:'Shell Gas Kilimanjaro Depot',     lat:-3.3534, lng:37.3380, speed:0,  lastUpdate:'2 hr ago',   routePct:100, fromLat:-3.3869, fromLng:36.6830, toLat:-3.3534, toLng:37.3380 },
-  { id:'BT-008', plate:'T 440 DOD', operator:'Lake Gas',       capacity:'22,000L', status:'in-transit',  from:'Dodoma Central Depot',         to:'Lake Gas Tabora Plant',           lat:-5.0220, lng:33.9980, speed:58, lastUpdate:'9 min ago',  routePct:51,  fromLat:-6.1730, fromLng:35.7395, toLat:-5.0167, toLng:32.8000 },
-  { id:'BT-009', plate:'T 071 TNG', operator:'Vivo LPG',       capacity:'25,000L', status:'at-terminal', from:'Tanga Port Terminal',          to:'Vivo LPG Tanga Plant',            lat:-5.0693, lng:39.0997, speed:0,  lastUpdate:'18 min ago', routePct:0,   fromLat:-5.0693, fromLng:39.0997, toLat:-5.0600, toLng:39.0700 },
-  { id:'BT-010', plate:'T 625 IRG', operator:'Total Energies', capacity:'20,000L', status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Iringa Depot',     lat:-7.7669, lng:35.6940, speed:66, lastUpdate:'11 min ago', routePct:78,  fromLat:-6.7924, fromLng:39.2083, toLat:-7.7669, toLng:35.6940 },
-  { id:'BT-011', plate:'T 282 MOR', operator:'Shell Gas',      capacity:'18,000L', status:'loading',     from:'Morogoro Depot',               to:'Shell Gas Dodoma Plant',          lat:-6.8218, lng:37.6595, speed:0,  lastUpdate:'30 min ago', routePct:0,   fromLat:-6.8218, fromLng:37.6595, toLat:-6.1730, toLng:35.7395 },
-  { id:'BT-012', plate:'T 193 ZNZ', operator:'Lake Gas',       capacity:'15,000L', status:'delivered',   from:'Zanzibar Port',                to:'Lake Gas Zanzibar Retail Hub',    lat:-6.1659, lng:39.2026, speed:0,  lastUpdate:'45 min ago', routePct:100, fromLat:-6.1500, fromLng:39.3200, toLat:-6.1659, toLng:39.2026 },
+  { id:'BT-001', plate:'T 121 DAR', operator:'Vivo LPG',       capacityL:30000, status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.5200, lng:39.0800, speed:62, lastUpdate:'3 min ago',  routePct:42,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200,
+    driver:{ name:'James Mwenda',     id:'DL-TZ-2021-04821', license:'HGV Class B', phone:'+255 712 001 001' },
+    authNo:'TA-2026-DAR-001', authExpiry:'2026-12-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:28500,
+    vehicleReg:'TZ-HGV-30001', inspExpiry:'2027-03-15',
+    departure:'2026-08-08 06:15', eta:'2026-08-08 09:30',
+    alerts:[] },
+  { id:'BT-002', plate:'T 344 DAR', operator:'Total Energies', capacityL:22000, status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Facility',         lat:-6.2000, lng:38.8000, speed:55, lastUpdate:'7 min ago',  routePct:28,  fromLat:-6.7924, fromLng:39.2083, toLat:-6.4500, toLng:38.7000,
+    driver:{ name:'Fadhili Karago',   id:'DL-TZ-2019-07734', license:'HGV Class A', phone:'+255 713 002 002' },
+    authNo:'TA-2026-DAR-002', authExpiry:'2026-11-30', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Butane)', loadedQty:20800,
+    vehicleReg:'TZ-HGV-30002', inspExpiry:'2026-09-20',
+    departure:'2026-08-08 07:40', eta:'2026-08-08 11:10',
+    alerts:['Vehicle inspection expires in 43 days — schedule renewal'] },
+  { id:'BT-003', plate:'T 098 ARU', operator:'Shell Gas',      capacityL:18000, status:'at-terminal', from:'Dar es Salaam Import Terminal', to:'Shell Gas Arusha Plant',          lat:-6.7924, lng:39.2083, speed:0,  lastUpdate:'12 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-3.3869, toLng:36.6830,
+    driver:{ name:'Emmanuel Chande',  id:'DL-TZ-2020-03318', license:'HGV Class A', phone:'+255 714 003 003' },
+    authNo:'TA-2026-DAR-003', authExpiry:'2026-10-15', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:0,
+    vehicleReg:'TZ-HGV-30003', inspExpiry:'2027-01-10',
+    departure:'2026-08-08 09:00', eta:'2026-08-08 19:45',
+    alerts:['Loading delayed — terminal congestion'] },
+  { id:'BT-004', plate:'T 217 MWZ', operator:'Lake Gas',       capacityL:25000, status:'delivered',   from:'Dar es Salaam Import Terminal', to:'Lake Gas Mwanza Facility',        lat:-2.5164, lng:32.9175, speed:0,  lastUpdate:'1 hr ago',   routePct:100, fromLat:-6.7924, fromLng:39.2083, toLat:-2.5164, toLng:32.9175,
+    driver:{ name:'Hamisi Juma',      id:'DL-TZ-2018-09901', license:'HGV Class A', phone:'+255 715 004 004' },
+    authNo:'TA-2026-DAR-004', authExpiry:'2026-12-01', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:24700,
+    vehicleReg:'TZ-HGV-30004', inspExpiry:'2026-11-30',
+    departure:'2026-08-07 22:00', eta:'2026-08-08 07:30',
+    alerts:[] },
+  { id:'BT-005', plate:'T 502 DAR', operator:'Vivo LPG',       capacityL:30000, status:'loading',     from:'Dar es Salaam Import Terminal', to:'Vivo LPG Refilling Plant',       lat:-6.8200, lng:39.2900, speed:0,  lastUpdate:'25 min ago', routePct:0,   fromLat:-6.7924, fromLng:39.2083, toLat:-6.5000, toLng:39.1200,
+    driver:{ name:'Patrick Msigwa',   id:'DL-TZ-2022-11042', license:'HGV Class B', phone:'+255 716 005 005' },
+    authNo:'TA-2026-DAR-005', authExpiry:'2026-12-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Butane)', loadedQty:12000,
+    vehicleReg:'TZ-HGV-30005', inspExpiry:'2027-06-01',
+    departure:'2026-08-08 10:30', eta:'2026-08-08 13:00',
+    alerts:[] },
+  { id:'BT-006', plate:'T 188 MBY', operator:'Total Energies', capacityL:20000, status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Mbeya Plant',      lat:-7.5000, lng:36.2000, speed:70, lastUpdate:'5 min ago',  routePct:65,  fromLat:-6.7924, fromLng:39.2083, toLat:-8.9094, toLng:33.4607,
+    driver:{ name:'Seif Ramadhani',   id:'DL-TZ-2017-05567', license:'HGV Class A', phone:'+255 717 006 006' },
+    authNo:'TA-2026-DAR-006', authExpiry:'2026-09-30', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane)', loadedQty:19500,
+    vehicleReg:'TZ-HGV-30006', inspExpiry:'2026-08-30',
+    departure:'2026-08-08 02:00', eta:'2026-08-08 15:20',
+    alerts:['Speeding alert: 70 km/h in 60 km/h zone at Mikumi', 'Authorization expires in 53 days'] },
+  { id:'BT-007', plate:'T 310 ARU', operator:'Shell Gas',      capacityL:18000, status:'delivered',   from:'Arusha Distribution Hub',      to:'Shell Gas Kilimanjaro Depot',     lat:-3.3534, lng:37.3380, speed:0,  lastUpdate:'2 hr ago',   routePct:100, fromLat:-3.3869, fromLng:36.6830, toLat:-3.3534, toLng:37.3380,
+    driver:{ name:'Joseph Nkosi',     id:'DL-TZ-2020-08844', license:'HGV Class B', phone:'+255 718 007 007' },
+    authNo:'TA-2026-ARU-001', authExpiry:'2026-12-15', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:17900,
+    vehicleReg:'TZ-HGV-30007', inspExpiry:'2027-04-22',
+    departure:'2026-08-08 05:00', eta:'2026-08-08 07:30',
+    alerts:[] },
+  { id:'BT-008', plate:'T 440 DOD', operator:'Lake Gas',       capacityL:22000, status:'in-transit',  from:'Dodoma Central Depot',         to:'Lake Gas Tabora Plant',           lat:-5.0220, lng:33.9980, speed:58, lastUpdate:'9 min ago',  routePct:51,  fromLat:-6.1730, fromLng:35.7395, toLat:-5.0167, toLng:32.8000,
+    driver:{ name:'Ally Mwampela',    id:'DL-TZ-2019-02293', license:'HGV Class A', phone:'+255 719 008 008' },
+    authNo:'TA-2026-DOD-001', authExpiry:'2026-11-01', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Butane)', loadedQty:21600,
+    vehicleReg:'TZ-HGV-30008', inspExpiry:'2026-12-05',
+    departure:'2026-08-08 04:30', eta:'2026-08-08 12:00',
+    alerts:[] },
+  { id:'BT-009', plate:'T 071 TNG', operator:'Vivo LPG',       capacityL:25000, status:'at-terminal', from:'Tanga Port Terminal',          to:'Vivo LPG Tanga Plant',            lat:-5.0693, lng:39.0997, speed:0,  lastUpdate:'18 min ago', routePct:0,   fromLat:-5.0693, fromLng:39.0997, toLat:-5.0600, toLng:39.0700,
+    driver:{ name:'David Massawe',    id:'DL-TZ-2021-06610', license:'HGV Class B', phone:'+255 720 009 009' },
+    authNo:'TA-2026-TNG-001', authExpiry:'2026-10-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane)', loadedQty:0,
+    vehicleReg:'TZ-HGV-30009', inspExpiry:'2027-02-14',
+    departure:'2026-08-08 11:00', eta:'2026-08-08 11:25',
+    alerts:[] },
+  { id:'BT-010', plate:'T 625 IRG', operator:'Total Energies', capacityL:20000, status:'in-transit',  from:'Dar es Salaam Import Terminal', to:'Total Energies Iringa Depot',     lat:-7.7669, lng:35.6940, speed:66, lastUpdate:'11 min ago', routePct:78,  fromLat:-6.7924, fromLng:39.2083, toLat:-7.7669, toLng:35.6940,
+    driver:{ name:'George Mhina',     id:'DL-TZ-2016-11234', license:'HGV Class A', phone:'+255 721 010 010' },
+    authNo:'TA-2026-DAR-010', authExpiry:'2026-12-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:19800,
+    vehicleReg:'TZ-HGV-30010', inspExpiry:'2027-05-18',
+    departure:'2026-08-08 01:30', eta:'2026-08-08 10:00',
+    alerts:[] },
+  { id:'BT-011', plate:'T 282 MOR', operator:'Shell Gas',      capacityL:18000, status:'loading',     from:'Morogoro Depot',               to:'Shell Gas Dodoma Plant',          lat:-6.8218, lng:37.6595, speed:0,  lastUpdate:'30 min ago', routePct:0,   fromLat:-6.8218, fromLng:37.6595, toLat:-6.1730, toLng:35.7395,
+    driver:{ name:'Rashid Kombo',     id:'DL-TZ-2023-00078', license:'HGV Class B', phone:'+255 722 011 011' },
+    authNo:'TA-2026-MOR-001', authExpiry:'2026-12-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Butane)', loadedQty:9000,
+    vehicleReg:'TZ-HGV-30011', inspExpiry:'2026-10-11',
+    departure:'2026-08-08 12:00', eta:'2026-08-08 15:30',
+    alerts:[] },
+  { id:'BT-012', plate:'T 193 ZNZ', operator:'Lake Gas',       capacityL:15000, status:'delivered',   from:'Zanzibar Port',                to:'Lake Gas Zanzibar Retail Hub',    lat:-6.1659, lng:39.2026, speed:0,  lastUpdate:'45 min ago', routePct:100, fromLat:-6.1500, fromLng:39.3200, toLat:-6.1659, toLng:39.2026,
+    driver:{ name:'Musa Hamad',       id:'DL-TZ-2020-05591', license:'HGV Class B', phone:'+255 723 012 012' },
+    authNo:'TA-2026-ZNZ-001', authExpiry:'2026-12-31', authIssuer:'SUMATRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:14800,
+    vehicleReg:'TZ-HGV-30012', inspExpiry:'2027-07-30',
+    departure:'2026-08-08 06:00', eta:'2026-08-08 07:00',
+    alerts:[] },
 ];
+// Backwards-compat string accessor used in overview cards
+DEMO_BULK_TANKERS.forEach(t => { if (!t.capacity) t.capacity = t.capacityL.toLocaleString() + 'L'; });
 
 const EVENT_LABELS = {
   'registered':          'Cylinder Created & Registered',
@@ -5229,10 +5303,13 @@ async function renderBulkMonitor() {
   const tankerSym      = { 'in-transit':'▶', 'at-terminal':'H', 'delivered':'✓', 'loading':'↑' };
   function statusLbl(s) { return t('status.' + { 'in-transit':'inTransit', 'at-terminal':'atTerminal', 'delivered':'delivered', 'loading':'loading' }[s]) || s; }
 
-  listEl.innerHTML = DEMO_BULK_TANKERS.map(tk => `
-    <li class="network-item" style="cursor:default">
+  listEl.innerHTML = DEMO_BULK_TANKERS.map(tk => {
+    const alertBadge = tk.alerts && tk.alerts.length
+      ? `<span style="margin-left:6px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(239,68,68,.15);color:#ef4444">⚠ ${tk.alerts.length}</span>`
+      : '';
+    return `<li class="network-item" style="cursor:pointer" onclick="openBulkTankDetail('${escapeHtml(tk.id)}')">
       <div class="network-item-header">
-        <span class="network-item-name">${escapeHtml(tk.plate)}</span>
+        <span class="network-item-name">${escapeHtml(tk.plate)}${alertBadge}</span>
         <span class="network-type-badge" style="background:${statusCssColor[tk.status]||'var(--muted)'};color:#fff">${statusLbl(tk.status)}</span>
       </div>
       <div class="network-item-meta">
@@ -5241,7 +5318,8 @@ async function renderBulkMonitor() {
         🚀 ${tk.speed > 0 ? tk.speed + ' km/h · ' : ''}Updated: ${escapeHtml(tk.lastUpdate)}
         ${tk.routePct > 0 && tk.routePct < 100 ? `· <span style="color:var(--blue)">${tk.routePct}% route complete</span>` : ''}
       </div>
-    </li>`).join('');
+    </li>`;
+  }).join('');
 
   const mapEl = $('bulk-map');
   if (!mapEl) return;
@@ -5270,6 +5348,146 @@ async function renderBulkMonitor() {
   ];
   mapEl.innerHTML = buildInteractiveMap('bulkmap', markers, legend, 360);
   initInteractiveMap('bulkmap', markers);
+}
+
+// ── Bullet Tank detail modal ──────────────────────────────────────────────────
+function openBulkTankDetail(id) {
+  const tk = DEMO_BULK_TANKERS.find(t => t.id === id);
+  if (!tk) return;
+
+  const statusCssColor = { 'in-transit':'var(--blue)', 'at-terminal':'var(--amber)', 'delivered':'var(--green)', 'loading':'var(--purple)' };
+  const tankerHexColor = { 'in-transit':'#3b82f6', 'delivered':'#22c55e', 'loading':'#a855f7', 'at-terminal':'#f59e0b' };
+  const statusMap = { 'in-transit':'inTransit', 'at-terminal':'atTerminal', 'delivered':'delivered', 'loading':'loading' };
+  function statusLbl(s) { return t('status.' + statusMap[s]) || s; }
+
+  const fillPct    = tk.capacityL > 0 ? Math.round((tk.loadedQty / tk.capacityL) * 100) : 0;
+  const barColor   = fillPct > 80 ? '#22c55e' : fillPct > 40 ? '#3b82f6' : '#f59e0b';
+  const sColor     = tankerHexColor[tk.status] || '#6b7280';
+  const alertsHtml = tk.alerts && tk.alerts.length
+    ? `<div style="margin-bottom:16px">
+        <div class="passport-section-title">⚠ Alerts</div>
+        ${tk.alerts.map(a => `<div style="padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;font-size:13px;margin-bottom:6px">⚠ ${escapeHtml(a)}</div>`).join('')}
+       </div>`
+    : '';
+
+  function pRow(label, value) {
+    return `<div class="passport-row"><span class="passport-key">${label}</span><span class="passport-value">${value}</span></div>`;
+  }
+
+  $('bulk-detail-body').innerHTML = `
+    <!-- Status header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="font-size:32px">🚛</div>
+      <div>
+        <div style="font-size:20px;font-weight:700">${escapeHtml(tk.plate)}</div>
+        <div style="font-size:13px;color:var(--muted)">${escapeHtml(tk.operator)}</div>
+      </div>
+      <span style="margin-left:auto;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;background:${sColor}22;color:${sColor}">${statusLbl(tk.status)}</span>
+    </div>
+
+    ${alertsHtml}
+
+    <!-- Route progress -->
+    <div class="passport-section-title">📍 Route Progress</div>
+    <div style="background:var(--surface2,#f8fafc);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="color:var(--muted)">🟢 ${escapeHtml(tk.from)}</span>
+        <span style="color:var(--muted)">🔴 ${escapeHtml(tk.to)}</span>
+      </div>
+      <div style="position:relative;height:8px;background:var(--border,#e2e8f0);border-radius:4px;margin-bottom:8px">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${tk.routePct}%;background:${sColor};border-radius:4px;transition:width .4s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px">
+        <span>🕒 Departed: ${escapeHtml(tk.departure)}</span>
+        <span style="font-weight:600;color:${sColor}">${tk.routePct}% complete</span>
+        <span>ETA: ${escapeHtml(tk.eta)}</span>
+      </div>
+      ${tk.speed > 0 ? `<div style="margin-top:6px;color:var(--muted);font-size:12px">⚡ Current speed: ${tk.speed} km/h · Last update: ${escapeHtml(tk.lastUpdate)}</div>` : `<div style="margin-top:6px;color:var(--muted);font-size:12px">Last update: ${escapeHtml(tk.lastUpdate)}</div>`}
+    </div>
+
+    <!-- Route map -->
+    <div class="passport-section-title">🗺 Route Map</div>
+    <div id="bulk-detail-map" style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid var(--border)"></div>
+
+    <!-- Transport Authorization -->
+    <div class="passport-section-title">📋 Transport Authorization</div>
+    ${pRow('Authorization No.', `<strong style="font-family:var(--font-mono);font-size:12px">${escapeHtml(tk.authNo)}</strong>`)}
+    ${pRow('Issuing Authority', escapeHtml(tk.authIssuer))}
+    ${pRow('Valid Until', escapeHtml(tk.authExpiry))}
+    ${pRow('Operator', escapeHtml(tk.operator))}
+
+    <!-- Cargo / Content -->
+    <div class="passport-section-title" style="margin-top:16px">🛢 Cargo Details</div>
+    ${pRow('Product', escapeHtml(tk.product))}
+    ${pRow('Quantity Loaded', `${tk.loadedQty.toLocaleString()} L`)}
+    ${pRow('Tank Capacity', `${tk.capacityL.toLocaleString()} L`)}
+    <div style="padding:6px 0 12px">
+      <div style="position:relative;height:12px;background:var(--border,#e2e8f0);border-radius:6px;overflow:hidden">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${fillPct}%;background:${barColor};border-radius:6px;transition:width .4s"></div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px">${fillPct}% full</div>
+    </div>
+
+    <!-- Driver -->
+    <div class="passport-section-title">👤 Driver Information</div>
+    ${pRow('Full Name', escapeHtml(tk.driver.name))}
+    ${pRow('Driver ID', `<span class="passport-value mono">${escapeHtml(tk.driver.id)}</span>`)}
+    ${pRow('License Class', escapeHtml(tk.driver.license))}
+    ${pRow('Contact', escapeHtml(tk.driver.phone))}
+
+    <!-- Vehicle -->
+    <div class="passport-section-title" style="margin-top:16px">🚚 Vehicle Details</div>
+    ${pRow('Plate No.', `<strong>${escapeHtml(tk.plate)}</strong>`)}
+    ${pRow('Registration No.', `<span class="passport-value mono">${escapeHtml(tk.vehicleReg)}</span>`)}
+    ${pRow('Tank Capacity', `${tk.capacityL.toLocaleString()} L`)}
+    ${pRow('Inspection Valid Until', escapeHtml(tk.inspExpiry))}
+  `;
+
+  openModal('modal-bulk-detail');
+
+  // Route map: from → current → to with polyline
+  requestAnimationFrame(() => {
+    const mapEl = $('bulk-detail-map');
+    if (!mapEl) return;
+    mapEl.innerHTML = buildInteractiveMap('bkdet', [], [], 280);
+    requestAnimationFrame(() => {
+      const el = document.getElementById('bkdet_lmap');
+      if (!el || typeof L === 'undefined') return;
+      const prev = _leafletMaps.get('bkdet');
+      if (prev) { prev.remove(); _leafletMaps.delete('bkdet'); }
+
+      const map = L.map('bkdet_lmap', { zoomControl: true, attributionControl: false });
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+      // Completed route segment (blue solid)
+      if (tk.routePct > 0) {
+        L.polyline([[tk.fromLat, tk.fromLng], [tk.lat, tk.lng]], { color: sColor, weight: 4, opacity: 0.85 }).addTo(map);
+      }
+      // Remaining route segment (dashed grey)
+      if (tk.routePct < 100) {
+        L.polyline([[tk.lat, tk.lng], [tk.toLat, tk.toLng]], { color: '#94a3b8', weight: 3, opacity: 0.6, dashArray: '8 6' }).addTo(map);
+      }
+
+      // Origin marker (green)
+      L.circleMarker([tk.fromLat, tk.fromLng], { radius: 9, fillColor: '#22c55e', color: '#fff', weight: 2.5, fillOpacity: 0.95 })
+        .bindTooltip(`🟢 Origin: ${tk.from}`, { direction: 'top' }).addTo(map);
+
+      // Destination marker (red)
+      L.circleMarker([tk.toLat, tk.toLng], { radius: 9, fillColor: '#ef4444', color: '#fff', weight: 2.5, fillOpacity: 0.95 })
+        .bindTooltip(`🔴 Destination: ${tk.to}`, { direction: 'top' }).addTo(map);
+
+      // Current position (status colour, larger, pulse for in-transit)
+      const cur = L.circleMarker([tk.lat, tk.lng], { radius: 13, fillColor: sColor, color: '#fff', weight: 3, fillOpacity: 0.95 })
+        .bindPopup(`<b>🚛 ${escapeHtml(tk.plate)}</b><br>${escapeHtml(tk.operator)}<br>${statusLbl(tk.status)}<br>${tk.speed > 0 ? '⚡ ' + tk.speed + ' km/h' : ''}`, { maxWidth: 200 })
+        .addTo(map);
+      if (tk.status === 'in-transit') {
+        L.circleMarker([tk.lat, tk.lng], { radius: 23, fillColor: 'transparent', color: sColor, weight: 2, opacity: 0.4, className: 'imap-pulse-ring' }).addTo(map);
+      }
+
+      map.fitBounds([[tk.fromLat, tk.fromLng], [tk.toLat, tk.toLng]], { padding: [30, 30], maxZoom: 10 });
+      _leafletMaps.set('bkdet', map);
+    });
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
