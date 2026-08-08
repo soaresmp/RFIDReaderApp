@@ -755,14 +755,26 @@
           </div>
         </div><!-- /view-mgmt-reports -->
 
-        <!-- ── LICENSES VIEW (EWURA only) ─────────────────────────────── -->
+        <!-- ── NETWORK & LICENSES VIEW (EWURA only) ──────────────────── -->
         <div id="view-licenses" class="view">
           <div class="page-header">
-            <h2 class="page-title" data-i18n="page.licenses">📋 Licenses</h2>
+            <h2 class="page-title">📋 Network &amp; Licenses</h2>
             <div class="page-actions">
               <button id="issue-license-btn" class="btn btn-primary" type="button" data-i18n="lic.issueViewBtn">+ Issue License</button>
             </div>
           </div>
+          <!-- Status tab strip -->
+          <div class="orders-subtabs" style="margin-bottom:12px">
+            <button class="orders-subtab active" data-lic-status="">All</button>
+            <button class="orders-subtab" data-lic-status="pending">Pending</button>
+            <button class="orders-subtab" data-lic-status="active">Active</button>
+            <button class="orders-subtab" data-lic-status="expired">Expired</button>
+            <button class="orders-subtab" data-lic-status="suspended">Suspended</button>
+            <button class="orders-subtab" data-lic-status="revoked">Revoked</button>
+            <button class="orders-subtab" data-lic-status="rejected">Rejected</button>
+          </div>
+          <!-- Network map -->
+          <div id="licenses-map-pane" style="margin-bottom:16px"><div id="licenses-network-map"></div></div>
           <div class="view-toolbar">
             <input id="lic-search" type="search" class="search-input" data-i18n-placeholder="lic.searchPlh" placeholder="Search company…" />
             <div class="filter-row">
@@ -772,12 +784,7 @@
                 <option value="Revalidator" data-i18n="word.revalidator">Revalidator</option>
                 <option value="Distributor" data-i18n="net.distributor">Distributor</option>
                 <option value="Retailer" data-i18n="net.retailer">Retailer</option>
-              </select>
-              <select id="lic-filter-status" class="filter-select">
-                <option value="" data-i18n="word.allStatuses">All statuses</option>
-                <option value="active" data-i18n="word.active">Active</option>
-                <option value="suspended" data-i18n="status.suspended">Suspended</option>
-                <option value="expired" data-i18n="status.expired">Expired</option>
+                <option value="Cylinder Producer">Cylinder Producer</option>
               </select>
             </div>
           </div>
@@ -1076,6 +1083,9 @@
         <!-- Injected by JS -->
       </div>
       <div class="modal-footer">
+        <button id="lic-detail-approve-btn" class="btn btn-primary" type="button" style="display:none">✓ Approve</button>
+        <button id="lic-detail-reject-btn" class="btn btn-danger" type="button" style="display:none">✕ Reject</button>
+        <button id="lic-detail-inspect-btn" class="btn btn-outline" type="button" style="display:none">🔍 Inspect</button>
         <button id="lic-detail-revoke-btn" class="btn btn-danger" type="button" style="display:none" data-i18n="lic.revoke">Revoke License</button>
         <button id="lic-detail-renew-btn" class="btn btn-primary" type="button" style="display:none" data-i18n="lic.renew">Renew License</button>
         <button class="btn btn-outline" data-close="modal-license-detail" type="button" data-i18n="word.close">Close</button>

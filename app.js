@@ -817,7 +817,7 @@ const ROLE_EVENTS = {
 const ROLE_TABS = {
   lpgmc:              ['reports', 'cylinders', 'orders', 'network', 'alerts', 'mgmt-reports'],
   revalidator:        ['reports', 'scan', 'cylinders'],
-  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'orders', 'mgmt-reports', 'network', 'bulk-monitor'],
+  ewura:              ['reports', 'cylinders', 'alerts', 'inspections', 'recalls', 'licenses', 'orders', 'mgmt-reports', 'bulk-monitor'],
   'field-auditor':    ['reports', 'scan', 'cylinders'],
   tra:                ['reports', 'scan', 'cylinders'],
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
@@ -1298,7 +1298,6 @@ const mgmtFilterMonth  = $('mgmt-filter-month');
 // Licenses view
 const licSearch        = $('lic-search');
 const licFilterType    = $('lic-filter-type');
-const licFilterStatus  = $('lic-filter-status');
 const issueLicenseBtn  = $('issue-license-btn');
 const licensesList     = $('licenses-list');
 const licensesEmpty    = $('licenses-empty');
@@ -4408,38 +4407,112 @@ if (mgmtGrid) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 let _licensesData = [];
+let _licStatusTab = ''; // active status tab filter
 
 async function renderLicenses() {
   if (!Auth.can('license')) return;
   _licensesData = await txGetAll('licenses');
+
+  // Wire status tab buttons (idempotent)
+  const licView = $('view-licenses');
+  if (licView && !licView.dataset.tabsReady) {
+    licView.dataset.tabsReady = '1';
+    licView.querySelectorAll('[data-lic-status]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        licView.querySelectorAll('[data-lic-status]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        _licStatusTab = btn.dataset.licStatus;
+        applyLicenseFilters();
+      });
+    });
+  }
+
+  // Build network map — one marker per licensed operator with known coordinates
+  const mapEl = $('licenses-network-map');
+  if (mapEl) {
+    const [allCylsM, allEvsM] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+    const lastEvM = {};
+    allEvsM.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .forEach(ev => { lastEvM[ev.cylinderId] = ev; });
+
+    const licMarkers = [];
+    _licensesData.forEach(lic => {
+      const netEntry  = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === lic.companyName);
+      const lpgmcInfo = (_activeCountry === 'KE' ? DEMO_LPGMC_INFO_KE : DEMO_LPGMC_INFO)[lic.companyName];
+      const info = netEntry || lpgmcInfo;
+      if (!info || info.lat == null) return;
+      const markerColor = lic.status === 'active' ? '#22c55e'
+                        : lic.status === 'pending' ? '#f59e0b'
+                        : (lic.status === 'revoked' || lic.status === 'rejected') ? '#ef4444'
+                        : '#94a3b8';
+      let cylCount = 0;
+      if (netEntry) {
+        allCylsM.filter(c => c.status === 'in-circulation').forEach(c => {
+          const ev = lastEvM[c.id];
+          if (ev && (ev.location || ev.company || '') === netEntry.name) cylCount++;
+        });
+      } else {
+        cylCount = allCylsM.filter(c => c.company === lic.companyName).length;
+      }
+      licMarkers.push({
+        lat: info.lat, lng: info.lng,
+        color: markerColor,
+        pulse: lic.status !== 'active',
+        tooltip: `${lic.companyName} · ${lic.companyType} · ${lic.status}`,
+        detailHtml: `<div style="min-width:190px;font-size:13px">
+          <div style="font-weight:700;margin-bottom:4px">${escapeHtml(lic.companyName)}</div>
+          <div style="margin-bottom:3px">🏷 ${escapeHtml(lic.companyType)}</div>
+          <div style="margin-bottom:3px">📋 ${escapeHtml(lic.licenseNumber)}</div>
+          <div style="margin-bottom:3px;color:${markerColor};font-weight:600">${escapeHtml(lic.status)}</div>
+          <div>📍 ${escapeHtml(info.city || info.region || '—')} · 🔥 ${cylCount} cylinders</div>
+        </div>`,
+      });
+    });
+    const licMapLegend = [
+      { color: '#22c55e', label: 'Active' },
+      { color: '#f59e0b', label: 'Pending' },
+      { color: '#ef4444', label: 'Revoked / Rejected' },
+      { color: '#94a3b8', label: 'Expired / Suspended' },
+    ];
+    mapEl.innerHTML = buildInteractiveMap('licnet-map', licMarkers, licMapLegend, 280);
+    initInteractiveMap('licnet-map', licMarkers);
+  }
+
   applyLicenseFilters();
 }
 
 function applyLicenseFilters() {
-  const q      = licSearch.value.toLowerCase().trim();
-  const typeF  = licFilterType.value;
-  const statF  = licFilterStatus.value;
+  const q     = licSearch.value.toLowerCase().trim();
+  const typeF = licFilterType.value;
+  const statF = _licStatusTab;
 
   let data = _licensesData;
-  if (q)      data = data.filter(l => l.companyName.toLowerCase().includes(q) || l.licenseNumber.toLowerCase().includes(q));
-  if (typeF)  data = data.filter(l => l.companyType === typeF);
-  if (statF)  data = data.filter(l => l.status === statF);
+  if (q)     data = data.filter(l => l.companyName.toLowerCase().includes(q) || l.licenseNumber.toLowerCase().includes(q));
+  if (typeF) data = data.filter(l => l.companyType === typeF);
+  if (statF) data = data.filter(l => l.status === statF);
 
   licensesList.innerHTML = '';
   if (!data.length) { licensesEmpty.style.display = ''; return; }
   licensesEmpty.style.display = 'none';
 
+  const NET = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+  const LPGMC_INFO = _activeCountry === 'KE' ? DEMO_LPGMC_INFO_KE : DEMO_LPGMC_INFO;
+
   data.forEach(lic => {
+    const info = NET.find(n => n.name === lic.companyName) || LPGMC_INFO[lic.companyName];
+    const sidebarClass = lic.status === 'active' ? 'bar-green'
+                       : lic.status === 'pending' ? 'bar-amber'
+                       : 'bar-red';
     const li = document.createElement('li');
     li.className = 'license-item';
     li.dataset.licId = lic.id;
     li.style.cursor = 'pointer';
     li.innerHTML = `
-      <span class="lic-side-bar ${lic.status === 'active' ? 'bar-green' : 'bar-red'}"></span>
+      <span class="lic-side-bar ${sidebarClass}"></span>
       <div class="license-body">
         <div class="license-company">${escapeHtml(lic.companyName)}</div>
         <div class="license-number">${escapeHtml(lic.licenseNumber)}</div>
-        <div class="license-dates">Issued: ${formatDate(lic.issuedDate)} · Expires: ${formatDate(lic.expiryDate)}</div>
+        <div class="license-dates">${info ? `📍 ${escapeHtml(info.city || info.region || '—')} · ` : ''}Issued: ${formatDate(lic.issuedDate)} · Expires: ${formatDate(lic.expiryDate)}</div>
       </div>
       <div class="license-badges">
         <span class="type-chip type-${escapeHtml(lic.companyType)}">${escapeHtml(lic.companyType)}</span>
@@ -4449,9 +4522,8 @@ function applyLicenseFilters() {
   });
 }
 
-licSearch.addEventListener('input',         applyLicenseFilters);
-licFilterType.addEventListener('change',    applyLicenseFilters);
-licFilterStatus.addEventListener('change',  applyLicenseFilters);
+licSearch.addEventListener('input',      applyLicenseFilters);
+licFilterType.addEventListener('change', applyLicenseFilters);
 
 licensesList.addEventListener('click', (e) => {
   const item = e.target.closest('.license-item[data-lic-id]');
@@ -4555,7 +4627,51 @@ async function openLicenseDetailModal(licId) {
     ? _licInspEvs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0].timestamp.slice(0, 10)
     : null;
 
-  const statusColor = lic.status === 'active' ? 'var(--green)' : lic.status === 'revoked' ? 'var(--red)' : lic.status === 'expired' ? 'var(--amber)' : 'var(--muted)';
+  const statusColor = lic.status === 'active'   ? 'var(--green)'
+                    : lic.status === 'revoked'  ? 'var(--red)'
+                    : lic.status === 'expired'  ? 'var(--amber)'
+                    : lic.status === 'pending'  ? 'var(--amber)'
+                    : lic.status === 'rejected' ? 'var(--red)'
+                    : 'var(--muted)';
+
+  // Monthly sales chart (for distributor / retailer types)
+  const isNetPartner = !!netEntry;
+  let salesChartHtml = '';
+  if (isNetPartner) {
+    const chartYear = new Date().getFullYear();
+    const partnerSales = allEvsL.filter(ev => ev.type === 'ret-sold' && ev.company === lic.companyName);
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthlyCounts = Array.from({ length: 12 }, (_, i) => ({
+      label: MONTH_NAMES[i],
+      count: partnerSales.filter(ev => {
+        const d = new Date(ev.timestamp);
+        return d.getFullYear() === chartYear && d.getMonth() === i;
+      }).length,
+    }));
+    const maxCount = Math.max(...monthlyCounts.map(m => m.count), 1);
+    salesChartHtml = `
+      <div class="passport-section-title" style="margin-top:16px">Sales by Month (${chartYear})</div>
+      <div class="v-chart" style="margin-top:8px">
+        ${monthlyCounts.map(m => {
+          const pct = Math.round((m.count / maxCount) * 100);
+          return `<div class="v-chart-col">
+            <div class="v-chart-bar-wrap">
+              <div class="v-chart-bar" style="height:${pct}%;background:var(--blue)">
+                ${m.count ? `<span class="v-chart-val">${m.count}</span>` : ''}
+              </div>
+            </div>
+            <div class="v-chart-label">${m.label}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // Cylinder list section (EWURA only, injected as static HTML — populated by JS after innerHTML)
+  const isEwura = Auth.session?.role === 'ewura';
+  const cylListHtml = isEwura ? `
+    <div class="passport-section-title" style="margin-top:16px">Cylinders in Stock</div>
+    <ul id="lic-stock-list" style="list-style:none;padding:0;margin:0;border:1px solid var(--border);border-radius:8px;overflow:hidden"></ul>
+    <div id="lic-cyl-pagination" style="padding:6px 0"></div>` : '';
 
   detailBody.innerHTML = `
     <div class="passport-section-title">${t('license.details')}</div>
@@ -4566,21 +4682,68 @@ async function openLicenseDetailModal(licId) {
     <div class="passport-row"><span class="passport-key">${t('license.expires')}</span><span class="passport-value">${formatDate(lic.expiryDate)}</span></div>
     <div class="passport-row"><span class="passport-key">Last Inspection</span><span class="passport-value">${_licLastInspDate ? formatDate(_licLastInspDate) : '—'}</span></div>
     <div class="passport-row"><span class="passport-key">${t('license.status')}</span><span class="passport-value" style="color:${statusColor};font-weight:600">${escapeHtml(lic.status)}</span></div>
-    <div class="passport-row"><span class="passport-key">Last Inspection</span><span class="passport-value">${lastInspDate}</span></div>
     ${locationHtml}
     ${stockHtml}
+    ${salesChartHtml}
+    ${cylListHtml}
     ${historyHtml}`;
 
-  // Show/hide revoke & renew buttons for EWURA
-  const revokeBtn = $('lic-detail-revoke-btn');
-  const renewBtn  = $('lic-detail-renew-btn');
-  const isEwura   = Auth.session?.role === 'ewura';
-  if (revokeBtn) revokeBtn.style.display = isEwura && lic.status !== 'revoked' ? '' : 'none';
-  if (renewBtn)  renewBtn.style.display  = isEwura && (lic.status === 'revoked' || lic.status === 'expired') ? '' : 'none';
+  // Populate cylinder list for EWURA
+  if (isEwura && netEntry) {
+    const inStockLic = allCylsL.filter(c => {
+      const ev = lastEvL[c.id];
+      return ev && (ev.location || ev.company) === netEntry.name;
+    }).sort((a, b) => a.serial.localeCompare(b.serial));
+    const PAGE_STOCK_LIC = 8;
+    let _licStockPage = 1;
+    function _renderLicStockList() {
+      const ul = $('lic-stock-list');
+      if (!ul) return;
+      const page = inStockLic.slice((_licStockPage-1)*PAGE_STOCK_LIC, _licStockPage*PAGE_STOCK_LIC);
+      if (!page.length) {
+        ul.innerHTML = '<li style="padding:10px;color:var(--muted);font-size:13px">No cylinders currently in stock at this location.</li>';
+      } else {
+        ul.innerHTML = page.map(c => {
+          const ev = lastEvL[c.id];
+          const daysAgo = ev ? Math.floor((Date.now() - new Date(ev.timestamp)) / 86400000) : '?';
+          const alertBadge = _alertsData.some(a => a.cylinder?.id === c.id) ? '<span style="color:var(--amber);font-size:11px;margin-left:6px">⚠ Alert</span>' : '';
+          return `<li style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div>
+              <span class="font-mono" style="font-size:13px;font-weight:600">${escapeHtml(c.serial)}</span>${alertBadge}
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">${escapeHtml(c.id.slice(-8))} · ${escapeHtml(c.company)} · ${daysAgo}d ago</div>
+            </div>
+            <span class="cylinder-status-dot ${c.status === 'in-circulation' ? 'dot-blue' : 'dot-grey'}"></span>
+          </li>`;
+        }).join('');
+      }
+      renderPagination('lic-cyl-pagination', inStockLic.length, _licStockPage, PAGE_STOCK_LIC, p => { _licStockPage = p; _renderLicStockList(); });
+    }
+    _renderLicStockList();
+
+    // Wire inspect button
+    const licInspBtn = $('lic-detail-inspect-btn');
+    if (licInspBtn) {
+      licInspBtn.style.display = '';
+      licInspBtn.onclick = () => openInspectModal(netEntry, inStockLic, lastEvL);
+    }
+  } else {
+    const licInspBtn = $('lic-detail-inspect-btn');
+    if (licInspBtn) licInspBtn.style.display = 'none';
+  }
+
+  // Show/hide action buttons for EWURA
+  const revokeBtn  = $('lic-detail-revoke-btn');
+  const renewBtn   = $('lic-detail-renew-btn');
+  const approveBtn = $('lic-detail-approve-btn');
+  const rejectBtn  = $('lic-detail-reject-btn');
+  if (revokeBtn)  revokeBtn.style.display  = isEwura && lic.status !== 'revoked' && lic.status !== 'rejected' && lic.status !== 'pending' ? '' : 'none';
+  if (renewBtn)   renewBtn.style.display   = isEwura && (lic.status === 'revoked' || lic.status === 'expired') ? '' : 'none';
+  if (approveBtn) approveBtn.style.display = isEwura && lic.status === 'pending' ? '' : 'none';
+  if (rejectBtn)  rejectBtn.style.display  = isEwura && lic.status === 'pending' ? '' : 'none';
 
   openModal('modal-license-detail');
 
-  if (infoEntry) {
+  if (infoEntry?.lat != null) {
     requestAnimationFrame(() => {
       const mapEl = $('license-detail-map');
       if (mapEl) mapEl.innerHTML = buildOsmEmbed(infoEntry.lat, infoEntry.lng);
@@ -4600,9 +4763,8 @@ $('lic-detail-revoke-btn')?.addEventListener('click', async () => {
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
   _licensesData[idx].history.push({ type: 'revoked', date: today, by: Auth.session?.company || 'EWURA', note: 'License revoked by EWURA' });
   await txPut('licenses', _licensesData[idx]);
-  // Mark associated network entry inactive
-  const netEntry = DEMO_NETWORK.find(n => n.name === _licensesData[idx].companyName);
-  if (netEntry) netEntry.status = 'inactive';
+  const netEntryRev = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
+  if (netEntryRev) netEntryRev.status = 'inactive';
   showSnackbar('License revoked. Company set to inactive.', 'error');
   renderLicenses();
   await openLicenseDetailModal(_licDetailCurrentId);
@@ -4620,9 +4782,42 @@ $('lic-detail-renew-btn')?.addEventListener('click', async () => {
   if (!_licensesData[idx].history) _licensesData[idx].history = [];
   _licensesData[idx].history.push({ type: 'renewed', date: today, by: Auth.session?.company || 'EWURA', note: `License renewed. New expiry: ${newExpiry.toISOString().slice(0, 10)}` });
   await txPut('licenses', _licensesData[idx]);
-  const netEntry = DEMO_NETWORK.find(n => n.name === _licensesData[idx].companyName);
-  if (netEntry) netEntry.status = 'active';
+  const netEntryR = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
+  if (netEntryR) netEntryR.status = 'active';
   showSnackbar('License renewed for 3 years.', 'success');
+  renderLicenses();
+  await openLicenseDetailModal(_licDetailCurrentId);
+});
+
+// License detail: Approve pending application
+$('lic-detail-approve-btn')?.addEventListener('click', async () => {
+  if (!_licDetailCurrentId) return;
+  const idx = _licensesData.findIndex(l => l.id === _licDetailCurrentId);
+  if (idx < 0) return;
+  const today = new Date().toISOString().slice(0, 10);
+  _licensesData[idx].status = 'active';
+  if (!_licensesData[idx].issuedDate) _licensesData[idx].issuedDate = today;
+  if (!_licensesData[idx].history) _licensesData[idx].history = [];
+  _licensesData[idx].history.push({ type: 'granted', date: today, by: Auth.session?.company || 'EWURA', note: 'License application approved' });
+  await txPut('licenses', _licensesData[idx]);
+  const netEntryA = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === _licensesData[idx].companyName);
+  if (netEntryA) netEntryA.status = 'active';
+  showSnackbar('License approved and granted.', 'success');
+  renderLicenses();
+  await openLicenseDetailModal(_licDetailCurrentId);
+});
+
+// License detail: Reject pending application
+$('lic-detail-reject-btn')?.addEventListener('click', async () => {
+  if (!_licDetailCurrentId) return;
+  const idx = _licensesData.findIndex(l => l.id === _licDetailCurrentId);
+  if (idx < 0) return;
+  const today = new Date().toISOString().slice(0, 10);
+  _licensesData[idx].status = 'rejected';
+  if (!_licensesData[idx].history) _licensesData[idx].history = [];
+  _licensesData[idx].history.push({ type: 'rejected', date: today, by: Auth.session?.company || 'EWURA', note: 'License application rejected' });
+  await txPut('licenses', _licensesData[idx]);
+  showSnackbar('License application rejected.', 'error');
   renderLicenses();
   await openLicenseDetailModal(_licDetailCurrentId);
 });

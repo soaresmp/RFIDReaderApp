@@ -1097,6 +1097,7 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 }
 .bar-green { background: var(--green); }
 .bar-red   { background: var(--red); }
+.bar-amber { background: var(--amber); }
 .license-item:last-child { border-bottom: none; }
 
 .license-body { flex: 1; min-width: 0; }
@@ -1124,9 +1125,12 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
   font-size: 11px;
   font-weight: 600;
 }
-.lic-active    { background: rgba(16,185,129,0.15); color: var(--green); }
-.lic-suspended { background: rgba(245,158,11,0.15); color: var(--amber); }
-.lic-expired   { background: rgba(239,68,68,0.15);  color: var(--red); }
+.lic-active    { background: rgba(16,185,129,0.15);  color: var(--green); }
+.lic-suspended { background: rgba(245,158,11,0.15);  color: var(--amber); }
+.lic-expired   { background: rgba(239,68,68,0.15);   color: var(--red); }
+.lic-pending   { background: rgba(245,158,11,0.15);  color: var(--amber); }
+.lic-rejected  { background: rgba(239,68,68,0.15);   color: var(--red); }
+.lic-revoked   { background: rgba(239,68,68,0.15);   color: var(--red); }
 
 /* ── Shared list helpers ──────────────────────────────────────────────────── */
 .list-empty {
