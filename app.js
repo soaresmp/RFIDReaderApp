@@ -1434,8 +1434,10 @@ function selectRole(role) {
     loginCompSel.innerHTML = rets.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
     loginCompSel.style.display = '';
   } else if (role === 'cylinder-producer') {
-    loginCompText.placeholder = 'e.g. Tageos RFID Solutions';
-    loginCompText.style.display = '';
+    loginCompSel.innerHTML = CYLINDER_MANUFACTURERS.map(m =>
+      `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)} (${escapeHtml(m.country)})</option>`
+    ).join('');
+    loginCompSel.style.display = '';
   } else {
     loginCompText.placeholder = role === 'tra'           ? 'TRA'
       : role === 'revalidator'   ? 'e.g. ProRevalid Ltd'
@@ -1471,7 +1473,7 @@ loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!_selectedRole) return;
 
-  const useSelect = ['lpgmc', 'distributor', 'retailer'].includes(_selectedRole);
+  const useSelect = ['lpgmc', 'distributor', 'retailer', 'cylinder-producer'].includes(_selectedRole);
   const company = useSelect ? loginCompSel.value.trim() : loginCompText.value.trim();
 
   if (!company) { showSnackbar('Please enter a company name.', 'error'); return; }
@@ -1949,27 +1951,60 @@ exportEventsBtn.addEventListener('click', () => {
 // REGISTER CYLINDER MODAL
 // ══════════════════════════════════════════════════════════════════════════════
 
-function openRegisterModal(tagId) {
-  const company = Auth.session ? Auth.session.company : '';
+async function openRegisterModal(tagId) {
+  const session = Auth.session;
+  const company = session ? session.company : '';
+  const role    = session ? session.role : '';
+  const isCylProd = role === 'cylinder-producer';
   const today   = new Date().toISOString().slice(0, 10);
-  regTag.value            = tagId || '';
-  regSerial.value         = '';
-  regBrandName.value      = company;
-  regManufacturer.value   = company;
-  regProductName.value    = 'LPG';
-  regManufDate.value      = today;
-  regRequalDate.value     = '';
-  regRequalPlant.value    = '';
-  regTare.value           = '14.5';
-  regNetWeight.value      = '12';
-  regPressureTest.value   = '';
-  regHydrotest.value      = today;
-  regNotes.value          = '';
+
+  regTag.value          = tagId || '';
+  regSerial.value       = '';
+  regProductName.value  = 'LPG';
+  regManufDate.value    = today;
+  regRequalDate.value   = '';
+  regRequalPlant.value  = '';
+  regTare.value         = '14.5';
+  regNetWeight.value    = '12';
+  regPressureTest.value = '';
+  regHydrotest.value    = today;
+  regNotes.value        = '';
+
+  // Producer section: LPGMC + approved tag order selectors
+  const prodSection = $('reg-producer-section');
+  if (prodSection) prodSection.style.display = isCylProd ? '' : 'none';
+
+  if (isCylProd) {
+    // Cylinder producer fills manufacturer; LPGMC comes from order selection
+    regManufacturer.value = company;
+    regBrandName.value    = '';
+
+    const lpgmcList = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+    const regLpgmc = $('reg-lpgmc');
+    regLpgmc.innerHTML = `<option value="">— Select LPGMC —</option>` +
+      lpgmcList.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+    const allOrders = await txGetAll('tag-orders');
+    const approvedOrders = allOrders.filter(o => o.country === _activeCountry && o.status === 'approved');
+
+    const regTagOrd = $('reg-tag-order');
+    function _populateOrders(lpgmc) {
+      const filtered = lpgmc ? approvedOrders.filter(o => o.lpgmc === lpgmc) : [];
+      regTagOrd.innerHTML = `<option value="">— Select approved order —</option>` +
+        filtered.map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.id)} · ${(o.quantity||0).toLocaleString()} tags · ${o.cylinderSize||''}</option>`).join('');
+    }
+    _populateOrders('');
+    regLpgmc.onchange = () => {
+      _populateOrders(regLpgmc.value);
+      regBrandName.value = regLpgmc.value;
+    };
+  } else {
+    regBrandName.value    = company;
+    regManufacturer.value = company;
+  }
+
   openModal('modal-register');
-  // Focus RFID tag input on open; if tag already supplied, go straight to serial
-  setTimeout(() => {
-    if (tagId) { regSerial.focus(); } else { regTag.focus(); }
-  }, 80);
+  setTimeout(() => { if (tagId) { regSerial.focus(); } else { regTag.focus(); } }, 80);
 }
 
 // "+ Register" button in cylinders view header (LPGMC only)
@@ -2007,11 +2042,23 @@ regSubmitBtn.addEventListener('click', async () => {
     showSnackbar('Serial number already exists.', 'error'); return;
   }
 
+  const isCylProd = Auth.session?.role === 'cylinder-producer';
+  let cylCompany = Auth.session.company;
+  let tagOrderId = null;
+  if (isCylProd) {
+    const selLpgmc = $('reg-lpgmc')?.value || '';
+    const selOrder = $('reg-tag-order')?.value || '';
+    if (!selLpgmc) { showSnackbar('Please select an LPGMC.', 'error'); return; }
+    if (!selOrder) { showSnackbar('Please select an approved tag order.', 'error'); return; }
+    cylCompany = selLpgmc;
+    tagOrderId = selOrder;
+  }
+
   const cyl = {
     // Use RFID tag as document ID when available; null lets Firestore auto-generate
     id:                tagId || null,
     serial:            serial,
-    company:           Auth.session.company,
+    company:           cylCompany,
     ownerBrandName:    regBrandName.value.trim(),
     manufacturer:      regManufacturer.value.trim(),
     productName:       regProductName.value.trim(),
@@ -2026,6 +2073,7 @@ regSubmitBtn.addEventListener('click', async () => {
     lastHydroTest:     regHydrotest.value,
     status:            'in-refill',
     notes:             regNotes.value.trim(),
+    ...(tagOrderId ? { tagOrderId, producedBy: Auth.session.company } : {}),
   };
 
   try {

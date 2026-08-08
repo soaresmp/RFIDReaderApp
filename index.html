@@ -913,6 +913,23 @@
         <button class="modal-close" data-close="modal-register" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
+        <!-- Shown only for Cylinder Producer role -->
+        <div id="reg-producer-section" style="display:none">
+          <div class="form-section-title">Order Reference</div>
+          <div class="form-group">
+            <label>LPGMC (Customer)</label>
+            <select id="reg-lpgmc" class="form-control">
+              <option value="">— Select LPGMC —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Approved Tag Order</label>
+            <select id="reg-tag-order" class="form-control">
+              <option value="">— Select approved order —</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-section-title">RFID &amp; Serial</div>
         <div class="form-group">
           <label>RFID Tag</label>
