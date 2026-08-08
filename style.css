@@ -1890,19 +1890,31 @@ body.nav-open .nav-backdrop { display: block; }
   :root { --content-pad: 14px; --header-h: 52px; }
 
   /* ── Header ── */
-  #app-header { padding: 0 12px; }
-  .header-left h1 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+  #app-header {
+    padding: 0 12px;
+    /* account for iOS notch / status-bar safe area */
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+  }
+  .header-left h1 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
   .subtitle { display: none; }
   .hamburger-btn { display: flex; }
   #status-badge { display: none !important; }
   .header-operator-pill { display: none !important; }
+  /* hide role badge in header on mobile — saves space and avoids overflow */
+  #header-role-badge { display: none !important; }
 
-  /* ── Sidebar drawer ── */
+  /* ── main-area top padding must match real header height ── */
+  #main-area { padding-top: calc(var(--header-h) + env(safe-area-inset-top, 0px)); }
+
+  /* ── Sidebar drawer: anchor to top:0 so it's never clipped by header ── */
   #app-sidebar {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     z-index: 200;
-    top: var(--header-h);
+    top: 0;
+    /* push nav items below the full header (including safe area) */
+    padding-top: calc(var(--header-h) + env(safe-area-inset-top, 0px));
     width: min(260px, 80vw);
     box-shadow: 4px 0 24px rgba(0,0,0,0.4);
   }

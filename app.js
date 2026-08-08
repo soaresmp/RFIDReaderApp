@@ -794,7 +794,7 @@ const ROLE_TABS = {
   tra:                ['reports', 'scan', 'cylinders'],
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
   retailer:           ['reports', 'cylinders', 'mgmt-reports'],
-  'cylinder-producer':['orders', 'cylinders'],
+  'cylinder-producer':['orders'],
 };
 
 const ROLE_LABELS = {
@@ -1506,10 +1506,13 @@ function applySession() {
   // Company filter: hide for LPGMC (they see only own)
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
 
-  // Register button: LPGMC and Cylinder Producer
+  // Register button: LPGMC only (cylinder-producer uses button on Orders page)
   if (registerCylBtn) {
-    registerCylBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
+    registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
   }
+  // Register Cylinder button on Orders page: cylinder-producer only
+  const _ordersRegBtn = $('orders-register-cyl-btn');
+  if (_ordersRegBtn) _ordersRegBtn.style.display = s.role === 'cylinder-producer' ? '' : 'none';
 
   // Tag/stamp order buttons: LPGMC only
   const _tagOrderBtn = $('tag-order-place-btn');
@@ -2016,6 +2019,8 @@ async function openRegisterModal(tagId, openInBatchMode) {
 if (registerCylBtn) {
   registerCylBtn.addEventListener('click', () => openRegisterModal('', false));
 }
+// Register Cylinder button on Orders page (cylinder-producer)
+$('orders-register-cyl-btn')?.addEventListener('click', () => openRegisterModal('', false));
 
 if (regTagScanBtn) {
   regTagScanBtn.addEventListener('click', () => {
