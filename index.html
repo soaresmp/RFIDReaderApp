@@ -1381,10 +1381,17 @@
         </div>
         <div class="form-group">
           <label>Tag Type</label>
-          <select id="to-tag-type" class="form-control">
-            <option value="UHF RFID Gen2">UHF RFID Gen2 (standard — recommended)</option>
-            <option value="HF RFID ISO">HF RFID ISO 15693</option>
-            <option value="NFC">NFC (ISO 14443)</option>
+          <input id="to-tag-type" type="hidden" value="RFID/NFC Cylinder Tag" />
+          <input type="text" class="form-control" value="RFID/NFC Cylinder Tag" disabled style="background:var(--surface,#f8fafc);color:var(--muted,#64748b)" />
+        </div>
+        <div class="form-group">
+          <label>Cylinder Size</label>
+          <select id="to-cylinder-size" class="form-control">
+            <option value="3kg">3 kg</option>
+            <option value="6kg">6 kg</option>
+            <option value="13kg" selected>13 kg</option>
+            <option value="25kg">25 kg</option>
+            <option value="50kg">50 kg</option>
           </select>
         </div>
         <div class="form-group">
@@ -1426,11 +1433,17 @@
         </div>
         <div class="form-group">
           <label>Stamp Type</label>
-          <select id="so-stamp-type" class="form-control">
-            <option value="">— Select stamp type —</option>
-            <option value="Holographic Security Stamp">Holographic Security Stamp</option>
-            <option value="Tamper-Evident Valve Seal">Tamper-Evident Valve Seal</option>
-            <option value="QR-Linked Refill Label">QR-Linked Refill Label</option>
+          <input id="so-stamp-type" type="hidden" value="Secure Refill Stamps" />
+          <input type="text" class="form-control" value="Secure Refill Stamps" disabled style="background:var(--surface,#f8fafc);color:var(--muted,#64748b)" />
+        </div>
+        <div class="form-group">
+          <label>Cylinder Size</label>
+          <select id="so-cylinder-size" class="form-control">
+            <option value="3kg">3 kg</option>
+            <option value="6kg">6 kg</option>
+            <option value="13kg" selected>13 kg</option>
+            <option value="25kg">25 kg</option>
+            <option value="50kg">50 kg</option>
           </select>
         </div>
         <div class="form-group">

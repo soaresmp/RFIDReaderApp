@@ -6,7 +6,6 @@
 
 const DB_NAME    = 'lpg-tracer-db';
 const DB_VERSION = 3;
-const SEED_KEY   = 'seeded-v19';
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
@@ -17,8 +16,6 @@ let _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
 function _fsColl(storeName) {
   return _fdb.collection('countries').doc(_activeCountry).collection(storeName);
 }
-
-let _seedBatch = null;
 
 function initFirebase() {
   try {
@@ -39,27 +36,6 @@ function initFirebase() {
     console.warn('Firebase init failed — using local IndexedDB only:', e);
     _fdb = null;
   }
-}
-
-async function _fsBatchFlush() {
-  if (!_seedBatch || _seedBatch.length === 0) return;
-  const batch = _fdb.batch();
-  _seedBatch.forEach(({ ref, data }) => batch.set(ref, data));
-  await batch.commit();
-  _seedBatch = [];
-}
-
-async function _fsBatchAdd(storeName, record) {
-  let ref;
-  if (record.id != null) {
-    ref = _fsColl(storeName).doc(String(record.id));
-  } else {
-    ref = _fsColl(storeName).doc();
-    record = { ...record, id: ref.id };
-  }
-  _seedBatch.push({ ref, data: record });
-  if (_seedBatch.length >= 500) await _fsBatchFlush();
-  return record;
 }
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
@@ -683,88 +659,8 @@ function applyLang() {
   }
 }
 
-const DEMO_CYLINDERS = [
-  // Vivo LPG (12)
-  { id:'E280116060000204C3F04E81', serial:'VLG-2013-001', company:'Vivo LPG', manufactureDate:'2013-03-10', tareWeight:8.0, capacity:6, fillCount:520, lastHydroTest:'2018-03-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E82', serial:'VLG-2015-002', company:'Vivo LPG', manufactureDate:'2015-06-10', tareWeight:8.0, capacity:6, fillCount:461, lastHydroTest:'2020-06-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E83', serial:'VLG-2016-003', company:'Vivo LPG', manufactureDate:'2016-01-22', tareWeight:8.0, capacity:6, fillCount:390, lastHydroTest:'2021-01-22', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E84', serial:'VLG-2017-004', company:'Vivo LPG', manufactureDate:'2017-09-05', tareWeight:14.5, capacity:12, fillCount:310, lastHydroTest:'2022-09-05', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E85', serial:'VLG-2018-005', company:'Vivo LPG', manufactureDate:'2018-04-18', tareWeight:14.5, capacity:12, fillCount:230, lastHydroTest:'2023-04-18', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E86', serial:'VLG-2019-006', company:'Vivo LPG', manufactureDate:'2019-11-30', tareWeight:14.5, capacity:12, fillCount:174, lastHydroTest:'2024-11-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E87', serial:'VLG-2020-007', company:'Vivo LPG', manufactureDate:'2020-07-14', tareWeight:14.5, capacity:12, fillCount:118, lastHydroTest:'2025-07-14', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E88', serial:'VLG-2021-008', company:'Vivo LPG', manufactureDate:'2021-03-08', tareWeight:14.5, capacity:12, fillCount:82,  lastHydroTest:'2026-03-08', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EA1', serial:'VLG-2021-009', company:'Vivo LPG', manufactureDate:'2021-08-20', tareWeight:14.5, capacity:12, fillCount:74,  lastHydroTest:'2026-08-20', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04EA2', serial:'VLG-2022-010', company:'Vivo LPG', manufactureDate:'2022-02-15', tareWeight:14.5, capacity:12, fillCount:55,  lastHydroTest:'2027-02-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EA3', serial:'VLG-2023-011', company:'Vivo LPG', manufactureDate:'2023-05-01', tareWeight:14.5, capacity:12, fillCount:28,  lastHydroTest:'2028-05-01', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04EA4', serial:'VLG-2024-012', company:'Vivo LPG', manufactureDate:'2024-01-10', tareWeight:14.5, capacity:12, fillCount:9,   lastHydroTest:'2029-01-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF1', serial:'VLG-2012-013', company:'Vivo LPG', manufactureDate:'2012-05-15', tareWeight:28.5, capacity:38, fillCount:640, lastHydroTest:'2017-05-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EF2', serial:'VLG-2014-014', company:'Vivo LPG', manufactureDate:'2014-08-22', tareWeight:28.5, capacity:38, fillCount:490, lastHydroTest:'2019-08-22', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04EF3', serial:'VLG-2025-015', company:'Vivo LPG', manufactureDate:'2025-02-01', tareWeight:14.5, capacity:12, fillCount:3,   lastHydroTest:'2030-02-01', status:'in-refill',      notes:'' },
-  // Total Energies (15)
-  { id:'E280116060000204C3F04E89', serial:'TEN-2014-001', company:'Total Energies', manufactureDate:'2014-02-27', tareWeight:8.0, capacity:6, fillCount:512, lastHydroTest:'2019-02-27', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8A', serial:'TEN-2015-002', company:'Total Energies', manufactureDate:'2015-08-19', tareWeight:8.0, capacity:6, fillCount:420, lastHydroTest:'2020-08-19', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E8B', serial:'TEN-2016-003', company:'Total Energies', manufactureDate:'2016-05-03', tareWeight:8.0, capacity:6, fillCount:360, lastHydroTest:'2021-05-03', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8C', serial:'TEN-2017-004', company:'Total Energies', manufactureDate:'2017-01-15', tareWeight:14.5, capacity:12, fillCount:295, lastHydroTest:'2022-01-15', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E8D', serial:'TEN-2018-005', company:'Total Energies', manufactureDate:'2018-07-22', tareWeight:14.5, capacity:12, fillCount:220, lastHydroTest:'2023-07-22', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E8E', serial:'TEN-2019-006', company:'Total Energies', manufactureDate:'2019-09-10', tareWeight:14.5, capacity:12, fillCount:163, lastHydroTest:'2024-09-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E8F', serial:'TEN-2020-007', company:'Total Energies', manufactureDate:'2020-12-01', tareWeight:14.5, capacity:12, fillCount:101, lastHydroTest:'2025-12-01', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E90', serial:'TEN-2021-008', company:'Total Energies', manufactureDate:'2021-04-15', tareWeight:14.5, capacity:12, fillCount:68,  lastHydroTest:'2026-04-15', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04EB1', serial:'TEN-2021-009', company:'Total Energies', manufactureDate:'2021-10-30', tareWeight:14.5, capacity:12, fillCount:57,  lastHydroTest:'2026-10-30', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04EB2', serial:'TEN-2022-010', company:'Total Energies', manufactureDate:'2022-06-18', tareWeight:14.5, capacity:12, fillCount:41,  lastHydroTest:'2027-06-18', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EB3', serial:'TEN-2023-011', company:'Total Energies', manufactureDate:'2023-02-05', tareWeight:14.5, capacity:12, fillCount:23,  lastHydroTest:'2028-02-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EB4', serial:'TEN-2024-012', company:'Total Energies', manufactureDate:'2024-03-20', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF4', serial:'TEN-2013-013', company:'Total Energies', manufactureDate:'2013-07-10', tareWeight:28.5, capacity:38, fillCount:570, lastHydroTest:'2018-07-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EF5', serial:'TEN-2012-014', company:'Total Energies', manufactureDate:'2012-11-30', tareWeight:28.5, capacity:38, fillCount:610, lastHydroTest:'2017-11-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF6', serial:'TEN-2025-015', company:'Total Energies', manufactureDate:'2025-01-15', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-01-15', status:'in-refill',      notes:'' },
-  // Shell Gas (15)
-  { id:'E280116060000204C3F04E91', serial:'SHG-2013-001', company:'Shell Gas', manufactureDate:'2013-06-20', tareWeight:8.0, capacity:6, fillCount:589, lastHydroTest:'2018-06-20', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E92', serial:'SHG-2014-002', company:'Shell Gas', manufactureDate:'2014-11-08', tareWeight:8.0, capacity:6, fillCount:480, lastHydroTest:'2019-11-08', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E93', serial:'SHG-2016-003', company:'Shell Gas', manufactureDate:'2016-03-25', tareWeight:14.5, capacity:12, fillCount:355, lastHydroTest:'2021-03-25', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E94', serial:'SHG-2017-004', company:'Shell Gas', manufactureDate:'2017-08-14', tareWeight:14.5, capacity:12, fillCount:280, lastHydroTest:'2022-08-14', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E95', serial:'SHG-2018-005', company:'Shell Gas', manufactureDate:'2018-02-28', tareWeight:14.5, capacity:12, fillCount:212, lastHydroTest:'2023-02-28', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E96', serial:'SHG-2019-006', company:'Shell Gas', manufactureDate:'2019-07-17', tareWeight:14.5, capacity:12, fillCount:159, lastHydroTest:'2024-07-17', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E97', serial:'SHG-2020-007', company:'Shell Gas', manufactureDate:'2020-10-05', tareWeight:14.5, capacity:12, fillCount:108, lastHydroTest:'2025-10-05', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E98', serial:'SHG-2021-008', company:'Shell Gas', manufactureDate:'2021-01-20', tareWeight:14.5, capacity:12, fillCount:77,  lastHydroTest:'2026-01-20', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EC1', serial:'SHG-2022-009', company:'Shell Gas', manufactureDate:'2022-04-12', tareWeight:14.5, capacity:12, fillCount:48,  lastHydroTest:'2027-04-12', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EC2', serial:'SHG-2022-010', company:'Shell Gas', manufactureDate:'2022-09-28', tareWeight:14.5, capacity:12, fillCount:35,  lastHydroTest:'2027-09-28', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EC3', serial:'SHG-2023-011', company:'Shell Gas', manufactureDate:'2023-07-04', tareWeight:14.5, capacity:12, fillCount:18,  lastHydroTest:'2028-07-04', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EC4', serial:'SHG-2024-012', company:'Shell Gas', manufactureDate:'2024-02-14', tareWeight:14.5, capacity:12, fillCount:5,   lastHydroTest:'2029-02-14', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EF7', serial:'SHG-2012-013', company:'Shell Gas', manufactureDate:'2012-09-10', tareWeight:28.5, capacity:38, fillCount:618, lastHydroTest:'2017-09-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EF8', serial:'SHG-2015-014', company:'Shell Gas', manufactureDate:'2015-02-20', tareWeight:14.5, capacity:12, fillCount:445, lastHydroTest:'2020-02-20', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04EF9', serial:'SHG-2025-015', company:'Shell Gas', manufactureDate:'2025-03-12', tareWeight:14.5, capacity:12, fillCount:4,   lastHydroTest:'2030-03-12', status:'in-refill',      notes:'' },
-  // Lake Gas (9)
-  { id:'E280116060000204C3F04E99', serial:'LKG-2015-001', company:'Lake Gas', manufactureDate:'2015-04-12', tareWeight:8.0, capacity:6, fillCount:430, lastHydroTest:'2020-04-12', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E9A', serial:'LKG-2016-002', company:'Lake Gas', manufactureDate:'2016-10-30', tareWeight:14.5, capacity:12, fillCount:340, lastHydroTest:'2021-10-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E9B', serial:'LKG-2018-003', company:'Lake Gas', manufactureDate:'2018-06-18', tareWeight:14.5, capacity:12, fillCount:238, lastHydroTest:'2023-06-18', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04E9C', serial:'LKG-2019-004', company:'Lake Gas', manufactureDate:'2019-01-09', tareWeight:14.5, capacity:12, fillCount:185, lastHydroTest:'2024-01-09', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04E9D', serial:'LKG-2020-005', company:'Lake Gas', manufactureDate:'2020-05-24', tareWeight:14.5, capacity:12, fillCount:122, lastHydroTest:'2025-05-24', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04E9E', serial:'LKG-2021-006', company:'Lake Gas', manufactureDate:'2021-09-11', tareWeight:14.5, capacity:12, fillCount:78,  lastHydroTest:'2026-09-11', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04ED1', serial:'LKG-2022-007', company:'Lake Gas', manufactureDate:'2022-03-15', tareWeight:14.5, capacity:12, fillCount:49,  lastHydroTest:'2027-03-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04ED2', serial:'LKG-2023-008', company:'Lake Gas', manufactureDate:'2023-07-22', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-07-22', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04ED3', serial:'LKG-2024-009', company:'Lake Gas', manufactureDate:'2024-04-05', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-04-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04EFA', serial:'LKG-2013-010', company:'Lake Gas', manufactureDate:'2013-04-08', tareWeight:28.5, capacity:38, fillCount:548, lastHydroTest:'2018-04-08', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04EFB', serial:'LKG-2014-011', company:'Lake Gas', manufactureDate:'2014-12-15', tareWeight:28.5, capacity:38, fillCount:415, lastHydroTest:'2019-12-15', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04EFC', serial:'LKG-2025-012', company:'Lake Gas', manufactureDate:'2025-04-20', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-04-20', status:'in-refill',      notes:'' },
-];
 
-const DEMO_LICENSES = [
-  { id:'LIC-001', companyName:'Vivo LPG',        companyType:'LPGMC',         licenseNumber:'LPGMC-2020-001', issuedDate:'2020-01-15', expiryDate:'2027-01-14', status:'active',  history:[{type:'granted', date:'2020-01-15', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-002', companyName:'Total Energies',   companyType:'LPGMC',         licenseNumber:'LPGMC-2019-002', issuedDate:'2019-06-01', expiryDate:'2026-05-31', status:'active',  history:[{type:'granted', date:'2019-06-01', by:'EWURA', note:'Initial license granted'},{type:'renewed', date:'2023-06-01', by:'EWURA', note:'License renewed for 3 years'}] },
-  { id:'LIC-003', companyName:'Shell Gas',        companyType:'LPGMC',         licenseNumber:'LPGMC-2021-003', issuedDate:'2021-03-10', expiryDate:'2028-03-09', status:'active',  history:[{type:'granted', date:'2021-03-10', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-004', companyName:'ABC Distributors', companyType:'Distributor',   licenseNumber:'DIST-2022-001',  issuedDate:'2022-07-20', expiryDate:'2025-07-19', status:'expired', history:[{type:'granted', date:'2022-07-20', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-005', companyName:'QuickGas Retail',  companyType:'Retailer',      licenseNumber:'RET-2023-005',   issuedDate:'2023-02-14', expiryDate:'2026-02-13', status:'expired', history:[{type:'granted', date:'2023-02-14', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-006', companyName:'ProRevalid Ltd',   companyType:'Revalidator',   licenseNumber:'REVAL-2021-001', issuedDate:'2021-09-01', expiryDate:'2027-08-31', status:'active',  history:[{type:'granted', date:'2021-09-01', by:'EWURA', note:'Initial license granted'}] },
-  { id:'LIC-007', companyName:'CityGas Direct',   companyType:'Retailer',      licenseNumber:'RET-2024-012',   issuedDate:'2024-11-01', expiryDate:'2027-10-31', status:'active',  history:[{type:'granted', date:'2024-11-01', by:'EWURA', note:'Initial license granted'}] },
-];
 
-const DEMO_INSPECTIONS = [
-  { id:'INS-001', company:'Vivo LPG',                region:'Dar es Salaam', auditor:'John Msaki',    scheduledDate:'2026-05-10', status:'completed', notes:'Full compliance check. All cylinders tagged and verified.' },
-  { id:'INS-002', company:'Sunrise Gas Ltd',          region:'Arusha',        auditor:'Amina Waweru',  scheduledDate:'2026-05-28', status:'completed', notes:'Minor labelling issues found. Follow-up scheduled.' },
-  { id:'INS-003', company:'ABC Gas Distributors',     region:'Dar es Salaam', auditor:'Peter Oloo',    scheduledDate:'2026-06-25', status:'scheduled', notes:'Routine annual inspection.' },
-  { id:'INS-004', company:'Total Energies',           region:'Mwanza',        auditor:'Grace Makundi', scheduledDate:'2026-07-05', status:'scheduled', notes:'New facility inspection — first visit.' },
-  { id:'INS-005', company:'Lake Victoria Gas Supply', region:'Mwanza',        auditor:'David Kimaro',  scheduledDate:'2026-04-15', status:'overdue',   notes:'Inspection not completed — auditor unavailable.' },
-  { id:'INS-006', company:'CityGas Direct',           region:'Dodoma',        auditor:'Salma Hamisi',  scheduledDate:'2026-05-01', status:'overdue',   notes:'No response from operator. Second notice sent.' },
-];
 
 const DEMO_NETWORK = [
   // Distributors (12)
@@ -932,95 +828,8 @@ const DEMO_LICENSE_EXTRA_INFO = {
 
 const LPGMC_COMPANIES_KE = ['Total Energies Kenya', 'Vivo Energy Kenya', 'Africa Gas & Oil', 'Hashi Energy'];
 
-const DEMO_CYLINDERS_KE = [
-  // Total Energies Kenya — 15 entries
-  { id:'E280116060000204C3F04F81', serial:'TEK-2014-001', company:'Total Energies Kenya', manufactureDate:'2014-03-15', tareWeight:8.0,  capacity:6,  fillCount:510, lastHydroTest:'2019-03-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04F82', serial:'TEK-2015-002', company:'Total Energies Kenya', manufactureDate:'2015-07-20', tareWeight:8.0,  capacity:6,  fillCount:430, lastHydroTest:'2020-07-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04F83', serial:'TEK-2016-003', company:'Total Energies Kenya', manufactureDate:'2016-02-10', tareWeight:8.0,  capacity:6,  fillCount:372, lastHydroTest:'2021-02-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04F84', serial:'TEK-2017-004', company:'Total Energies Kenya', manufactureDate:'2017-05-22', tareWeight:14.5, capacity:12, fillCount:298, lastHydroTest:'2022-05-22', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04F85', serial:'TEK-2018-005', company:'Total Energies Kenya', manufactureDate:'2018-09-08', tareWeight:14.5, capacity:12, fillCount:225, lastHydroTest:'2023-09-08', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04F86', serial:'TEK-2019-006', company:'Total Energies Kenya', manufactureDate:'2019-01-15', tareWeight:14.5, capacity:12, fillCount:168, lastHydroTest:'2024-01-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04F87', serial:'TEK-2020-007', company:'Total Energies Kenya', manufactureDate:'2020-06-30', tareWeight:14.5, capacity:12, fillCount:112, lastHydroTest:'2025-06-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04F88', serial:'TEK-2021-008', company:'Total Energies Kenya', manufactureDate:'2021-02-18', tareWeight:14.5, capacity:12, fillCount:78,  lastHydroTest:'2026-02-18', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04F89', serial:'TEK-2021-009', company:'Total Energies Kenya', manufactureDate:'2021-11-05', tareWeight:14.5, capacity:12, fillCount:59,  lastHydroTest:'2026-11-05', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04F8A', serial:'TEK-2022-010', company:'Total Energies Kenya', manufactureDate:'2022-04-20', tareWeight:14.5, capacity:12, fillCount:42,  lastHydroTest:'2027-04-20', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04F8B', serial:'TEK-2023-011', company:'Total Energies Kenya', manufactureDate:'2023-08-12', tareWeight:14.5, capacity:12, fillCount:21,  lastHydroTest:'2028-08-12', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04F8C', serial:'TEK-2024-012', company:'Total Energies Kenya', manufactureDate:'2024-02-28', tareWeight:14.5, capacity:12, fillCount:7,   lastHydroTest:'2029-02-28', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04F8D', serial:'TEK-2013-013', company:'Total Energies Kenya', manufactureDate:'2013-06-15', tareWeight:28.5, capacity:38, fillCount:575, lastHydroTest:'2018-06-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04F8E', serial:'TEK-2012-014', company:'Total Energies Kenya', manufactureDate:'2012-10-25', tareWeight:28.5, capacity:38, fillCount:618, lastHydroTest:'2017-10-25', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04F8F', serial:'TEK-2025-015', company:'Total Energies Kenya', manufactureDate:'2025-03-01', tareWeight:14.5, capacity:12, fillCount:3,   lastHydroTest:'2030-03-01', status:'in-refill',      notes:'' },
-  // Vivo Energy Kenya — 15 entries
-  { id:'E280116060000204C3F04FA1', serial:'VEK-2013-001', company:'Vivo Energy Kenya', manufactureDate:'2013-04-10', tareWeight:8.0,  capacity:6,  fillCount:528, lastHydroTest:'2018-04-10', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FA2', serial:'VEK-2015-002', company:'Vivo Energy Kenya', manufactureDate:'2015-05-22', tareWeight:8.0,  capacity:6,  fillCount:468, lastHydroTest:'2020-05-22', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FA3', serial:'VEK-2016-003', company:'Vivo Energy Kenya', manufactureDate:'2016-11-15', tareWeight:8.0,  capacity:6,  fillCount:385, lastHydroTest:'2021-11-15', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FA4', serial:'VEK-2017-004', company:'Vivo Energy Kenya', manufactureDate:'2017-07-08', tareWeight:14.5, capacity:12, fillCount:312, lastHydroTest:'2022-07-08', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FA5', serial:'VEK-2018-005', company:'Vivo Energy Kenya', manufactureDate:'2018-03-20', tareWeight:14.5, capacity:12, fillCount:238, lastHydroTest:'2023-03-20', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FA6', serial:'VEK-2019-006', company:'Vivo Energy Kenya', manufactureDate:'2019-10-14', tareWeight:14.5, capacity:12, fillCount:177, lastHydroTest:'2024-10-14', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FA7', serial:'VEK-2020-007', company:'Vivo Energy Kenya', manufactureDate:'2020-08-05', tareWeight:14.5, capacity:12, fillCount:119, lastHydroTest:'2025-08-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FA8', serial:'VEK-2021-008', company:'Vivo Energy Kenya', manufactureDate:'2021-01-25', tareWeight:14.5, capacity:12, fillCount:83,  lastHydroTest:'2026-01-25', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FA9', serial:'VEK-2022-009', company:'Vivo Energy Kenya', manufactureDate:'2022-05-10', tareWeight:14.5, capacity:12, fillCount:52,  lastHydroTest:'2027-05-10', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FAA', serial:'VEK-2022-010', company:'Vivo Energy Kenya', manufactureDate:'2022-11-18', tareWeight:14.5, capacity:12, fillCount:38,  lastHydroTest:'2027-11-18', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FAB', serial:'VEK-2023-011', company:'Vivo Energy Kenya', manufactureDate:'2023-06-02', tareWeight:14.5, capacity:12, fillCount:19,  lastHydroTest:'2028-06-02', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04FAC', serial:'VEK-2024-012', company:'Vivo Energy Kenya', manufactureDate:'2024-01-16', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-01-16', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FAD', serial:'VEK-2012-013', company:'Vivo Energy Kenya', manufactureDate:'2012-07-20', tareWeight:28.5, capacity:38, fillCount:645, lastHydroTest:'2017-07-20', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FAE', serial:'VEK-2014-014', company:'Vivo Energy Kenya', manufactureDate:'2014-09-12', tareWeight:28.5, capacity:38, fillCount:492, lastHydroTest:'2019-09-12', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FAF', serial:'VEK-2025-015', company:'Vivo Energy Kenya', manufactureDate:'2025-01-08', tareWeight:14.5, capacity:12, fillCount:2,   lastHydroTest:'2030-01-08', status:'in-refill',      notes:'' },
-  // Africa Gas & Oil (AGOL) — 15 entries
-  { id:'E280116060000204C3F04FB1', serial:'AGL-2014-001', company:'Africa Gas & Oil', manufactureDate:'2014-05-18', tareWeight:8.0,  capacity:6,  fillCount:495, lastHydroTest:'2019-05-18', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FB2', serial:'AGL-2015-002', company:'Africa Gas & Oil', manufactureDate:'2015-09-30', tareWeight:8.0,  capacity:6,  fillCount:420, lastHydroTest:'2020-09-30', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FB3', serial:'AGL-2016-003', company:'Africa Gas & Oil', manufactureDate:'2016-04-12', tareWeight:14.5, capacity:12, fillCount:362, lastHydroTest:'2021-04-12', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FB4', serial:'AGL-2017-004', company:'Africa Gas & Oil', manufactureDate:'2017-10-08', tareWeight:14.5, capacity:12, fillCount:288, lastHydroTest:'2022-10-08', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FB5', serial:'AGL-2018-005', company:'Africa Gas & Oil', manufactureDate:'2018-06-25', tareWeight:14.5, capacity:12, fillCount:215, lastHydroTest:'2023-06-25', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FB6', serial:'AGL-2019-006', company:'Africa Gas & Oil', manufactureDate:'2019-02-14', tareWeight:14.5, capacity:12, fillCount:158, lastHydroTest:'2024-02-14', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FB7', serial:'AGL-2020-007', company:'Africa Gas & Oil', manufactureDate:'2020-09-20', tareWeight:14.5, capacity:12, fillCount:104, lastHydroTest:'2025-09-20', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FB8', serial:'AGL-2021-008', company:'Africa Gas & Oil', manufactureDate:'2021-04-05', tareWeight:14.5, capacity:12, fillCount:71,  lastHydroTest:'2026-04-05', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FB9', serial:'AGL-2022-009', company:'Africa Gas & Oil', manufactureDate:'2022-01-22', tareWeight:14.5, capacity:12, fillCount:46,  lastHydroTest:'2027-01-22', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FBA', serial:'AGL-2022-010', company:'Africa Gas & Oil', manufactureDate:'2022-08-14', tareWeight:14.5, capacity:12, fillCount:33,  lastHydroTest:'2027-08-14', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FBB', serial:'AGL-2023-011', company:'Africa Gas & Oil', manufactureDate:'2023-04-18', tareWeight:14.5, capacity:12, fillCount:17,  lastHydroTest:'2028-04-18', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FBC', serial:'AGL-2024-012', company:'Africa Gas & Oil', manufactureDate:'2024-03-10', tareWeight:14.5, capacity:12, fillCount:6,   lastHydroTest:'2029-03-10', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FBD', serial:'AGL-2013-013', company:'Africa Gas & Oil', manufactureDate:'2013-08-22', tareWeight:28.5, capacity:38, fillCount:555, lastHydroTest:'2018-08-22', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FBE', serial:'AGL-2012-014', company:'Africa Gas & Oil', manufactureDate:'2012-12-05', tareWeight:28.5, capacity:38, fillCount:602, lastHydroTest:'2017-12-05', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FBF', serial:'AGL-2025-015', company:'Africa Gas & Oil', manufactureDate:'2025-02-20', tareWeight:14.5, capacity:12, fillCount:4,   lastHydroTest:'2030-02-20', status:'in-refill',      notes:'' },
-  // Hashi Energy — 12 entries
-  { id:'E280116060000204C3F04FC1', serial:'HSH-2015-001', company:'Hashi Energy', manufactureDate:'2015-03-28', tareWeight:8.0,  capacity:6,  fillCount:440, lastHydroTest:'2020-03-28', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FC2', serial:'HSH-2016-002', company:'Hashi Energy', manufactureDate:'2016-08-15', tareWeight:14.5, capacity:12, fillCount:345, lastHydroTest:'2021-08-15', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FC3', serial:'HSH-2018-003', company:'Hashi Energy', manufactureDate:'2018-05-20', tareWeight:14.5, capacity:12, fillCount:245, lastHydroTest:'2023-05-20', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FC4', serial:'HSH-2019-004', company:'Hashi Energy', manufactureDate:'2019-02-14', tareWeight:14.5, capacity:12, fillCount:188, lastHydroTest:'2024-02-14', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FC5', serial:'HSH-2020-005', company:'Hashi Energy', manufactureDate:'2020-07-08', tareWeight:14.5, capacity:12, fillCount:125, lastHydroTest:'2025-07-08', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FC6', serial:'HSH-2021-006', company:'Hashi Energy', manufactureDate:'2021-10-22', tareWeight:14.5, capacity:12, fillCount:81,  lastHydroTest:'2026-10-22', status:'revalidation',   notes:'' },
-  { id:'E280116060000204C3F04FC7', serial:'HSH-2022-007', company:'Hashi Energy', manufactureDate:'2022-04-05', tareWeight:14.5, capacity:12, fillCount:50,  lastHydroTest:'2027-04-05', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FC8', serial:'HSH-2023-008', company:'Hashi Energy', manufactureDate:'2023-09-12', tareWeight:14.5, capacity:12, fillCount:24,  lastHydroTest:'2028-09-12', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FC9', serial:'HSH-2024-009', company:'Hashi Energy', manufactureDate:'2024-05-18', tareWeight:14.5, capacity:12, fillCount:8,   lastHydroTest:'2029-05-18', status:'in-refill',      notes:'' },
-  { id:'E280116060000204C3F04FCA', serial:'HSH-2013-010', company:'Hashi Energy', manufactureDate:'2013-01-30', tareWeight:28.5, capacity:38, fillCount:562, lastHydroTest:'2018-01-30', status:'in-circulation', notes:'' },
-  { id:'E280116060000204C3F04FCB', serial:'HSH-2014-011', company:'Hashi Energy', manufactureDate:'2014-11-10', tareWeight:28.5, capacity:38, fillCount:418, lastHydroTest:'2019-11-10', status:'in-use',         notes:'' },
-  { id:'E280116060000204C3F04FCC', serial:'HSH-2025-012', company:'Hashi Energy', manufactureDate:'2025-05-05', tareWeight:14.5, capacity:12, fillCount:1,   lastHydroTest:'2030-05-05', status:'in-refill',      notes:'' },
-];
 
-const DEMO_LICENSES_KE = [
-  { id:'LIC-KE-001', companyName:'Total Energies Kenya', companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/001/2020', issuedDate:'2020-02-10', expiryDate:'2027-02-09', status:'active',
-    history:[{type:'granted', date:'2020-02-10', by:'EPRA', note:'Initial license granted'}] },
-  { id:'LIC-KE-002', companyName:'Vivo Energy Kenya',    companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/002/2019', issuedDate:'2019-07-15', expiryDate:'2026-07-14', status:'active',
-    history:[{type:'granted', date:'2019-07-15', by:'EPRA', note:'Initial license granted'},{type:'renewed', date:'2023-07-15', by:'EPRA', note:'License renewed for 3 years'}] },
-  { id:'LIC-KE-003', companyName:'Africa Gas & Oil',     companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/003/2021', issuedDate:'2021-04-20', expiryDate:'2028-04-19', status:'active',
-    history:[{type:'granted', date:'2021-04-20', by:'EPRA', note:'Initial license granted'}] },
-  { id:'LIC-KE-004', companyName:'Hashi Energy',         companyType:'LPGMC',       licenseNumber:'EPRA/LPGMC/004/2022', issuedDate:'2022-09-01', expiryDate:'2029-08-31', status:'active',
-    history:[{type:'granted', date:'2022-09-01', by:'EPRA', note:'Initial license granted'}] },
-  { id:'LIC-KE-005', companyName:'Nairobi Gas Supplies', companyType:'Distributor', licenseNumber:'EPRA/DIST/001/2022',  issuedDate:'2022-05-18', expiryDate:'2025-05-17', status:'expired',
-    history:[{type:'granted', date:'2022-05-18', by:'EPRA', note:'Initial license granted'}] },
-  { id:'LIC-KE-006', companyName:'Mombasa Gas Direct',   companyType:'Retailer',    licenseNumber:'EPRA/RET/001/2023',   issuedDate:'2023-03-10', expiryDate:'2026-03-09', status:'active',
-    history:[{type:'granted', date:'2023-03-10', by:'EPRA', note:'Initial license granted'}] },
-  { id:'LIC-KE-007', companyName:'Kenya Reval Services', companyType:'Revalidator', licenseNumber:'EPRA/REVAL/001/2021', issuedDate:'2021-10-05', expiryDate:'2028-10-04', status:'active',
-    history:[{type:'granted', date:'2021-10-05', by:'EPRA', note:'Initial license granted'}] },
-];
 
-const DEMO_INSPECTIONS_KE = [
-  { id:'INS-KE-001', company:'Total Energies Kenya',  region:'Nairobi',  auditor:'James Kariuki',    scheduledDate:'2026-05-12', status:'completed', notes:'Full compliance check. All cylinders tagged and verified.' },
-  { id:'INS-KE-002', company:'Vivo Energy Kenya',     region:'Mombasa',  auditor:'Fatuma Mwangi',    scheduledDate:'2026-05-25', status:'completed', notes:'Minor labelling issues found. Follow-up scheduled.' },
-  { id:'INS-KE-003', company:'Africa Gas & Oil',      region:'Kisumu',   auditor:'Peter Odhiambo',   scheduledDate:'2026-06-18', status:'scheduled', notes:'Routine annual inspection.' },
-  { id:'INS-KE-004', company:'Hashi Energy',          region:'Nakuru',   auditor:'Grace Njoroge',    scheduledDate:'2026-07-10', status:'scheduled', notes:'New facility inspection — first visit.' },
-  { id:'INS-KE-005', company:'Nairobi Gas Supplies',  region:'Nairobi',  auditor:'David Kamau',      scheduledDate:'2026-04-20', status:'overdue',   notes:'Inspection not completed — auditor unavailable.' },
-  { id:'INS-KE-006', company:'Mombasa Gas Direct',    region:'Mombasa',  auditor:'Salma Hassan',     scheduledDate:'2026-05-05', status:'overdue',   notes:'No response from operator. Second notice sent.' },
-];
 
 const DEMO_NETWORK_KE = [
   { id:'KE-NET-001', name:'Nairobi Gas Supplies',      type:'Distributor', region:'Nairobi',      city:'Nairobi',  address:'Industrial Area, Enterprise Road, Nairobi',    lat:-1.3028, lng:36.8588, contact:'+254 20 222 0101', contactPerson:'James Mwangi',     status:'active',   cylinders:152, full:91, empty:61 },
@@ -1068,49 +877,6 @@ const DEMO_LICENSE_EXTRA_INFO_KE = {
   'Kenya Reval Services': { region:'Nairobi', city:'Nairobi', address:'Industrial Area, Baba Dogo Road, Nairobi',  contact:'+254 20 286 0663', contactPerson:'Charles Oduya'  },
 };
 
-function buildKenyaCylinders() {
-  const companies = [
-    { name:'Total Energies Kenya', prefix:'TEK', code:'05' },
-    { name:'Vivo Energy Kenya',    prefix:'VEK', code:'06' },
-    { name:'Africa Gas & Oil',     prefix:'AGL', code:'07' },
-    { name:'Hashi Energy',         prefix:'HSH', code:'08' },
-  ];
-  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill-empty','in-use','in-circulation','revalidation','in-use','in-refill','in-use','in-circulation','in-circ-empty','in-use','in-use','in-refill','in-use','in-use'];
-  const capacities  = [12,12,15,12,12,12,15,12,12,12];
-  const result = [];
-  const existingCounts = { 'Total Energies Kenya':15, 'Vivo Energy Kenya':15, 'Africa Gas & Oil':15, 'Hashi Energy':12 };
-  companies.forEach((co, ci) => {
-    const needed = 150 - (existingCounts[co.name] || 0);
-    for (let i = 1; i <= needed; i++) {
-      const isOld = (i % 40 === 0);
-      const year = isOld ? (2017 + (Math.floor(i/40) % 4)) : (2016 + (i % 10));
-      const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
-      const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
-      const mfgDate   = `${year}-${month}-${day}`;
-      const hydroDate = `${year + 5}-${month}-${day}`;
-      const age = 2026 - year;
-      const fillCount = Math.max(1, age * 30 + (i % 50));
-      const rawStatus = statusCycle[i % statusCycle.length];
-      const resolvedStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus === 'in-refill-empty' ? 'in-refill' : rawStatus;
-      result.push({
-        id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
-        serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
-        company: co.name,
-        manufactureDate: mfgDate,
-        tareWeight: 14.5,
-        capacity: capacities[i % capacities.length],
-        fillCount,
-        lastHydroTest: hydroDate,
-        status: resolvedStatus,
-        _seedEmpty: rawStatus === 'in-circ-empty',
-        _seedRefillEmpty: rawStatus === 'in-refill-empty',
-        notes: '',
-      });
-    }
-  });
-  return result;
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH MODULE
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1142,7 +908,7 @@ const Auth = {
     if (!this.session) return false;
     const { role } = this.session;
     switch (action) {
-      case 'register':  return role === 'lpgmc';
+      case 'register':  return role === 'lpgmc' || role === 'cylinder-producer';
       case 'inspect':   return role === 'field-auditor';
       case 'license':   return role === 'ewura';
       case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator'].includes(role);
@@ -1360,7 +1126,6 @@ async function txGetAll(storeName) {
 
 async function txPut(storeName, record) {
   if (_fdb && FS_STORES.has(storeName)) {
-    if (_seedBatch !== null) return _fsBatchAdd(storeName, record);
     let docId;
     if (record.id != null) {
       await _fsColl(storeName).doc(String(record.id)).set(record);
@@ -1424,88 +1189,6 @@ async function txGetIndex(storeName, indexName, value) {
   return _idbGetIndex(storeName, indexName, value);
 }
 
-function buildGeneratedCylinders() {
-  const companies = [
-    { name:'Vivo LPG',       prefix:'VLG', code:'01' },
-    { name:'Total Energies', prefix:'TEN', code:'02' },
-    { name:'Shell Gas',      prefix:'SHG', code:'03' },
-    { name:'Lake Gas',       prefix:'LKG', code:'04' },
-  ];
-  // 'in-circ-empty' = status in-circulation, last event ret-returned-empty (empty, waiting at retailer)
-  // 'in-refill-empty' = status in-refill, last event received-empty (empty, arrived at LPGMC for refill)
-  const statusCycle = ['in-use','in-circulation','in-refill','in-use','in-circ-empty','in-use','in-refill-empty','in-use','in-circulation','revalidation','in-use','in-refill','in-use','in-circulation','in-circ-empty','in-use','in-use','in-refill','in-use','in-use'];
-  const capacities  = [12,12,15,12,12,12,15,12,12,12];
-  const result = [];
-  // Existing demo cylinders: Vivo LPG 15, TEN 15, SHG 15, LKG 12 → generate to reach 500 each
-  const existingCounts = { 'Vivo LPG':15, 'Total Energies':15, 'Shell Gas':15, 'Lake Gas':12 };
-  companies.forEach((co, ci) => {
-    const needed = 500 - (existingCounts[co.name] || 0);
-    for (let i = 1; i <= needed; i++) {
-      // ~2.5% slightly older cylinders, years 2017-2020 only → no generated requalOverdue alerts
-      const isOld = (i % 40 === 0);
-      const year = isOld ? (2017 + (Math.floor(i/40) % 4)) : (2016 + (i % 10));
-      const month = String(((i + ci * 3) % 12) + 1).padStart(2,'0');
-      const day   = String(((i + ci) % 28) + 1).padStart(2,'0');
-      const mfgDate  = `${year}-${month}-${day}`;
-      const hydroDate = `${year + 5}-${month}-${day}`;
-      const age = 2026 - year;
-      const fillCount = Math.max(1, age * 30 + (i % 50));
-      const rawStatus = statusCycle[i % statusCycle.length];
-      const cylStatus = (rawStatus === 'in-circ-empty' || rawStatus === 'in-refill-empty')
-        ? rawStatus.replace('-empty','').replace('in-circ','in-circulation').replace('in-refill','in-refill')
-        : rawStatus;
-      const resolvedStatus = rawStatus === 'in-circ-empty' ? 'in-circulation' : rawStatus === 'in-refill-empty' ? 'in-refill' : rawStatus;
-      result.push({
-        id: `E280116060${co.code}${String(i).padStart(10,'0')}`,
-        serial: `${co.prefix}-${year}-G${String(i).padStart(3,'0')}`,
-        company: co.name,
-        manufactureDate: mfgDate,
-        tareWeight: 14.5,
-        capacity: capacities[i % capacities.length],
-        fillCount,
-        lastHydroTest: hydroDate,
-        status: resolvedStatus,
-        _seedEmpty: rawStatus === 'in-circ-empty',
-        _seedRefillEmpty: rawStatus === 'in-refill-empty',
-        notes: '',
-      });
-    }
-  });
-  return result;
-}
-
-// ── Tag-order & stamp-order seed data ────────────────────────────────────────
-
-const _TAG_ORDER_SEED = {
-  TZ: [
-    { id:'TO-TZ-001', lpgmc:'Vivo LPG',       quantity:500, tagType:'UHF RFID Gen2', manufacturer:'Tageos RFID Solutions', manufacturerCountry:'France',  status:'delivered',  requestedDate:'2025-10-15T09:00:00Z', approvedDate:'2025-10-18T14:00:00Z', dispatchDate:'2025-10-25T10:00:00Z', deliveryDate:'2025-11-05T09:00:00Z', notes:'Standard UHF tags for initial cylinder registration' },
-    { id:'TO-TZ-002', lpgmc:'Total Energies', quantity:300, tagType:'UHF RFID Gen2', manufacturer:'Zebra Technologies',     manufacturerCountry:'USA',     status:'dispatched', requestedDate:'2026-01-10T10:00:00Z', approvedDate:'2026-01-12T16:00:00Z', dispatchDate:'2026-01-20T11:00:00Z', deliveryDate:null, notes:'Second batch' },
-    { id:'TO-TZ-003', lpgmc:'Shell Gas',      quantity:200, tagType:'UHF RFID Gen2', manufacturer:'Alien Technology',       manufacturerCountry:'USA',     status:'approved',   requestedDate:'2026-03-05T09:30:00Z', approvedDate:'2026-03-08T11:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
-    { id:'TO-TZ-004', lpgmc:'Lake Gas',       quantity:100, tagType:'HF RFID ISO',   manufacturer:'TagsysRFID',             manufacturerCountry:'France',  status:'pending',    requestedDate:'2026-04-20T14:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'First order for Mwanza operations' },
-  ],
-  KE: [
-    { id:'TO-KE-001', lpgmc:'Total Energies Kenya', quantity:400, tagType:'UHF RFID Gen2', manufacturer:'Impinj Inc.',         manufacturerCountry:'USA',    status:'delivered',  requestedDate:'2025-11-10T09:00:00Z', approvedDate:'2025-11-13T11:00:00Z', dispatchDate:'2025-11-20T09:00:00Z', deliveryDate:'2025-12-01T10:00:00Z', notes:'Initial Kenya fleet registration' },
-    { id:'TO-KE-002', lpgmc:'Vivo Energy Kenya',    quantity:250, tagType:'UHF RFID Gen2', manufacturer:'Tageos RFID Solutions', manufacturerCountry:'France', status:'dispatched', requestedDate:'2026-02-08T10:00:00Z', approvedDate:'2026-02-11T14:00:00Z', dispatchDate:'2026-02-18T09:00:00Z', deliveryDate:null, notes:'' },
-    { id:'TO-KE-003', lpgmc:'Africa Gas & Oil',     quantity:150, tagType:'UHF RFID Gen2', manufacturer:'Zebra Technologies',     manufacturerCountry:'USA',    status:'approved',   requestedDate:'2026-04-01T11:00:00Z', approvedDate:'2026-04-03T15:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
-    { id:'TO-KE-004', lpgmc:'Hashi Energy',         quantity: 80, tagType:'HF RFID ISO',   manufacturer:'HID Global',             manufacturerCountry:'USA',    status:'pending',    requestedDate:'2026-05-15T09:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'Pilot run for Nairobi stations' },
-  ],
-};
-
-const _STAMP_ORDER_SEED = {
-  TZ: [
-    { id:'SO-TZ-001', lpgmc:'Vivo LPG',       quantity:2000, stampType:'Holographic Security Stamp', status:'delivered',  requestedDate:'2025-11-01T10:00:00Z', approvedDate:'2025-11-04T14:00:00Z', dispatchDate:'2025-11-10T09:00:00Z', deliveryDate:'2025-11-15T11:00:00Z', notes:'Quarterly refill stamp order' },
-    { id:'SO-TZ-002', lpgmc:'Total Energies', quantity:1500, stampType:'Holographic Security Stamp', status:'dispatched', requestedDate:'2026-02-15T09:00:00Z', approvedDate:'2026-02-17T10:00:00Z', dispatchDate:'2026-02-20T12:00:00Z', deliveryDate:null, notes:'' },
-    { id:'SO-TZ-003', lpgmc:'Shell Gas',      quantity: 800, stampType:'Tamper-Evident Valve Seal',  status:'approved',   requestedDate:'2026-04-10T11:00:00Z', approvedDate:'2026-04-12T09:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
-    { id:'SO-TZ-004', lpgmc:'Lake Gas',       quantity: 600, stampType:'Tamper-Evident Valve Seal',  status:'pending',    requestedDate:'2026-05-02T14:30:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'For Mwanza refilling station' },
-  ],
-  KE: [
-    { id:'SO-KE-001', lpgmc:'Total Energies Kenya', quantity:1800, stampType:'Holographic Security Stamp', status:'delivered',  requestedDate:'2025-12-05T10:00:00Z', approvedDate:'2025-12-08T11:00:00Z', dispatchDate:'2025-12-14T09:00:00Z', deliveryDate:'2025-12-20T10:00:00Z', notes:'Q4 2025 stamp order' },
-    { id:'SO-KE-002', lpgmc:'Vivo Energy Kenya',    quantity:1200, stampType:'Holographic Security Stamp', status:'dispatched', requestedDate:'2026-03-10T09:00:00Z', approvedDate:'2026-03-12T14:00:00Z', dispatchDate:'2026-03-18T11:00:00Z', deliveryDate:null, notes:'' },
-    { id:'SO-KE-003', lpgmc:'Africa Gas & Oil',     quantity: 700, stampType:'Tamper-Evident Valve Seal',  status:'approved',   requestedDate:'2026-04-20T10:00:00Z', approvedDate:'2026-04-22T15:00:00Z', dispatchDate:null, deliveryDate:null, notes:'' },
-    { id:'SO-KE-004', lpgmc:'Hashi Energy',         quantity: 400, stampType:'Tamper-Evident Valve Seal',  status:'pending',    requestedDate:'2026-05-20T14:00:00Z', approvedDate:null, dispatchDate:null, deliveryDate:null, notes:'Initial order' },
-  ],
-};
-
 const DEMO_MANUFACTURERS = [
   { id:'MFR-001', name:'Tageos RFID Solutions', country:'France',  type:'RFID Tags',     contact:'contact@tageos.com' },
   { id:'MFR-002', name:'Zebra Technologies',    country:'USA',     type:'RFID Tags',     contact:'rfid@zebra.com' },
@@ -1516,402 +1199,6 @@ const DEMO_MANUFACTURERS = [
   { id:'MFR-007', name:'TrustSecure Stamps Ltd',country:'Tanzania',type:'Security Stamps', contact:'info@trustsecure.co.tz' },
   { id:'MFR-008', name:'SecurePrint Africa',    country:'Kenya',   type:'Security Stamps', contact:'info@secureprint.co.ke' },
 ];
-
-async function _doSeedOrders(country) {
-  const prev = _activeCountry;
-  _activeCountry = country;
-  const orders = _TAG_ORDER_SEED[country] || [];
-  const stamps = _STAMP_ORDER_SEED[country] || [];
-  for (const o of orders) { await txPut('tag-orders',   { ...o, country }); }
-  for (const s of stamps) { await txPut('stamp-orders', { ...s, country }); }
-  _activeCountry = prev;
-}
-
-async function seedDemoData() {
-  const localSeeded = await _idbGet('meta', SEED_KEY);
-  if (localSeeded) {
-    // Still check whether orders need seeding (new feature, independent of main seed)
-    if (_fdb) {
-      try {
-        const [tzOrdersSnap, keOrdersSnap] = await Promise.all([
-          _fdb.collection('countries').doc('TZ').collection('tag-orders').limit(1).get(),
-          _fdb.collection('countries').doc('KE').collection('tag-orders').limit(1).get(),
-        ]);
-        if (tzOrdersSnap.empty) await _doSeedOrders('TZ');
-        if (keOrdersSnap.empty) await _doSeedOrders('KE');
-      } catch (e) { /* offline */ }
-    }
-    return;
-  }
-
-  // Check each country independently — KE may be missing licenses/inspections even when cylinders exist
-  let skipTZ = false, skipKE = false;
-  if (_fdb) {
-    try {
-      const [tzCylSnap, keCylSnap, keLicSnap] = await Promise.all([
-        _fdb.collection('countries').doc('TZ').collection('cylinders').limit(1).get(),
-        _fdb.collection('countries').doc('KE').collection('cylinders').limit(1).get(),
-        _fdb.collection('countries').doc('KE').collection('licenses').limit(1).get(),
-      ]);
-      skipTZ = !tzCylSnap.empty;
-      // Only skip KE if BOTH cylinders AND licenses exist — licenses/inspections were missing in older seeds
-      skipKE = !keCylSnap.empty && !keLicSnap.empty;
-      if (skipTZ && skipKE) {
-        await _idbPut('meta', { key: SEED_KEY, value: true });
-        // Seed orders if missing
-        try {
-          const [tzOrd, keOrd] = await Promise.all([
-            _fdb.collection('countries').doc('TZ').collection('tag-orders').limit(1).get(),
-            _fdb.collection('countries').doc('KE').collection('tag-orders').limit(1).get(),
-          ]);
-          if (tzOrd.empty) await _doSeedOrders('TZ');
-          if (keOrd.empty) await _doSeedOrders('KE');
-        } catch (e) { /* offline */ }
-        return;
-      }
-    } catch (e) { /* offline — fall through and seed both */ }
-  }
-
-  // If KE cylinders exist but licenses are missing, only reseed KE licenses/inspections
-  const skipKECylinders = skipKE ? false : (_fdb ? await _fdb.collection('countries').doc('KE').collection('cylinders').limit(1).get().then(s => !s.empty).catch(() => false) : false);
-
-  const hadFirestore = !!_fdb;
-  try {
-    await _doSeed(skipTZ, skipKE, skipKECylinders);
-  } catch (seedErr) {
-    console.error('Seeding failed:', seedErr);
-    if (hadFirestore) {
-      console.warn('Firestore seeding failed — retrying with IndexedDB only');
-      _fdb = null;
-      await seedDemoData();
-    }
-  }
-}
-
-async function _doSeed(skipTZ = false, skipKE = false, skipKECylinders = false) {
-  const now   = Date.now();
-  const DAY   = 24 * 60 * 60 * 1000;
-  const MONTH = 30 * DAY;
-  function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-  // Helper: one full usage cycle
-  async function seedCompleteCycle(cyl, baseMs, distributors, retailers) {
-    const d = rnd(distributors), r = rnd(retailers);
-    await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(baseMs).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-    await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(baseMs+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(baseMs+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(baseMs+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(baseMs+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(baseMs+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(baseMs+50*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-    await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(baseMs+53*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-    await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(baseMs+56*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-  }
-
-  // Helper: seed event lifecycle for named (hand-coded) cylinders
-  async function seedNamedCylEvents(cylinders, distributors, retailers, revalName, revalCity) {
-    for (const cyl of cylinders) {
-      const mfgTime = new Date(cyl.manufactureDate).getTime();
-      await txPut('events', { cylinderId:cyl.id, type:'registered', timestamp:new Date(mfgTime).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration' });
-      if (cyl.status === 'revalidation') {
-        await seedCompleteCycle(cyl, now - 18*MONTH, distributors, retailers);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now-6*MONTH).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now-5*MONTH).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now-5*MONTH+3*DAY).toISOString(),  operatorId:'SYSTEM', company:revalName, location:revalName, region:revalCity });
-        continue;
-      }
-      if (parseInt(cyl.manufactureDate) <= 2020 || cyl.fillCount >= 50) {
-        await seedCompleteCycle(cyl, now-30*MONTH, distributors, retailers);
-        await seedCompleteCycle(cyl, now-16*MONTH, distributors, retailers);
-      } else if (cyl.fillCount >= 10) {
-        await seedCompleteCycle(cyl, now-12*MONTH, distributors, retailers);
-      }
-      if (cyl.status === 'in-refill') {
-        const d = rnd(distributors), r = rnd(retailers);
-        const base = now - 4*MONTH;
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base+50*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty', timestamp:new Date(base+53*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'received-empty',      timestamp:new Date(base+56*DAY).toISOString(),   operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(now-14*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      } else if (cyl.status === 'in-circulation') {
-        const d = rnd(distributors), r = rnd(retailers);
-        const base = now - 110*DAY;
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base-7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+10*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+12*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      } else if (cyl.status === 'in-use') {
-        const d = rnd(distributors), r = rnd(retailers);
-        const base = now - 3*MONTH;
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      }
-    }
-  }
-
-  // Helper: seed event lifecycle for generated (bulk) cylinders
-  async function seedGeneratedCylEvents(generatedCyls, distributors, retailers, revalName, revalCity) {
-    for (const cyl of generatedCyls) {
-      await txPut('cylinders', cyl);
-      const mfgTime = new Date(cyl.manufactureDate).getTime();
-      await txPut('events', { cylinderId:cyl.id, type:'registered', timestamp:new Date(mfgTime).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, notes:'Initial registration' });
-      const now2   = Date.now();
-      const idHash = cyl.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      const d = rnd(distributors), r = rnd(retailers);
-      if (cyl._seedRefillEmpty) {
-        const base = now2 - (5 + (idHash % 20)) * DAY;
-        const r2 = rnd(retailers);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',           timestamp:new Date(base-60*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',            timestamp:new Date(base-53*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',      timestamp:new Date(base-51*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',   timestamp:new Date(base-45*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r2.name, destinedRegion:r2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',       timestamp:new Date(base-43*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',           timestamp:new Date(base-38*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty', timestamp:new Date(base-15*DAY).toISOString(),  operatorId:'SYSTEM', company:r2.name, location:r2.name, region:r2.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-returned-empty',timestamp:new Date(base-10*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'received-empty',     timestamp:new Date(base).toISOString(),         operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      } else if (cyl.status === 'in-refill') {
-        const base = now2 - 2*MONTH;
-        await txPut('events', { cylinderId:cyl.id, type:'received-empty', timestamp:new Date(base-5*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',       timestamp:new Date(base).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-      } else if (cyl._seedEmpty) {
-        const base = now2 - (20 + (idHash % 30)) * DAY;
-        const r3 = rnd(retailers);
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',            timestamp:new Date(base-30*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',             timestamp:new Date(base-22*DAY).toISOString(), operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',       timestamp:new Date(base-20*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail',    timestamp:new Date(base-15*DAY).toISOString(), operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r3.name, destinedRegion:r3.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',        timestamp:new Date(base-13*DAY).toISOString(), operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',            timestamp:new Date(base-8*DAY).toISOString(),  operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-returned-empty',  timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:r3.name, location:r3.name, region:r3.region });
-      } else if (cyl.status === 'in-circulation') {
-        const isStuck = (idHash % 4 === 0);
-        const daysAgo = isStuck ? 105 : (8 + (idHash % 30));
-        const base = now2 - daysAgo * DAY;
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base-7*DAY).toISOString(),  operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base).toISOString(),        operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+2*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+8*DAY).toISOString(),  operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+10*DAY).toISOString(), operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      } else if (cyl.status === 'in-use') {
-        const base = now2 - 3*MONTH;
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',         timestamp:new Date(base).toISOString(),          operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'shipped',          timestamp:new Date(base+7*DAY).toISOString(),    operatorId:'SYSTEM', company:cyl.company, location:cyl.company, destinedFor:d.name, destinedRegion:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-received',    timestamp:new Date(base+9*DAY).toISOString(),    operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region });
-        await txPut('events', { cylinderId:cyl.id, type:'dist-sent-retail', timestamp:new Date(base+15*DAY).toISOString(),   operatorId:'SYSTEM', company:d.name, location:d.name, region:d.region, destinedFor:r.name, destinedRegion:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-received',     timestamp:new Date(base+17*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-        await txPut('events', { cylinderId:cyl.id, type:'ret-sold',         timestamp:new Date(base+22*DAY).toISOString(),   operatorId:'SYSTEM', company:r.name, location:r.name, region:r.region });
-      } else if (cyl.status === 'revalidation') {
-        await txPut('events', { cylinderId:cyl.id, type:'refilled',          timestamp:new Date(now2-6*MONTH).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'sent-revalidation', timestamp:new Date(now2-5*MONTH).toISOString(),       operatorId:'SYSTEM', company:cyl.company, location:cyl.company });
-        await txPut('events', { cylinderId:cyl.id, type:'reval-received',    timestamp:new Date(now2-5*MONTH+3*DAY).toISOString(), operatorId:'SYSTEM', company:revalName, location:revalName, region:revalCity });
-      }
-    }
-  }
-
-  // ── Tanzania (TZ) ─────────────────────────────────────────────────────────
-  if (!skipTZ) {
-  _activeCountry = 'TZ';
-  if (_fdb) _seedBatch = [];
-
-  await txClearStore('cylinders');
-  await txClearStore('events');
-
-  for (const cyl of DEMO_CYLINDERS) { await txPut('cylinders', cyl); }
-
-  const TZ_RETAILERS = [
-    { name:'QuickGas Retail DSM North',  region:'Dar es Salaam' },
-    { name:'CityGas Direct Temeke',      region:'Dar es Salaam' },
-    { name:'Kariakoo Gas Shop',          region:'Dar es Salaam' },
-    { name:'Dar North Gas Kijitonyama',  region:'Dar es Salaam' },
-    { name:'Northern Gas Retail Arusha', region:'Arusha'        },
-    { name:'Arusha Clock Tower Gas',     region:'Arusha'        },
-    { name:'Moshi Gas Outlet',           region:'Kilimanjaro'   },
-    { name:'Mwanza Lakeside Gas',        region:'Mwanza'        },
-    { name:'Mwanza Rock City Gas',       region:'Mwanza'        },
-    { name:'Iringa Gas Retail',          region:'Iringa'        },
-    { name:'Zanzibar Stone Town Gas',    region:'Zanzibar'      },
-    { name:'Morogoro Gas Centre',        region:'Morogoro'      },
-    { name:'Dodoma Central Gas Shop',    region:'Dodoma'        },
-    { name:'Mbeya Highland Gas Retail',  region:'Mbeya'         },
-    { name:'Tanga Shoreline Gas',        region:'Tanga'         },
-    { name:'Tabora Market Gas Shop',     region:'Tabora'        },
-    { name:'Shinyanga Gas Retail',       region:'Shinyanga'     },
-  ];
-  const TZ_DISTRIBUTORS = [
-    { name:'ABC Gas Distributors',         region:'Dar es Salaam' },
-    { name:'Sunrise Gas Ltd',              region:'Arusha'        },
-    { name:'Lake Victoria Gas Supply',     region:'Mwanza'        },
-    { name:'Capital Gas Supplies',         region:'Dodoma'        },
-    { name:'Kilimanjaro Gas Distributors', region:'Kilimanjaro'   },
-    { name:'Southern Highlands Gas',       region:'Mbeya'         },
-    { name:'Coastal Gas Ltd',              region:'Tanga'         },
-    { name:'Tabora Gas Distributors',      region:'Tabora'        },
-    { name:'Morogoro Gas Depot',           region:'Morogoro'      },
-    { name:'Shinyanga Gas Centre',         region:'Shinyanga'     },
-  ];
-
-  await seedNamedCylEvents(DEMO_CYLINDERS, TZ_DISTRIBUTORS, TZ_RETAILERS, 'ProRevalid Ltd', 'Dar es Salaam');
-  await seedGeneratedCylEvents(buildGeneratedCylinders(), TZ_DISTRIBUTORS, TZ_RETAILERS, 'ProRevalid Ltd', 'Dar es Salaam');
-
-  const tzMisplacedPairs = [
-    { cylId:'E280116060000204C3F04E85', company:'Vivo LPG',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam', actualDist:'Sunrise Gas Ltd',          actualRegion:'Arusha'       },
-    { cylId:'E280116060000204C3F04E95', company:'Shell Gas',      intendedDist:'Capital Gas Supplies',         intendedRegion:'Dodoma',        actualDist:'Southern Highlands Gas',   actualRegion:'Mbeya'        },
-    { cylId:'E280116060000204C3F04E87', company:'Vivo LPG',       intendedDist:'Kilimanjaro Gas Distributors', intendedRegion:'Kilimanjaro',    actualDist:'ABC Gas Distributors',     actualRegion:'Dar es Salaam' },
-    { cylId:'E280116060000204C3F04E8B', company:'Total Energies', intendedDist:'Morogoro Gas Depot',           intendedRegion:'Morogoro',       actualDist:'Tabora Gas Distributors',  actualRegion:'Tabora'       },
-    { cylId:'E280116060000204C3F04E91', company:'Shell Gas',      intendedDist:'Coastal Gas Ltd',              intendedRegion:'Tanga',          actualDist:'Sunrise Gas Ltd',          actualRegion:'Arusha'       },
-    { cylId:'E280116060000204C3F04E9C', company:'Lake Gas',       intendedDist:'ABC Gas Distributors',         intendedRegion:'Dar es Salaam',  actualDist:'Lake Victoria Gas Supply', actualRegion:'Mwanza'       },
-  ];
-  for (const mp of tzMisplacedPairs) {
-    const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
-    await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,     location:mp.company,     destinedFor:mp.intendedDist,  destinedRegion:mp.intendedRegion });
-    await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist,  location:mp.actualDist,  region:mp.actualRegion });
-  }
-
-  const TZ_INSP_SEED = [
-    { cylId:'E280116060000204C3F04E81', type:'inspected',       ts:'2025-12-10T10:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E82', type:'inspected',       ts:'2025-12-15T11:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E83', type:'ewura-monitored', ts:'2025-12-20T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E89', type:'inspected',       ts:'2026-01-08T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8A', type:'inspected',       ts:'2026-01-15T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8B', type:'ewura-monitored', ts:'2026-01-22T08:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E91', type:'inspected',       ts:'2026-02-05T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E92', type:'inspected',       ts:'2026-02-12T09:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E99', type:'inspected',       ts:'2026-02-18T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E84', type:'ewura-monitored', ts:'2026-03-03T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E85', type:'inspected',       ts:'2026-03-10T14:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E8C', type:'inspected',       ts:'2026-03-20T09:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E9A', type:'inspected',       ts:'2026-04-04T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E9B', type:'ewura-monitored', ts:'2026-04-11T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E93', type:'inspected',       ts:'2026-04-18T08:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E86', type:'inspected',       ts:'2026-05-06T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E94', type:'inspected',       ts:'2026-05-14T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04EA1', type:'ewura-monitored', ts:'2026-05-22T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04E87', type:'inspected',       ts:'2026-06-02T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04E95', type:'inspected',       ts:'2026-06-07T11:00:00Z', compliant:true  },
-  ];
-  for (const s of TZ_INSP_SEED) {
-    await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='ewura-monitored'?'EWURA':'Field Inspection Unit', compliant:s.compliant });
-  }
-
-  if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
-  for (const lic of DEMO_LICENSES)     { await txPut('licenses',     lic); }
-  for (const ins of DEMO_INSPECTIONS)  { await txPut('inspections',  ins); }
-  } // end if (!skipTZ)
-
-  // ── Kenya (KE) ────────────────────────────────────────────────────────────
-  if (!skipKE) {
-  _activeCountry = 'KE';
-  if (_fdb) _seedBatch = [];
-
-  if (!skipKECylinders) {
-    await txClearStore('cylinders');
-    await txClearStore('events');
-    for (const cyl of DEMO_CYLINDERS_KE) { await txPut('cylinders', cyl); }
-  }
-  await txClearStore('licenses');
-  await txClearStore('inspections');
-
-  const KE_RETAILERS = [
-    { name:'Westlands Gas Shop',      region:'Nairobi'     },
-    { name:'Eastleigh Gas Outlet',    region:'Nairobi'     },
-    { name:'Kibera Gas Point',        region:'Nairobi'     },
-    { name:'Karen Gas Retail',        region:'Nairobi'     },
-    { name:'Nairobi CBD Gas',         region:'Nairobi'     },
-    { name:'Gigiri Gas Point',        region:'Nairobi'     },
-    { name:'Mtwapa Gas Shop',         region:'Mombasa'     },
-    { name:'Nyali Gas Direct',        region:'Mombasa'     },
-    { name:'Kisumu Milimani Gas',     region:'Kisumu'      },
-    { name:'Nakuru Central Gas Shop', region:'Nakuru'      },
-    { name:'Eldoret Pioneer Gas',     region:'Uasin Gishu' },
-    { name:'Nyeri Gas Corner',        region:'Nyeri'       },
-    { name:'Thika Gas Retail',        region:'Kiambu'      },
-    { name:'Rongai Gas Retail',       region:'Kajiado'     },
-    { name:'Malindi Seaside Gas',     region:'Kilifi'      },
-    { name:'Kisii Central Gas',       region:'Kisii'       },
-  ];
-  const KE_DISTRIBUTORS = [
-    { name:'Nairobi Gas Supplies',      region:'Nairobi'     },
-    { name:'Mombasa Gas Depot',         region:'Mombasa'     },
-    { name:'Kisumu Gas Supplies',       region:'Kisumu'      },
-    { name:'Nakuru Gas Centre',         region:'Nakuru'      },
-    { name:'Eldoret Gas Distributors',  region:'Uasin Gishu' },
-    { name:'Thika Gas Supplies',        region:'Kiambu'      },
-    { name:'Machakos Gas Distributors', region:'Machakos'    },
-    { name:'Meru Gas Centre',           region:'Meru'        },
-    { name:'Malindi Gas Depot',         region:'Kilifi'      },
-    { name:'Kisii Gas Distributors',    region:'Kisii'       },
-  ];
-
-  if (!skipKECylinders) {
-    await seedNamedCylEvents(DEMO_CYLINDERS_KE, KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
-    await seedGeneratedCylEvents(buildKenyaCylinders(), KE_DISTRIBUTORS, KE_RETAILERS, 'Kenya Reval Services', 'Nairobi');
-  }
-
-  const keMisplacedPairs = [
-    { cylId:'E280116060000204C3F04F85', company:'Total Energies Kenya', intendedDist:'Nairobi Gas Supplies',     intendedRegion:'Nairobi',      actualDist:'Mombasa Gas Depot',         actualRegion:'Mombasa'   },
-    { cylId:'E280116060000204C3F04FA5', company:'Vivo Energy Kenya',    intendedDist:'Kisumu Gas Supplies',      intendedRegion:'Kisumu',       actualDist:'Nakuru Gas Centre',         actualRegion:'Nakuru'    },
-    { cylId:'E280116060000204C3F04FB4', company:'Africa Gas & Oil',     intendedDist:'Thika Gas Supplies',       intendedRegion:'Kiambu',       actualDist:'Machakos Gas Distributors', actualRegion:'Machakos'  },
-    { cylId:'E280116060000204C3F04F88', company:'Total Energies Kenya', intendedDist:'Eldoret Gas Distributors', intendedRegion:'Uasin Gishu',  actualDist:'Nairobi Gas Supplies',      actualRegion:'Nairobi'   },
-  ];
-  if (!skipKECylinders) {
-    for (const mp of keMisplacedPairs) {
-      const tShip = new Date(now - 10*DAY), tRecv = new Date(now - 8*DAY);
-      await txPut('events', { cylinderId:mp.cylId, type:'shipped',       timestamp:tShip.toISOString(), operatorId:'SYSTEM', company:mp.company,    location:mp.company,    destinedFor:mp.intendedDist, destinedRegion:mp.intendedRegion });
-      await txPut('events', { cylinderId:mp.cylId, type:'dist-received', timestamp:tRecv.toISOString(), operatorId:'SYSTEM', company:mp.actualDist, location:mp.actualDist, region:mp.actualRegion });
-    }
-  }
-
-  const KE_INSP_SEED = [
-    { cylId:'E280116060000204C3F04F81', type:'inspected',      ts:'2025-12-12T10:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04F82', type:'inspected',      ts:'2025-12-18T11:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04F83', type:'epra-monitored', ts:'2025-12-22T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04F8D', type:'inspected',      ts:'2026-01-10T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04F8E', type:'inspected',      ts:'2026-01-18T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FA1', type:'epra-monitored', ts:'2026-01-25T08:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04FA2', type:'inspected',      ts:'2026-02-08T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FA3', type:'inspected',      ts:'2026-02-14T09:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FC1', type:'inspected',      ts:'2026-02-20T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04F84', type:'epra-monitored', ts:'2026-03-05T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04F85', type:'inspected',      ts:'2026-03-12T14:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FB1', type:'inspected',      ts:'2026-03-22T09:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FC2', type:'inspected',      ts:'2026-04-06T11:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FC3', type:'epra-monitored', ts:'2026-04-14T10:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04FB2', type:'inspected',      ts:'2026-04-20T08:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04F86', type:'inspected',      ts:'2026-05-08T13:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FB3', type:'inspected',      ts:'2026-05-16T10:30:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FA4', type:'epra-monitored', ts:'2026-05-24T09:00:00Z', compliant:false },
-    { cylId:'E280116060000204C3F04F87', type:'inspected',      ts:'2026-06-04T14:00:00Z', compliant:true  },
-    { cylId:'E280116060000204C3F04FA5', type:'inspected',      ts:'2026-06-09T11:00:00Z', compliant:true  },
-  ];
-  if (!skipKECylinders) {
-    for (const s of KE_INSP_SEED) {
-      await txPut('events', { cylinderId:s.cylId, type:s.type, timestamp:s.ts, operatorId:'SYSTEM', company:s.type==='epra-monitored'?'EPRA':'Field Inspection Unit', compliant:s.compliant });
-    }
-  }
-
-  if (_fdb && _seedBatch !== null) { await _fsBatchFlush(); _seedBatch = null; }
-  for (const lic of DEMO_LICENSES_KE)    { await txPut('licenses',    lic); }
-  for (const ins of DEMO_INSPECTIONS_KE) { await txPut('inspections', ins); }
-  await _doSeedOrders('KE');
-  } // end if (!skipKE)
-
-  if (!skipTZ) await _doSeedOrders('TZ');
-
-  _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
-  await _idbPut('meta', { key: SEED_KEY, value: true });
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // DOM REFS
@@ -2229,13 +1516,13 @@ function applySession() {
   // Company filter: hide for LPGMC (they see only own)
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
 
-  // Register button: LPGMC only
+  // Register button: LPGMC and Cylinder Producer
   if (registerCylBtn) {
-    registerCylBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+    registerCylBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   }
-  // Bulk register button: LPGMC only
+  // Bulk register button: LPGMC and Cylinder Producer
   const _bulkBtn = $('bulk-register-btn');
-  if (_bulkBtn) _bulkBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
+  if (_bulkBtn) _bulkBtn.style.display = (s.role === 'lpgmc' || s.role === 'cylinder-producer') ? '' : 'none';
   // Tag/stamp order buttons: LPGMC only
   const _tagOrderBtn = $('tag-order-place-btn');
   if (_tagOrderBtn) _tagOrderBtn.style.display = s.role === 'lpgmc' ? '' : 'none';
@@ -6087,35 +5374,11 @@ $('bulk-register-confirm-btn')?.addEventListener('click', async () => {
 // CYLINDER RECALL WORKFLOW (EWURA)
 // ══════════════════════════════════════════════════════════════════════════════
 
-const _RECALL_SEEDS_TZ = [
-  { id:'RCL-TZ-2024-117', operator:'Vivo LPG',       batch:'BATCH-2024-117', dateFrom:'2023-01-01', dateTo:'2023-06-30', severity:'critical', reason:'Valve manufacturing defect detected — risk of gas leakage under pressure. Immediate withdrawal from all distribution points required.', timestamp:'2024-03-15T08:30:00Z' },
-  { id:'RCL-TZ-2025-042', operator:'Total Energies',  batch:'BATCH-2025-042', dateFrom:'2024-07-01', dateTo:'2024-12-31', severity:'high',     reason:'Cylinder neck thread non-conformance identified during quality audit. Withdraw within 48 hours and return to manufacturer for inspection.', timestamp:'2025-01-22T10:00:00Z' },
-  { id:'RCL-TZ-2025-088', operator:'Shell Gas',       batch:'BATCH-2025-088', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Incorrect tare weight stamping on a sub-batch of 6 kg cylinders. Controlled recall for re-stamping — no immediate safety risk.', timestamp:'2025-06-05T14:15:00Z' },
-  { id:'RCL-TZ-2025-201', operator:'Lake Gas',        batch:'BATCH-2025-201', dateFrom:'2025-01-01', dateTo:'2025-03-31', severity:'high',     reason:'Pressure relief valve spring fatigue identified in a production batch. Potential over-pressurisation risk — withdraw within 48 hours.', timestamp:'2025-08-10T09:00:00Z' },
-];
 
-const _RECALL_SEEDS_KE = [
-  { id:'RCL-KE-2024-031', operator:'Total Energies Kenya', batch:'BATCH-KE-2024-031', dateFrom:'2023-03-01', dateTo:'2023-09-30', severity:'critical', reason:'Weld seam integrity failure detected on 13 kg cylinders manufactured in this period. Risk of sudden rupture. Immediate withdrawal required.', timestamp:'2024-06-12T07:45:00Z' },
-  { id:'RCL-KE-2025-018', operator:'Vivo Energy Kenya',    batch:'BATCH-KE-2025-018', dateFrom:'2024-08-01', dateTo:'2024-11-30', severity:'high',     reason:'Foot ring detachment risk due to incorrect welding parameter during production run. Withdraw within 48 hours for inspection.', timestamp:'2025-02-28T11:30:00Z' },
-  { id:'RCL-KE-2025-055', operator:'Africa Gas & Oil',     batch:'BATCH-KE-2025-055', dateFrom:'',           dateTo:'',           severity:'medium',    reason:'Tare weight label discrepancy on 6 kg cylinders — incorrect net weight printed. Controlled recall for re-labelling, no safety risk.', timestamp:'2025-05-19T13:00:00Z' },
-  { id:'RCL-KE-2025-091', operator:'Hashi Energy',         batch:'BATCH-KE-2025-091', dateFrom:'2025-02-01', dateTo:'2025-04-30', severity:'high',     reason:'Batch of valve handwheels found with sub-specification torque rating. Withdraw from retailers within 48 hours for valve replacement.', timestamp:'2025-07-30T08:15:00Z' },
-];
 
 async function renderRecalls() {
   const container = $('recalls-container');
   if (!container) return;
-
-  // Lazy-seed demo recalls into Firestore once per country (independent of main seed key)
-  const recallSeedKey = 'recalls-seeded-' + _activeCountry;
-  const alreadySeeded = await _idbGet('meta', recallSeedKey);
-  if (!alreadySeeded) {
-    const existing = await txGetAll('recalls');
-    if (existing.length === 0) {
-      const seeds = _activeCountry === 'KE' ? _RECALL_SEEDS_KE : _RECALL_SEEDS_TZ;
-      for (const r of seeds) await txPut('recalls', r);
-    }
-    await _idbPut('meta', { key: recallSeedKey, value: true });
-  }
 
   const recalls = (await txGetAll('recalls')).slice().sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1));
 
@@ -6326,6 +5589,7 @@ async function renderTagOrders() {
         <div class="order-card-row"><span>LPGMC</span><strong>${escapeHtml(o.lpgmc)}</strong></div>
         <div class="order-card-row"><span>Quantity</span><strong>${o.quantity.toLocaleString()} tags</strong></div>
         <div class="order-card-row"><span>Tag Type</span><strong>${escapeHtml(o.tagType)}</strong></div>
+        ${o.cylinderSize ? `<div class="order-card-row"><span>Cylinder Size</span><strong>${escapeHtml(o.cylinderSize)}</strong></div>` : ''}
         <div class="order-card-row"><span>Manufacturer</span><strong>${escapeHtml(o.manufacturer)} (${escapeHtml(o.manufacturerCountry)})</strong></div>
         ${o.approvedDate ? `<div class="order-card-row"><span>Approved</span><strong>${o.approvedDate.slice(0,10)}</strong></div>` : ''}
         ${o.dispatchDate ? `<div class="order-card-row"><span>Dispatched</span><strong>${o.dispatchDate.slice(0,10)}</strong></div>` : ''}
@@ -6396,10 +5660,11 @@ async function renderTagOrders() {
 $('tag-order-place-btn')?.addEventListener('click', () => openModal('modal-tag-order'));
 
 $('tag-order-submit-btn')?.addEventListener('click', async () => {
-  const qty      = parseInt($('to-quantity')?.value) || 0;
-  const tagType  = $('to-tag-type')?.value || '';
-  const mfr      = $('to-manufacturer')?.value || '';
-  const notes    = $('to-notes')?.value?.trim() || '';
+  const qty          = parseInt($('to-quantity')?.value) || 0;
+  const tagType      = $('to-tag-type')?.value || 'RFID/NFC Cylinder Tag';
+  const cylinderSize = $('to-cylinder-size')?.value || '13kg';
+  const mfr          = $('to-manufacturer')?.value || '';
+  const notes        = $('to-notes')?.value?.trim() || '';
   if (qty < 1) { showSnackbar('Enter a valid quantity.', 'error'); return; }
   if (!mfr)    { showSnackbar('Select a manufacturer.', 'error'); return; }
   const mfrObj = DEMO_MANUFACTURERS.find(m => m.id === mfr);
@@ -6407,7 +5672,8 @@ $('tag-order-submit-btn')?.addEventListener('click', async () => {
   const id = 'TO-' + _activeCountry + '-' + Date.now();
   await txPut('tag-orders', {
     id, country: _activeCountry, lpgmc: s.company,
-    quantity: qty, tagType, manufacturer: mfrObj ? mfrObj.name : mfr,
+    quantity: qty, tagType, cylinderSize,
+    manufacturer: mfrObj ? mfrObj.name : mfr,
     manufacturerCountry: mfrObj ? mfrObj.country : '',
     status: 'pending', requestedDate: new Date().toISOString(),
     approvedDate: null, dispatchDate: null, deliveryDate: null, notes,
@@ -6458,6 +5724,7 @@ async function renderStampOrders() {
         <div class="order-card-row"><span>LPGMC</span><strong>${escapeHtml(o.lpgmc)}</strong></div>
         <div class="order-card-row"><span>Quantity</span><strong>${o.quantity.toLocaleString()} stamps</strong></div>
         <div class="order-card-row"><span>Stamp Type</span><strong>${escapeHtml(o.stampType)}</strong></div>
+        ${o.cylinderSize ? `<div class="order-card-row"><span>Cylinder Size</span><strong>${escapeHtml(o.cylinderSize)}</strong></div>` : ''}
         ${o.approvedDate ? `<div class="order-card-row"><span>Approved</span><strong>${o.approvedDate.slice(0,10)}</strong></div>` : ''}
         ${o.dispatchDate ? `<div class="order-card-row"><span>Dispatched</span><strong>${o.dispatchDate.slice(0,10)}</strong></div>` : ''}
         ${o.deliveryDate ? `<div class="order-card-row"><span>Delivered</span><strong>${o.deliveryDate.slice(0,10)}</strong></div>` : ''}
@@ -6526,16 +5793,16 @@ async function renderStampOrders() {
 $('stamp-order-place-btn')?.addEventListener('click', () => openModal('modal-stamp-order'));
 
 $('stamp-order-submit-btn')?.addEventListener('click', async () => {
-  const qty       = parseInt($('so-quantity')?.value) || 0;
-  const stampType = $('so-stamp-type')?.value || '';
-  const notes     = $('so-notes')?.value?.trim() || '';
-  if (qty < 1)       { showSnackbar('Enter a valid quantity.', 'error'); return; }
-  if (!stampType)    { showSnackbar('Select a stamp type.', 'error'); return; }
+  const qty          = parseInt($('so-quantity')?.value) || 0;
+  const stampType    = $('so-stamp-type')?.value || 'Secure Refill Stamps';
+  const cylinderSize = $('so-cylinder-size')?.value || '13kg';
+  const notes        = $('so-notes')?.value?.trim() || '';
+  if (qty < 1) { showSnackbar('Enter a valid quantity.', 'error'); return; }
   const s = Auth.session;
   const id = 'SO-' + _activeCountry + '-' + Date.now();
   await txPut('stamp-orders', {
     id, country: _activeCountry, lpgmc: s.company,
-    quantity: qty, stampType,
+    quantity: qty, stampType, cylinderSize,
     status: 'pending', requestedDate: new Date().toISOString(),
     approvedDate: null, dispatchDate: null, deliveryDate: null, notes,
   });
@@ -6595,33 +5862,94 @@ async function renderStockReport() {
   const stockEl = $('stock-report-content');
   if (!stockEl) return;
 
-  const scopeLabel = lpgmcFilter ? escapeHtml(lpgmcFilter) : 'National';
+  const scopeLabel  = lpgmcFilter ? escapeHtml(lpgmcFilter) : 'National';
+  const filledPct   = total ? Math.round(filled   / total * 100) : 0;
+  const emptyPct    = total ? Math.round(empty     / total * 100) : 0;
+  const revalPct    = total ? Math.round(revalCnt  / total * 100) : 0;
+
+  // Status colour segments for the stacked bar
+  const seg = (pct, col) => pct > 0 ? `<div style="width:${pct}%;background:${col};height:100%;min-width:2px"></div>` : '';
+  const otherPct = Math.max(0, 100 - filledPct - emptyPct - revalPct);
+
+  // Per-LPGMC rows with mini progress bar
+  const lpgmcRows = perLpgmc.map(l => {
+    const fp = l.total ? Math.round(l.filled / l.total * 100) : 0;
+    return `
+      <tr>
+        <td style="font-weight:500">${escapeHtml(l.name)}</td>
+        <td style="text-align:center">${l.total.toLocaleString()}</td>
+        <td style="min-width:120px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:8px;border-radius:4px;background:var(--border,#e2e8f0);overflow:hidden">
+              <div style="width:${fp}%;height:100%;background:var(--green,#22c55e);border-radius:4px"></div>
+            </div>
+            <span style="font-size:12px;color:var(--muted,#64748b);width:32px;text-align:right">${fp}%</span>
+          </div>
+        </td>
+        <td style="text-align:center;color:var(--green,#22c55e)">${l.filled}</td>
+        <td style="text-align:center;color:var(--orange,#f97316)">${l.empty}</td>
+        <td style="text-align:center;color:var(--blue,#3b82f6)">${l.reval}</td>
+        <td style="text-align:center">${l.refills30}</td>
+      </tr>`;
+  }).join('');
 
   stockEl.innerHTML = `
-    <div class="stock-section">
-      <h3 class="stock-section-title">${scopeLabel} — Cylinder Stock Summary</h3>
-      <div class="kpi-grid" style="margin-bottom:16px">
-        <div class="kpi-card"><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-label">Total Cylinders</div></div>
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${filled.toLocaleString()}</div><div class="kpi-label">Filled / In Market</div></div>
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--orange)">${empty.toLocaleString()}</div><div class="kpi-label">Empty / In-Refill</div></div>
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${revalCnt.toLocaleString()}</div><div class="kpi-label">Under Revalidation</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+      <h3 style="margin:0;font-size:15px;font-weight:600">${scopeLabel} — Cylinder Stock</h3>
+      <span style="font-size:12px;color:var(--muted,#64748b)">as of today</span>
+    </div>
+
+    <!-- Summary KPI cards -->
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="kpi-card">
+        <div class="kpi-value">${total.toLocaleString()}</div>
+        <div class="kpi-label">Total Cylinders</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid var(--green,#22c55e)">
+        <div class="kpi-value" style="color:var(--green,#22c55e)">${filled.toLocaleString()}</div>
+        <div class="kpi-label">Filled / In Market</div>
+        <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">${filledPct}% of fleet</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid var(--orange,#f97316)">
+        <div class="kpi-value" style="color:var(--orange,#f97316)">${empty.toLocaleString()}</div>
+        <div class="kpi-label">Empty / In-Refill</div>
+        <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">${emptyPct}% of fleet</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid var(--blue,#3b82f6)">
+        <div class="kpi-value" style="color:var(--blue,#3b82f6)">${revalCnt.toLocaleString()}</div>
+        <div class="kpi-label">Under Revalidation</div>
+        <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">${revalPct}% of fleet</div>
       </div>
     </div>
 
-    <div class="stock-section">
-      <h3 class="stock-section-title">Bulk Tanker Incoming Volume</h3>
-      <div class="kpi-grid" style="margin-bottom:16px">
-        <div class="kpi-card"><div class="kpi-value">${DEMO_BULK_TANKERS.length}</div><div class="kpi-label">Total Tankers</div></div>
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${activeTankers.length}</div><div class="kpi-label">In-Transit</div></div>
-        <div class="kpi-card"><div class="kpi-value">${totalTankerVol.toLocaleString()} t</div><div class="kpi-label">Fleet Capacity</div></div>
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${inTransitVol.toLocaleString()} t</div><div class="kpi-label">In-Transit Volume</div></div>
+    <!-- Stacked fleet bar -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px">Fleet Distribution</div>
+      <div style="height:20px;border-radius:10px;overflow:hidden;display:flex;background:var(--border,#e2e8f0)">
+        ${seg(filledPct,  'var(--green,#22c55e)')}
+        ${seg(emptyPct,   'var(--orange,#f97316)')}
+        ${seg(revalPct,   'var(--blue,#3b82f6)')}
+        ${seg(otherPct,   'var(--border,#e2e8f0)')}
+      </div>
+      <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap">
+        <span style="font-size:12px;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green,#22c55e)"></span>Filled ${filledPct}%</span>
+        <span style="font-size:12px;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--orange,#f97316)"></span>Empty/Refill ${emptyPct}%</span>
+        <span style="font-size:12px;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--blue,#3b82f6)"></span>Revalidation ${revalPct}%</span>
       </div>
     </div>
 
+    <!-- Refill activity -->
     <div class="stock-section">
       <h3 class="stock-section-title">Refill Activity — Last 30 Days</h3>
-      <div class="kpi-grid" style="margin-bottom:16px">
-        <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">${recentRef.length.toLocaleString()}</div><div class="kpi-label">Refill Events${lpgmcFilter ? '' : ' (National)'}</div></div>
+      <div class="kpi-grid" style="margin-bottom:8px">
+        <div class="kpi-card" style="border-top:3px solid var(--blue,#3b82f6)">
+          <div class="kpi-value" style="color:var(--blue,#3b82f6)">${recentRef.length.toLocaleString()}</div>
+          <div class="kpi-label">Refill Events${lpgmcFilter ? '' : ' (National)'}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${activeTankers.length}<span style="font-size:13px;font-weight:400;color:var(--muted,#64748b)"> / ${DEMO_BULK_TANKERS.length}</span></div>
+          <div class="kpi-label">Tankers In-Transit</div>
+        </div>
       </div>
     </div>
 
@@ -6629,20 +5957,17 @@ async function renderStockReport() {
     <div class="stock-section">
       <h3 class="stock-section-title">Per-LPGMC Breakdown</h3>
       <div style="overflow-x:auto">
-        <table class="data-table" style="width:100%;min-width:560px">
+        <table class="data-table" style="width:100%;min-width:580px">
           <thead><tr>
-            <th>LPGMC</th><th>Total</th><th>Filled</th><th>Empty</th><th>Reval.</th><th>Refills (30d)</th>
+            <th>LPGMC</th>
+            <th style="text-align:center">Total</th>
+            <th>Fill Rate</th>
+            <th style="text-align:center">Filled</th>
+            <th style="text-align:center">Empty</th>
+            <th style="text-align:center">Reval.</th>
+            <th style="text-align:center">Refills (30d)</th>
           </tr></thead>
-          <tbody>
-            ${perLpgmc.map(l => `<tr>
-              <td>${escapeHtml(l.name)}</td>
-              <td>${l.total}</td>
-              <td style="color:var(--green)">${l.filled}</td>
-              <td style="color:var(--orange)">${l.empty}</td>
-              <td style="color:var(--blue)">${l.reval}</td>
-              <td>${l.refills30}</td>
-            </tr>`).join('')}
-          </tbody>
+          <tbody>${lpgmcRows}</tbody>
         </table>
       </div>
     </div>
@@ -6667,7 +5992,6 @@ if ('serviceWorker' in navigator) {
 async function init() {
   initFirebase();
   await openDB();
-  await seedDemoData();
 
   // Consumer QR code scan — handle ?cylinder=ID without login
   const urlParams = new URLSearchParams(window.location.search);
