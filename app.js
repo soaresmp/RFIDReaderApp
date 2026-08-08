@@ -5639,7 +5639,31 @@ async function renderBulkMonitor() {
     if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = pct === 100 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#3b82f6'; }
   }
 
-  function openOverlay() { overlay.style.display = 'block'; overlay.scrollTop = 0; updateProgress(); applyLang(); }
+  const LIC_REGIONS_TZ = [
+    'Dar es Salaam','Arusha','Mwanza','Dodoma','Mbeya','Morogoro','Tanga',
+    'Kilimanjaro','Iringa','Tabora','Shinyanga','Kagera','Mara','Singida',
+    'Lindi','Mtwara','Ruvuma','Pwani','Rukwa','Kigoma','Katavi','Njombe',
+    'Simiyu','Geita','Songwe','Kaskazini Unguja','Kusini Unguja',
+  ];
+  const LIC_REGIONS_KE = [
+    'Nairobi','Mombasa','Kisumu','Nakuru','Uasin Gishu','Kiambu','Machakos',
+    'Meru','Nyeri','Kakamega','Kilifi','Kwale','Kajiado','Makueni','Kitui',
+    'Embu','Kirinyaga','Muranga','Nyandarua','Laikipia','Samburu','Isiolo',
+    'Marsabit','Garissa','Wajir','Mandera','Turkana','West Pokot','Baringo',
+    'Elgeyo-Marakwet','Nandi','Trans Nzoia','Bungoma','Busia','Vihiga',
+    'Siaya','Homa Bay','Migori','Kisii','Nyamira','Kericho','Bomet','Narok',
+    'Tharaka-Nithi','Tana River','Lamu','Taita-Taveta',
+  ];
+
+  function populateRegions() {
+    const sel = document.getElementById('la-region');
+    if (!sel) return;
+    const regions = _activeCountry === 'KE' ? LIC_REGIONS_KE : LIC_REGIONS_TZ;
+    const placeholder = `<option value="">${t('licApp.selectRegion')}</option>`;
+    sel.innerHTML = placeholder + regions.map(r => `<option>${r}</option>`).join('');
+  }
+
+  function openOverlay() { overlay.style.display = 'block'; overlay.scrollTop = 0; populateRegions(); updateProgress(); applyLang(); }
   function closeOverlay() { overlay.style.display = 'none'; }
 
   if (openBtn)  openBtn.addEventListener('click', openOverlay);
