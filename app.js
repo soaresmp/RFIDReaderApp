@@ -6314,9 +6314,11 @@ async function openRecallDetailModal(r) {
     if (c.company !== r.operator) return false;
     // Batch filter when specified
     if (r.batch && c.batch && c.batch !== r.batch) return false;
-    // Manufacture-date window filter when specified
-    if (r.dateFrom && c.mfgDate && c.mfgDate < r.dateFrom) return false;
-    if (r.dateTo   && c.mfgDate && c.mfgDate > r.dateTo)   return false;
+    // Manufacture-date window filter only when no batch is given (batch already identifies the set)
+    if (!r.batch) {
+      if (r.dateFrom && c.mfgDate && c.mfgDate < r.dateFrom) return false;
+      if (r.dateTo   && c.mfgDate && c.mfgDate > r.dateTo)   return false;
+    }
     return true;
   });
 
