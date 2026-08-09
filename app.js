@@ -3800,16 +3800,22 @@ async function renderReports() {
       })() : ''}
       `;
 
-    // ── LPGMC: low-stock network partner report ────────────────────────────────
-    if (role === 'lpgmc') {
+    // ewura: clear chart area
+    reportChart.innerHTML = '';
+    if (actSec) actSec.style.display = 'none';
+
+    // ── LPGMC: low-stock network partner report (own dedicated section) ────────
+    const partnerStockEl = $('report-partner-stock');
+    if (role === 'lpgmc' && partnerStockEl) {
       const extraMap   = _activeCountry === 'KE' ? DEMO_NETWORK_EXTRA_KE : DEMO_NETWORK_EXTRA;
       const myCompany  = Auth.session.company;
       const myPartners = _activeNet.filter(n => extraMap[n.id]?.supplierLpgmc === myCompany);
-      // Compute filled cylinder counts from events
+
       const FULL_TYPES  = new Set(['shipped','dist-received','dist-sent-retail','ret-received']);
       const lastEvLpgmc = {};
       events.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
         .forEach(ev => { lastEvLpgmc[ev.cylinderId] = ev; });
+
       const partnerStocks = myPartners.map(n => {
         let full = 0, total = 0;
         cyls.filter(c => c.status === 'in-circulation').forEach(c => {
@@ -3819,50 +3825,51 @@ async function renderReports() {
           total++;
           if (FULL_TYPES.has(ev.type)) full++;
         });
-        // Fall back to static data if no event data yet
         if (total === 0) { total = n.cylinders || 0; full = n.full || 0; }
-        const cap  = extraMap[n.id]?.storageCapacity || total || 1;
-        const pct  = cap > 0 ? Math.round((full / cap) * 100) : 0;
+        const cap = extraMap[n.id]?.storageCapacity || total || 1;
+        const pct = cap > 0 ? Math.round((full / cap) * 100) : 0;
         return { n, full, total, cap, pct };
       }).sort((a, b) => a.pct - b.pct);
 
       const LOW_THRESH = 30, MED_THRESH = 50;
-      const lowPartners = partnerStocks.filter(p => p.pct < LOW_THRESH);
+      const lowCount = partnerStocks.filter(p => p.pct < LOW_THRESH).length;
+
       const stockRows = partnerStocks.map(({ n, full, cap, pct }) => {
         const barColor = pct >= MED_THRESH ? '#22c55e' : pct >= LOW_THRESH ? '#f59e0b' : '#ef4444';
-        const badge    = pct < LOW_THRESH
+        const badge = pct < LOW_THRESH
           ? '<span style="background:#ef444422;color:#ef4444;border:1px solid #ef444455;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600;margin-left:6px">⚠ Low Stock</span>'
           : '';
-        return `<div style="margin-bottom:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;font-size:13px">
-            <span style="font-weight:600">${escapeHtml(n.name)}${badge}</span>
-            <span style="color:var(--muted);font-size:12px">${n.type} · ${n.region}</span>
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:13px;font-weight:600">${escapeHtml(n.name)}${badge}</span>
+            <span style="font-size:12px;color:var(--muted)">${n.type} · ${n.region}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="flex:1;height:8px;background:var(--border,#e2e8f0);border-radius:4px;overflow:hidden">
               <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
             </div>
-            <span style="font-size:12px;color:var(--muted);min-width:90px;text-align:right">${full} / ${cap} (${pct}%)</span>
+            <span style="font-size:12px;color:var(--muted);min-width:100px;text-align:right">${full} / ${cap} filled (${pct}%)</span>
           </div>
         </div>`;
       }).join('');
 
-      const reportEl = $('report-chart');
-      if (reportEl) {
-        reportEl.innerHTML = `
-          <div class="passport-section-title" style="margin:20px 0 4px">
+      partnerStockEl.style.display = '';
+      partnerStockEl.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 4px">
+          <div class="section-header" style="margin:0;border:none;padding:0">
             📦 Network Partners — Filled Cylinder Stock
-            ${lowPartners.length ? `<span style="background:#ef444422;color:#ef4444;border:1px solid #ef444455;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;margin-left:8px">${lowPartners.length} low stock</span>` : ''}
           </div>
-          <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Showing ${myPartners.length} partners supplied by ${escapeHtml(myCompany)}. Partners with &lt;${LOW_THRESH}% fill are flagged.</p>
-          ${partnerStocks.length ? stockRows : '<p style="color:var(--muted);font-size:13px">No partner data available.</p>'}
-        `;
-      }
+          ${lowCount ? `<span style="background:#ef444422;color:#ef4444;border:1px solid #ef444455;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${lowCount} partner${lowCount !== 1 ? 's' : ''} low on stock</span>` : '<span style="background:#22c55e22;color:#16a34a;border:1px solid #22c55e55;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">✓ All partners adequately stocked</span>'}
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">${myPartners.length} partners supplied by ${escapeHtml(myCompany)} · threshold: &lt;${LOW_THRESH}% flagged</p>
+        <div style="background:var(--surface2);border-radius:10px;padding:0 16px;border:1px solid var(--border)">
+          ${partnerStocks.length ? stockRows : '<p style="color:var(--muted);font-size:13px;padding:16px 0">No partner data available.</p>'}
+        </div>
+      `;
+    } else if (partnerStockEl) {
+      partnerStockEl.style.display = 'none';
+      partnerStockEl.innerHTML = '';
     }
-
-    // ewura: clear chart area (lpgmc already populated it above)
-    if (role === 'ewura') reportChart.innerHTML = '';
-    if (actSec) actSec.style.display = 'none';
   } else if (role === 'distributor' || role === 'retailer') {
     const partnerEntry = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === Auth.session.company);
     const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
