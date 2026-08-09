@@ -6251,7 +6251,37 @@ async function renderRecalls() {
   const container = $('recalls-container');
   if (!container) return;
 
-  const recalls = (await txGetAll('recalls')).slice().sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1));
+  const allRecalls = (await txGetAll('recalls')).slice().sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1));
+
+  // ── Filter toolbar ─────────────────────────────────────────────────────────
+  const operators = [...new Set(allRecalls.map(r => r.operator).filter(Boolean))].sort();
+  let toolbar = $('recalls-filters');
+  if (!toolbar) {
+    toolbar = document.createElement('div');
+    toolbar.id = 'recalls-filters';
+    toolbar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px';
+    container.parentNode.insertBefore(toolbar, container);
+  }
+  toolbar.innerHTML = `
+    <select id="recalls-filter-status" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px">
+      <option value="">All Statuses</option>
+      <option value="open"   ${_recallsFilterStatus === 'open'   ? 'selected' : ''}>🟢 Open</option>
+      <option value="closed" ${_recallsFilterStatus === 'closed' ? 'selected' : ''}>🔒 Closed</option>
+    </select>
+    <select id="recalls-filter-lpgmc" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px">
+      <option value="">All Companies</option>
+      ${operators.map(op => `<option value="${escapeHtml(op)}" ${_recallsFilterLpgmc === op ? 'selected' : ''}>${escapeHtml(op)}</option>`).join('')}
+    </select>
+  `;
+  $('recalls-filter-status')?.addEventListener('change', e => { _recallsFilterStatus = e.target.value; renderRecalls(); });
+  $('recalls-filter-lpgmc') ?.addEventListener('change', e => { _recallsFilterLpgmc  = e.target.value; renderRecalls(); });
+
+  // Apply filters
+  const recalls = allRecalls.filter(r => {
+    if (_recallsFilterStatus && (r.status || 'open') !== _recallsFilterStatus) return false;
+    if (_recallsFilterLpgmc  && r.operator !== _recallsFilterLpgmc)            return false;
+    return true;
+  });
 
   const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
   const sevLabel  = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
@@ -6572,6 +6602,8 @@ function _orderStatusBadge(status) {
 
 let _ordersFilterStatus = '';
 let _ordersFilterLpgmc  = '';
+let _recallsFilterStatus = '';
+let _recallsFilterLpgmc  = '';
 
 async function renderOrders() {
   if (!$('view-orders')) return;
