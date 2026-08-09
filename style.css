@@ -1132,6 +1132,46 @@ h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
 .lic-rejected  { background: rgba(239,68,68,0.15);   color: var(--red); }
 .lic-revoked   { background: rgba(239,68,68,0.15);   color: var(--red); }
 
+/* ── License status filter pills ─────────────────────────────────────────── */
+.lic-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.lic-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+/* Default (unselected) state — subtle outline in the pill's own colour */
+.lic-sp-all      { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+.lic-sp-pending  { background: rgba(245,158,11,.08); color: #b45309; border-color: #f59e0b; }
+.lic-sp-active   { background: rgba(34,197,94,.08);  color: #15803d; border-color: #22c55e; }
+.lic-sp-expired  { background: rgba(100,116,139,.08); color: var(--muted); border-color: #94a3b8; }
+.lic-sp-suspended{ background: rgba(249,115,22,.08); color: #c2410c; border-color: #f97316; }
+.lic-sp-revoked  { background: rgba(239,68,68,.08);  color: #b91c1c; border-color: #ef4444; }
+.lic-sp-rejected { background: rgba(239,68,68,.08);  color: #b91c1c; border-color: #ef4444; }
+
+/* Active (selected) state — solid fill */
+.lic-sp-all.active      { background: var(--text);    color: var(--bg);  border-color: var(--text);    box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.lic-sp-pending.active  { background: #f59e0b; color: #fff; border-color: #f59e0b; box-shadow: 0 1px 4px rgba(245,158,11,.35); }
+.lic-sp-active.active   { background: #22c55e; color: #fff; border-color: #22c55e; box-shadow: 0 1px 4px rgba(34,197,94,.35); }
+.lic-sp-expired.active  { background: #64748b; color: #fff; border-color: #64748b; box-shadow: 0 1px 4px rgba(100,116,139,.35); }
+.lic-sp-suspended.active{ background: #f97316; color: #fff; border-color: #f97316; box-shadow: 0 1px 4px rgba(249,115,22,.35); }
+.lic-sp-revoked.active  { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 1px 4px rgba(239,68,68,.35); }
+.lic-sp-rejected.active { background: #dc2626; color: #fff; border-color: #dc2626; box-shadow: 0 1px 4px rgba(220,38,38,.35); }
+
+.lic-status-pill:hover:not(.active) { filter: brightness(0.94); }
+
 /* ── Shared list helpers ──────────────────────────────────────────────────── */
 .list-empty {
   text-align: center;

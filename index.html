@@ -763,15 +763,15 @@
               <button id="issue-license-btn" class="btn btn-primary" type="button" data-i18n="lic.issueViewBtn">+ Issue License</button>
             </div>
           </div>
-          <!-- Status tab strip -->
-          <div class="orders-subtabs" style="margin-bottom:12px">
-            <button class="orders-subtab active" data-lic-status="">All</button>
-            <button class="orders-subtab" data-lic-status="pending">Pending</button>
-            <button class="orders-subtab" data-lic-status="active">Active</button>
-            <button class="orders-subtab" data-lic-status="expired">Expired</button>
-            <button class="orders-subtab" data-lic-status="suspended">Suspended</button>
-            <button class="orders-subtab" data-lic-status="revoked">Revoked</button>
-            <button class="orders-subtab" data-lic-status="rejected">Rejected</button>
+          <!-- Status filter pills -->
+          <div class="lic-status-strip">
+            <button class="lic-status-pill lic-sp-all active" data-lic-status="">All</button>
+            <button class="lic-status-pill lic-sp-pending"   data-lic-status="pending">⏳ Pending</button>
+            <button class="lic-status-pill lic-sp-active"    data-lic-status="active">✓ Active</button>
+            <button class="lic-status-pill lic-sp-expired"   data-lic-status="expired">⌛ Expired</button>
+            <button class="lic-status-pill lic-sp-suspended" data-lic-status="suspended">⏸ Suspended</button>
+            <button class="lic-status-pill lic-sp-revoked"   data-lic-status="revoked">✕ Revoked</button>
+            <button class="lic-status-pill lic-sp-rejected"  data-lic-status="rejected">✗ Rejected</button>
           </div>
           <!-- Network map -->
           <div id="licenses-map-pane" style="margin-bottom:16px"><div id="licenses-network-map"></div></div>
