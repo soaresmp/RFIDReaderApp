@@ -82,7 +82,7 @@ const TRANSLATIONS = {
     'ev.retSold':'Sold to Consumer','ev.retReturnedEmpty':'Returned Empty by Consumer',
     'ev.inspected':'Inspected by Field Auditor','ev.ewuraMonitored':'Supply Monitored by Regulator',
     'ev.traVerified':'Refills Verified by TRA','ev.traRegistered':'Shipment Registered by TRA',
-    'dash.activityTitle':'Activity — Last 30 Days','dash.salesByMonth':'Sales by Month',
+    'dash.salesByMonth':'Sales by Month',
     'kpi.cylsInStock':'Cylinders in Stock','kpi.assignedAlerts':'Alerts',
     'kpi.cylAssigned':'Cylinders Assigned',
     'kpi.yourStock':'Your Stock',
@@ -387,7 +387,6 @@ const TRANSLATIONS = {
     'ev.retSold':'Imeuzwa kwa Mnunuzi','ev.retReturnedEmpty':'Mtungi Tupu Umerudishwa na Mnunuzi',
     'ev.inspected':'Imekaguliwa na Mkaguzi wa Uwanjani','ev.ewuraMonitored':'Ugavi Unaofuatiliwa na Msimamizi',
     'ev.traVerified':'Kujaza Kuthibitishwa na TRA','ev.traRegistered':'Mzigo Umesajiliwa na TRA',
-    'dash.activityTitle':'Shughuli — Siku 30 Zilizopita',
     'kpi.cylAssigned':'Mitungi Iliyokasimiwa','dash.salesByMonth':'Mauzo kwa Mwezi',
     'kpi.cylsInStock':'Mitungi Kwenye Hifadhi','kpi.assignedAlerts':'Tahadhari',
     'kpi.yourStock':'Hifadhi Yako',
@@ -3412,9 +3411,6 @@ async function renderReports() {
     // Reset sales year selector (only used by dist/retailer)
     const salesYearSelR = $('report-sales-year');
     if (salesYearSelR) salesYearSelR.style.display = 'none';
-    const actTitleElR = $('report-activity-title');
-    if (actTitleElR) actTitleElR.textContent = t('dash.activityTitle');
-
     // For lpgmc: filter to own company. For ewura: use all cylinders.
     if (role === 'lpgmc') {
       cyls = cyls.filter(c => c.company === Auth.session.company);
@@ -6953,7 +6949,6 @@ async function renderStockReport() {
 
     <!-- Refill activity -->
     <div class="stock-section">
-      <h3 class="stock-section-title">Refill Activity — Last 30 Days</h3>
       <div class="kpi-grid" style="margin-bottom:8px">
         <div class="kpi-card" style="border-top:3px solid var(--blue,#3b82f6)">
           <div class="kpi-value" style="color:var(--blue,#3b82f6)">${recentRef.length.toLocaleString()}</div>
