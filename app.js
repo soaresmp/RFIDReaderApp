@@ -813,6 +813,52 @@ const DEMO_BULK_TANKERS = [
 // Backwards-compat string accessor used in overview cards
 DEMO_BULK_TANKERS.forEach(t => { if (!t.capacity) t.capacity = t.capacityL.toLocaleString() + 'L'; });
 
+const DEMO_BULK_TANKERS_KE = [
+  { id:'KE-BT-001', plate:'KBZ 001A', operator:'Total Energies Kenya', capacityL:30000, status:'in-transit',  from:'Mombasa Import Terminal', to:'Total Energies Nairobi Plant',        lat:-2.5000, lng:37.2000, speed:68, lastUpdate:'4 min ago',  routePct:38,  fromLat:-4.0435, fromLng:39.6682, toLat:-1.2921, toLng:36.8219,
+    driver:{ name:'Peter Kamau',       id:'DL-KE-2021-04110', license:'HGV Class B', phone:'+254 712 001 001' },
+    authNo:'TA-2026-MSA-001', authExpiry:'2026-12-31', authIssuer:'EPRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:28200,
+    vehicleReg:'KE-HGV-40001', inspExpiry:'2027-02-28',
+    departure:'2026-08-08 05:30', eta:'2026-08-08 09:45',
+    alerts:[] },
+  { id:'KE-BT-002', plate:'KCB 002B', operator:'Vivo Energy Kenya',   capacityL:22000, status:'in-transit',  from:'Mombasa Import Terminal', to:'Vivo Energy Nakuru Depot',            lat:-1.8500, lng:37.9000, speed:60, lastUpdate:'9 min ago',  routePct:55,  fromLat:-4.0435, fromLng:39.6682, toLat:-0.3031, toLng:36.0800,
+    driver:{ name:'Grace Njeri',        id:'DL-KE-2020-07021', license:'HGV Class A', phone:'+254 713 002 002' },
+    authNo:'TA-2026-MSA-002', authExpiry:'2026-11-15', authIssuer:'EPRA',
+    product:'Commercial LPG (Butane)', loadedQty:21000,
+    vehicleReg:'KE-HGV-40002', inspExpiry:'2026-10-14',
+    departure:'2026-08-08 04:00', eta:'2026-08-08 10:30',
+    alerts:['Vehicle inspection expires in 66 days — schedule renewal'] },
+  { id:'KE-BT-003', plate:'KDA 003C', operator:'Africa Gas & Oil',    capacityL:18000, status:'at-terminal', from:'Mombasa Import Terminal', to:'Africa Gas Kisumu Plant',              lat:-4.0435, lng:39.6682, speed:0,  lastUpdate:'15 min ago', routePct:0,   fromLat:-4.0435, fromLng:39.6682, toLat:-0.0917, toLng:34.7680,
+    driver:{ name:'Samuel Otieno',      id:'DL-KE-2019-03945', license:'HGV Class A', phone:'+254 714 003 003' },
+    authNo:'TA-2026-MSA-003', authExpiry:'2026-10-31', authIssuer:'EPRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:0,
+    vehicleReg:'KE-HGV-40003', inspExpiry:'2027-01-20',
+    departure:'2026-08-08 10:00', eta:'2026-08-08 20:00',
+    alerts:['Loading delayed — berth congestion'] },
+  { id:'KE-BT-004', plate:'KEB 004D', operator:'Hashi Energy',        capacityL:25000, status:'delivered',   from:'Mombasa Import Terminal', to:'Hashi Energy Mombasa Depot',           lat:-4.0435, lng:39.6100, speed:0,  lastUpdate:'50 min ago', routePct:100, fromLat:-4.0435, fromLng:39.6682, toLat:-4.0435, toLng:39.6100,
+    driver:{ name:'Ali Hassan',          id:'DL-KE-2018-09012', license:'HGV Class A', phone:'+254 715 004 004' },
+    authNo:'TA-2026-MSA-004', authExpiry:'2026-12-01', authIssuer:'EPRA',
+    product:'Commercial LPG (Propane/Butane Mix)', loadedQty:24500,
+    vehicleReg:'KE-HGV-40004', inspExpiry:'2026-11-10',
+    departure:'2026-08-08 06:00', eta:'2026-08-08 06:50',
+    alerts:[] },
+  { id:'KE-BT-005', plate:'KFC 005E', operator:'Total Energies Kenya', capacityL:30000, status:'loading',    from:'Mombasa Import Terminal', to:'Total Energies Nairobi Plant',         lat:-4.0500, lng:39.6800, speed:0,  lastUpdate:'20 min ago', routePct:0,   fromLat:-4.0435, fromLng:39.6682, toLat:-1.2921, toLng:36.8219,
+    driver:{ name:'John Mutua',          id:'DL-KE-2022-11203', license:'HGV Class B', phone:'+254 716 005 005' },
+    authNo:'TA-2026-MSA-005', authExpiry:'2026-12-31', authIssuer:'EPRA',
+    product:'Commercial LPG (Butane)', loadedQty:14000,
+    vehicleReg:'KE-HGV-40005', inspExpiry:'2027-05-12',
+    departure:'2026-08-08 11:30', eta:'2026-08-08 15:30',
+    alerts:[] },
+  { id:'KE-BT-006', plate:'KGD 006F', operator:'Vivo Energy Kenya',   capacityL:20000, status:'in-transit',  from:'Mombasa Import Terminal', to:'Vivo Energy Nairobi Plant',           lat:-2.0000, lng:37.0000, speed:72, lastUpdate:'6 min ago',  routePct:70,  fromLat:-4.0435, fromLng:39.6682, toLat:-1.2921, toLng:36.8219,
+    driver:{ name:'Mary Wanjiku',        id:'DL-KE-2017-05890', license:'HGV Class A', phone:'+254 717 006 006' },
+    authNo:'TA-2026-MSA-006', authExpiry:'2026-09-20', authIssuer:'EPRA',
+    product:'Commercial LPG (Propane)', loadedQty:19200,
+    vehicleReg:'KE-HGV-40006', inspExpiry:'2026-09-05',
+    departure:'2026-08-08 02:30', eta:'2026-08-08 07:00',
+    alerts:['Speeding alert: 72 km/h in 60 km/h zone near Mtito Andei', 'Authorization expires in 42 days'] },
+];
+DEMO_BULK_TANKERS_KE.forEach(t => { if (!t.capacity) t.capacity = t.capacityL.toLocaleString() + 'L'; });
+
 const EVENT_LABELS = {
   'registered':          'Cylinder Created & Registered',
   'refilled':            'Refilled at Plant',
@@ -2591,11 +2637,11 @@ function renderCylindersMap(cyls) {
     let lat, lng;
     const locData = _cylLocations[cyl.id];
     if (locData?.location) {
-      const net = DEMO_NETWORK.find(n => n.name === locData.location);
+      const net = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === locData.location);
       if (net) { lat = net.lat; lng = net.lng; }
     }
     if (!lat) {
-      const lpgmc = DEMO_LPGMC_INFO[cyl.company];
+      const lpgmc = (_activeCountry === 'KE' ? DEMO_LPGMC_INFO_KE : DEMO_LPGMC_INFO)[cyl.company];
       if (lpgmc) { lat = lpgmc.lat; lng = lpgmc.lng; }
     }
     if (!lat && locData?.region) {
@@ -2878,7 +2924,7 @@ async function openPassportModal(cylId) {
     for (const ev of events) {
       const locName = ev.location || ev.company;
       if (locName) {
-        const match = DEMO_NETWORK.find(n => n.name === locName);
+        const match = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === locName);
         if (match) { passportMapPartner = match; break; }
       }
     }
@@ -2995,7 +3041,7 @@ passportBody.addEventListener('click', async (e) => {
   if (type === 'shipped') {
     const sel = btn.dataset.partnerSelect ? document.getElementById(btn.dataset.partnerSelect) : null;
     if (!sel || !sel.value) { showSnackbar('Select a destination partner first.', 'error'); return; }
-    const partner = DEMO_NETWORK.find(n => n.name === sel.value);
+    const partner = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === sel.value);
     extraFields.destinedFor    = sel.value;
     extraFields.destinedRegion = partner ? partner.region : '';
   }
@@ -3383,10 +3429,12 @@ function _resolveAlertLatLng(al) {
   const cyl = al.cylinder;
   let lat = -6.5, lng = 35.5;
   if (cyl) {
-    const netEntry = DEMO_NETWORK.find(n => n.name === cyl.company);
+    const _net = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+    const netEntry = _net.find(n => n.name === cyl.company);
     if (netEntry) { lat = netEntry.lat; lng = netEntry.lng; }
     else {
-      const lpgmcInfo = DEMO_LPGMC_INFO && DEMO_LPGMC_INFO[cyl.company];
+      const _lpgmcInfo = _activeCountry === 'KE' ? DEMO_LPGMC_INFO_KE : DEMO_LPGMC_INFO;
+      const lpgmcInfo = _lpgmcInfo && _lpgmcInfo[cyl.company];
       if (lpgmcInfo) { lat = lpgmcInfo.lat; lng = lpgmcInfo.lng; }
       else {
         const locData = _cylLocations && _cylLocations[cyl.id];
@@ -3689,7 +3737,7 @@ async function renderReports() {
     reportChart.innerHTML = '';
     if (actSec) actSec.style.display = 'none';
   } else if (role === 'distributor' || role === 'retailer') {
-    const partnerEntry = DEMO_NETWORK.find(n => n.name === Auth.session.company);
+    const partnerEntry = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === Auth.session.company);
     const CIRC_FULL_TYPES  = new Set(['shipped', 'dist-received', 'dist-sent-retail', 'ret-received']);
     const CIRC_EMPTY_TYPES = new Set(['ret-returned-empty', 'dist-returned-empty']);
     const lastEvByTypeP = {};
@@ -3831,7 +3879,8 @@ async function renderNetwork() {
 
   const typeFilter   = $('net-filter-type')   ? $('net-filter-type').value   : '';
   const statusFilter = $('net-filter-status') ? $('net-filter-status').value : '';
-  const filtered = DEMO_NETWORK.filter(n =>
+  const _activeNetN = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+  const filtered = _activeNetN.filter(n =>
     (!typeFilter   || n.type   === typeFilter) &&
     (!statusFilter || n.status === statusFilter)
   );
@@ -3910,7 +3959,7 @@ async function renderNetwork() {
 
   const netMapEl = $('network-map');
   if (netMapEl) {
-    const netMarkers = DEMO_NETWORK.map(n => {
+    const netMarkers = _activeNetN.map(n => {
       const counts = partnerCounts[n.name] || { total: 0, full: 0, empty: 0 };
       return {
         lat: n.lat, lng: n.lng,
@@ -3952,7 +4001,7 @@ let _partnerDetailMap = null;
 let _partnerDetailMarker = null;
 
 async function openPartnerModal(partnerId) {
-  const partner = DEMO_NETWORK.find(n => n.id === partnerId);
+  const partner = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.id === partnerId);
   if (!partner) return;
 
   $('partner-modal-name').textContent          = partner.name;
@@ -4425,7 +4474,7 @@ async function renderMgmtReports() {
   allEvents.forEach(ev => {
     if (!['inspected','ewura-monitored'].includes(ev.type)) return;
     if (!inPeriod(ev.timestamp)) return;
-    const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || cylLastRegion[ev.cylinderId] || 'Unknown';
+    const reg = ev.region || ((_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === ev.company)?.region) || cylLastRegion[ev.cylinderId] || 'Unknown';
     if (!inspByRegion[reg]) inspByRegion[reg] = { total: 0, compliant: 0 };
     inspByRegion[reg].total++;
     if (ev.compliant !== false) inspByRegion[reg].compliant++;
@@ -4492,7 +4541,7 @@ async function renderMgmtReports() {
     const cyl = al.cylinder;
     if (!cyl) return;
     const region = _cylLastRegionM[cyl.id]
-      || DEMO_NETWORK.find(n => n.name === cyl.company)?.region
+      || (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === cyl.company)?.region
       || 'Unknown';
     if (!_alertsByRegion[region]) _alertsByRegion[region] = { critical: new Set(), warning: new Set() };
     (al.severity === 'critical' ? _alertsByRegion[region].critical : _alertsByRegion[region].warning).add(cyl.id);
@@ -4758,7 +4807,7 @@ if (mgmtGrid) {
       allEvents.filter(e => e.region).sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp)).forEach(e => { cylRegMap[e.cylinderId] = e.region; });
       const regMap = {};
       allEvents.filter(ev => ['inspected','ewura-monitored'].includes(ev.type) && inP(ev.timestamp)).forEach(ev => {
-        const reg = ev.region || (DEMO_NETWORK.find(n => n.name === ev.company)?.region) || cylRegMap[ev.cylinderId] || 'Unknown';
+        const reg = ev.region || ((_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === ev.company)?.region) || cylRegMap[ev.cylinderId] || 'Unknown';
         if (!regMap[reg]) regMap[reg] = { total: 0, compliant: 0 };
         regMap[reg].total++;
         if (ev.compliant !== false) regMap[reg].compliant++;
@@ -4804,7 +4853,7 @@ if (mgmtGrid) {
         .forEach(e => { cylLastReg[e.cylinderId] = e.region; });
       const rows = _alertsData.map(al => {
         const cyl = al.cylinder;
-        const region = cyl ? (cylLastReg[cyl.id] || DEMO_NETWORK.find(n => n.name === cyl?.company)?.region || 'Unknown') : 'Unknown';
+        const region = cyl ? (cylLastReg[cyl.id] || (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === cyl?.company)?.region || 'Unknown') : 'Unknown';
         return `"${region}","${al.severity}","${al.type}","${cyl?.serial || ''}","${cyl?.id || ''}","${al.title.replace(/"/g, '""')}"`;
       });
       csv = 'Region,Severity,Type,Serial,CylinderID,Title\n' + rows.join('\n');
@@ -4965,8 +5014,8 @@ async function openLicenseDetailModal(licId) {
   if (!detailBody) return;
 
   // Look up location info from DEMO_NETWORK (dist/retailer) or DEMO_LPGMC_INFO (LPGMC)
-  const netEntry   = DEMO_NETWORK.find(n => n.name === lic.companyName);
-  const lpgmcInfo  = DEMO_LPGMC_INFO[lic.companyName];
+  const netEntry   = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === lic.companyName);
+  const lpgmcInfo  = (_activeCountry === 'KE' ? DEMO_LPGMC_INFO_KE : DEMO_LPGMC_INFO)[lic.companyName];
   const extraInfo  = DEMO_LICENSE_EXTRA_INFO[lic.companyName];
   const infoEntry  = netEntry || lpgmcInfo || extraInfo || null;
 
@@ -5361,18 +5410,20 @@ function openShipmentModal() {
   if (shipmentScanIn) shipmentScanIn.value = '';
 
   const opts = [];
+  const _shipNet   = _activeCountry === 'KE' ? DEMO_NETWORK_KE   : DEMO_NETWORK;
+  const _shipLpgmc = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
   if (role === 'lpgmc') {
-    DEMO_NETWORK.filter(n => (n.type === 'Distributor' || n.type === 'Retailer') && n.status === 'active')
+    _shipNet.filter(n => (n.type === 'Distributor' || n.type === 'Retailer') && n.status === 'active')
       .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
     (_licensesData || []).filter(l => l.companyType === 'Revalidator' && l.status === 'active')
       .forEach(l => opts.push({ name:l.companyName, type:'Revalidator', region:'' }));
   } else if (role === 'distributor') {
-    LPGMC_COMPANIES.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
-    DEMO_NETWORK.filter(n => n.type === 'Retailer' && n.status === 'active')
+    _shipLpgmc.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
+    _shipNet.filter(n => n.type === 'Retailer' && n.status === 'active')
       .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
   } else if (role === 'retailer') {
-    LPGMC_COMPANIES.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
-    DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active')
+    _shipLpgmc.forEach(c => opts.push({ name:c, type:'LPGMC', region:'' }));
+    _shipNet.filter(n => n.type === 'Distributor' && n.status === 'active')
       .forEach(n => opts.push({ name:n.name, type:n.type, region:n.region }));
   }
 
@@ -5653,7 +5704,8 @@ async function renderBulkMonitor() {
   const tankerSym      = { 'in-transit':'▶', 'at-terminal':'H', 'delivered':'✓', 'loading':'↑' };
   function statusLbl(s) { return t('status.' + { 'in-transit':'inTransit', 'at-terminal':'atTerminal', 'delivered':'delivered', 'loading':'loading' }[s]) || s; }
 
-  listEl.innerHTML = DEMO_BULK_TANKERS.map(tk => {
+  const _tankers = _activeCountry === 'KE' ? DEMO_BULK_TANKERS_KE : DEMO_BULK_TANKERS;
+  listEl.innerHTML = _tankers.map(tk => {
     const alertBadge = tk.alerts && tk.alerts.length
       ? `<span style="margin-left:6px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(239,68,68,.15);color:#ef4444">⚠ ${tk.alerts.length}</span>`
       : '';
@@ -5674,7 +5726,7 @@ async function renderBulkMonitor() {
   const mapEl = $('bulk-map');
   if (!mapEl) return;
 
-  const markers = DEMO_BULK_TANKERS.map(tk => ({
+  const markers = _tankers.map(tk => ({
     lat: tk.lat, lng: tk.lng,
     color: tankerHexColor[tk.status] || '#6b7280',
     symbol: tankerSym[tk.status] || '●',
@@ -5702,7 +5754,7 @@ async function renderBulkMonitor() {
 
 // ── Bullet Tank detail modal ──────────────────────────────────────────────────
 function openBulkTankDetail(id) {
-  const tk = DEMO_BULK_TANKERS.find(t => t.id === id);
+  const tk = (_activeCountry === 'KE' ? DEMO_BULK_TANKERS_KE : DEMO_BULK_TANKERS).find(t => t.id === id);
   if (!tk) return;
 
   const statusCssColor = { 'in-transit':'var(--blue)', 'at-terminal':'var(--amber)', 'delivered':'var(--green)', 'loading':'var(--purple)' };
@@ -6064,10 +6116,13 @@ async function renderMarketIntel() {
   const cyls = await txGetAll('cylinders');
   const events = await txGetAll('events');
 
-  const regions = ['Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Mbeya', 'Tanga'];
+  const _miNet   = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+  const regions  = _activeCountry === 'KE'
+    ? ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru']
+    : ['Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Mbeya', 'Tanga'];
   const regCounts = {};
   regions.forEach(r => { regCounts[r] = 0; });
-  DEMO_NETWORK.forEach(n => { if (regCounts[n.region] !== undefined) regCounts[n.region] += (n.cylinders || 0); });
+  _miNet.forEach(n => { if (regCounts[n.region] !== undefined) regCounts[n.region] += (n.cylinders || 0); });
   const maxReg = Math.max(...Object.values(regCounts), 1);
   const regionBars = regions.map(r => {
     const pct = Math.round((regCounts[r] / maxReg) * 100);
@@ -6114,7 +6169,7 @@ async function renderMarketIntel() {
     </div>`;
   }).join('');
 
-  const activeOps = DEMO_NETWORK.filter(n => n.status === 'active').length;
+  const activeOps = _miNet.filter(n => n.status === 'active').length;
   const licActive = (await txGetAll('licenses')).filter(l => l.status === 'active').length;
 
   const body = el.querySelector('#market-intel-body');
@@ -6192,7 +6247,7 @@ async function renderInspections() {
   if (inspMapEl) {
     const statusColor = { overdue:'#dc2626', scheduled:'#3b82f6', completed:'#22c55e' };
     const inspMarkers = inspections.map(ins => {
-      const net = DEMO_NETWORK.find(n => n.name === ins.company || n.region === ins.region);
+      const net = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === ins.company || n.region === ins.region);
       const rc  = REGION_CENTROIDS[ins.region];
       if (!net && !rc) return null;
       const lat = net ? net.lat : rc[0];
@@ -6960,9 +7015,9 @@ async function renderStockReport() {
   const revalCnt = statusCount['revalidation'] || 0;
   const total    = filteredCyls.length;
 
-  // Tanker volume (always national, from DEMO_BULK_TANKERS)
-  const activeTankers   = DEMO_BULK_TANKERS.filter(t => t.status === 'in-transit');
-  const totalTankerVol  = DEMO_BULK_TANKERS.reduce((s, t) => s + (t.capacity || 0), 0);
+  const _stockTankers   = _activeCountry === 'KE' ? DEMO_BULK_TANKERS_KE : DEMO_BULK_TANKERS;
+  const activeTankers   = _stockTankers.filter(t => t.status === 'in-transit');
+  const totalTankerVol  = _stockTankers.reduce((s, t) => s + (t.capacity || 0), 0);
   const inTransitVol    = activeTankers.reduce((s, t) => s + (t.capacity || 0), 0);
 
   // Recent refill events (last 30 days)
@@ -7068,7 +7123,7 @@ async function renderStockReport() {
           <div class="kpi-label">Refill Events${lpgmcFilter ? '' : ' (National)'}</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-value">${activeTankers.length}<span style="font-size:13px;font-weight:400;color:var(--muted,#64748b)"> / ${DEMO_BULK_TANKERS.length}</span></div>
+          <div class="kpi-value">${activeTankers.length}<span style="font-size:13px;font-weight:400;color:var(--muted,#64748b)"> / ${_stockTankers.length}</span></div>
           <div class="kpi-label">Tankers In-Transit</div>
         </div>
       </div>
