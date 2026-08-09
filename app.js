@@ -1612,7 +1612,7 @@ loginForm.addEventListener('submit', (e) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function _seedLocalData(country) {
-  const SEED_KEY = 'lpg-seed-' + country + '-v2';
+  const SEED_KEY = 'lpg-seed-' + country + '-v3';
   if (localStorage.getItem(SEED_KEY)) return;
 
   const now    = Date.now();
@@ -1713,6 +1713,37 @@ async function _seedLocalData(country) {
     }
   });
 
+  // ── KE recall-return events ───────────────────────────────────────────────────
+  // Seed received-empty events timestamped after each recall's issue date so the
+  // detail modal shows realistic partial recovery (returned vs missing cylinders).
+  // Each entry: first globalIdx of the affected batch, how many to mark returned,
+  // and the recall's daysAgo value (must match keRecallDefs above).
+  if (country === 'KE') {
+    const keReturnDefs = [
+      { startGlobalIdx: 10, returnCount: 8, recallDaysAgo: 210 }, // BATCH-KE-1-2 — closed: 8/10 returned
+      { startGlobalIdx: 50, returnCount: 6, recallDaysAgo: 150 }, // BATCH-KE-2-3 — open:   6/10 returned
+      { startGlobalIdx: 60, returnCount: 4, recallDaysAgo:  90 }, // BATCH-KE-3-1 — open:   4/10 returned
+      { startGlobalIdx:100, returnCount: 3, recallDaysAgo:  55 }, // BATCH-KE-4-2 — open:   3/10 returned
+      { startGlobalIdx: 20, returnCount: 2, recallDaysAgo:  20 }, // BATCH-KE-1-3 — open:   2/10 returned
+    ];
+    keReturnDefs.forEach(def => {
+      for (let j = 0; j < def.returnCount; j++) {
+        const gIdx  = def.startGlobalIdx + j;
+        const cylId = `KE-CYL-${String(gIdx + 1).padStart(4, '0')}`;
+        const returnTs = new Date(now - (def.recallDaysAgo - 7 - j * 4) * DAY).toISOString();
+        events.push({
+          id: `KE-RCL-${String(++evIdx).padStart(6, '0')}`,
+          cylinderId: cylId,
+          type: 'received-empty',
+          timestamp: returnTs,
+          company: companies[Math.floor(gIdx / cylsPerCompany)],
+          country: 'KE',
+          notes: 'Cylinder returned under recall order',
+        });
+      }
+    });
+  }
+
   // ── Licenses ──────────────────────────────────────────────────────────────────
   const licenses = [];
   // 4 LPGMC licenses (one per company, all active)
@@ -1766,15 +1797,15 @@ async function _seedLocalData(country) {
   const recalls = [];
   if (country === 'KE') {
     const keRecallDefs = [
-      { ci: 0, batchSuffix: '1-2', daysAgo: 210, spanDays: 30, severity: 'high',
+      { ci: 0, batchSuffix: '1-2', daysAgo: 210, spanDays: 30, severity: 'high',   status: 'closed',
         reason: 'Valve defect detected in production batch — risk of gas leakage under high ambient temperature' },
-      { ci: 1, batchSuffix: '2-3', daysAgo: 150, spanDays: 25, severity: 'medium',
+      { ci: 1, batchSuffix: '2-3', daysAgo: 150, spanDays: 25, severity: 'medium', status: 'open',
         reason: 'Pressure test deviation — wall thickness below minimum specification in sampled units' },
-      { ci: 2, batchSuffix: '3-1', daysAgo:  90, spanDays: 20, severity: 'high',
+      { ci: 2, batchSuffix: '3-1', daysAgo:  90, spanDays: 20, severity: 'high',   status: 'open',
         reason: 'Contamination alert — batch stored adjacent to industrial solvent during transit; residual odour detected' },
-      { ci: 3, batchSuffix: '4-2', daysAgo:  55, spanDays: 15, severity: 'low',
+      { ci: 3, batchSuffix: '4-2', daysAgo:  55, spanDays: 15, severity: 'low',    status: 'open',
         reason: 'Labelling error — cylinders dispatched with incorrect tare weight printed on neck ring label' },
-      { ci: 0, batchSuffix: '1-4', daysAgo:  20, spanDays: 10, severity: 'medium',
+      { ci: 0, batchSuffix: '1-3', daysAgo:  20, spanDays: 10, severity: 'medium', status: 'open',
         reason: 'External corrosion identified on foot-ring weld seam; precautionary recall pending re-inspection' },
     ];
     keRecallDefs.forEach((def, i) => {
@@ -1786,6 +1817,7 @@ async function _seedLocalData(country) {
         dateFrom: new Date(now - def.daysAgo * DAY).toISOString().slice(0, 10),
         dateTo:   new Date(now - (def.daysAgo - def.spanDays) * DAY).toISOString().slice(0, 10),
         severity: def.severity,
+        status:   def.status,
         reason:   def.reason,
         timestamp: new Date(now - def.daysAgo * DAY).toISOString(),
       });
@@ -6224,8 +6256,13 @@ async function renderRecalls() {
   const sevColor  = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
   const sevLabel  = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
   const impactHtml = recalls.length ? recalls.map(r => {
-    const sev   = r.severity || 'high';
-    const color = sevColor[sev] || '#dc2626';
+    const sev      = r.severity || 'high';
+    const color    = sevColor[sev] || '#dc2626';
+    const isClosed = r.status === 'closed';
+    const statusBg = isClosed ? '#64748b22' : '#22c55e22';
+    const statusCl = isClosed ? '#64748b'   : '#16a34a';
+    const statusBd = isClosed ? '#64748b55' : '#22c55e55';
+    const statusLb = isClosed ? '🔒 Closed' : '🟢 Open';
     const dateRange = (r.dateFrom && r.dateTo) ? `${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}` : (r.dateFrom || r.dateTo || 'All batches');
     return `<div class="recall-card" data-recall-id="${escapeHtml(r.id)}" style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color};cursor:pointer">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
@@ -6233,6 +6270,7 @@ async function renderRecalls() {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
             <span style="font-weight:700;font-family:monospace;font-size:13px">${escapeHtml(r.id)}</span>
             <span style="background:${color}22;color:${color};border:1px solid ${color}55;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600">${sevLabel[sev] || sev}</span>
+            <span style="background:${statusBg};color:${statusCl};border:1px solid ${statusBd};border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600">${statusLb}</span>
           </div>
           <div style="font-weight:600;margin-bottom:4px">${escapeHtml(r.operator)}</div>
           ${r.batch ? `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">Batch: <span style="font-family:monospace">${escapeHtml(r.batch)}</span></div>` : ''}
@@ -6241,7 +6279,6 @@ async function renderRecalls() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
           <span style="font-size:11px;color:var(--muted)">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
-          <button class="btn btn-outline recall-delete-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">${t('recall.delete')}</button>
         </div>
       </div>
     </div>`;
@@ -6253,14 +6290,6 @@ async function renderRecalls() {
     card.addEventListener('click', () => {
       const r = recalls.find(x => x.id === card.dataset.recallId);
       if (r) openRecallDetailModal(r);
-    });
-  });
-  container.querySelectorAll('.recall-delete-btn').forEach(btn => {
-    btn.addEventListener('click', async e => {
-      e.stopPropagation();
-      await txDelete('recalls', btn.dataset.recallId);
-      renderRecalls();
-      showSnackbar(t('recall.deleted'), 'success');
     });
   });
 }
@@ -6366,9 +6395,29 @@ async function openRecallDetailModal(r) {
           <span style="font-weight:600;color:var(--red)">${count} cylinder${count !== 1 ? 's' : ''}</span>
         </div>`).join('')}
     </div>` : `<p style="color:var(--green);font-size:13px;font-weight:600;margin-top:8px">✓ All cylinders have been recovered.</p>`}
+
+    <!-- Status toggle -->
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;justify-content:flex-end">
+      <button id="recall-status-toggle-btn" class="btn ${r.status === 'closed' ? 'btn-outline' : 'btn-primary'}" type="button"
+        style="${r.status === 'closed' ? '' : 'background:#16a34a;border-color:#16a34a;'}">
+        ${r.status === 'closed' ? '🔓 Re-open Recall' : '🔒 Close Recall'}
+      </button>
+    </div>
   `;
 
   openModal('modal-recall-detail');
+
+  // Wire status toggle button
+  const toggleBtn = $('recall-status-toggle-btn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', async () => {
+      const newStatus = r.status === 'closed' ? 'open' : 'closed';
+      r.status = newStatus;
+      await txPut('recalls', r);
+      renderRecalls();
+      openRecallDetailModal(r);
+    });
+  }
 
   if (missing.length > 0) {
     requestAnimationFrame(() => {
