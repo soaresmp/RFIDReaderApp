@@ -1573,6 +1573,54 @@ loginForm.addEventListener('submit', (e) => {
 // SESSION APPLICATION
 // ══════════════════════════════════════════════════════════════════════════════
 
+async function _seedKEInspectionEvents() {
+  const SEED_KEY = 'lpg-ke-insp-seeded-v1';
+  if (localStorage.getItem(SEED_KEY)) return;
+  const existingEvs = await txGetAll('events');
+  const hasInsp = existingEvs.some(e => e.type === 'inspected' || e.type === 'ewura-monitored');
+  if (hasInsp) { localStorage.setItem(SEED_KEY, '1'); return; }
+
+  const companies = LPGMC_COMPANIES_KE;
+  const auditors  = ['Field Auditor — Nairobi', 'Field Auditor — Mombasa', 'Field Auditor — Kisumu'];
+  const now = Date.now();
+  const day = 24 * 3600 * 1000;
+  const seeds = [];
+
+  companies.forEach((company, ci) => {
+    // 6 ewura-monitored + 4 inspected per company
+    for (let i = 0; i < 6; i++) {
+      seeds.push({
+        id: `KE-EV-INSP-${ci}-M${i}-${now}`,
+        type: 'ewura-monitored',
+        cylinderId: `KE-CYL-SEED-${ci}-M${i}`,
+        company, country: 'KE',
+        compliant: Math.random() > 0.15,
+        timestamp: new Date(now - (i * 12 + ci * 5) * day).toISOString(),
+        auditor: auditors[i % auditors.length],
+        notes: 'Routine supply monitoring',
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      seeds.push({
+        id: `KE-EV-INSP-${ci}-I${i}-${now}`,
+        type: 'inspected',
+        cylinderId: `KE-CYL-SEED-${ci}-I${i}`,
+        company, country: 'KE',
+        compliant: Math.random() > 0.12,
+        timestamp: new Date(now - (i * 18 + ci * 7 + 3) * day).toISOString(),
+        auditor: auditors[(i + ci) % auditors.length],
+        notes: 'Field inspection completed',
+      });
+    }
+  });
+
+  await Promise.all(seeds.map(ev => txPut('events', ev)));
+  localStorage.setItem(SEED_KEY, '1');
+  // Invalidate events cache so re-reads pick up the new records
+  const ck = 'events:KE';
+  if (_txCache.has(ck)) _txCache.delete(ck);
+}
+
 async function applySession() {
   const s = Auth.session;
   if (!s) return;
@@ -1603,8 +1651,11 @@ async function applySession() {
   // Build event pills
   buildEventPills();
 
-  // Company filter: hide for LPGMC (they see only own)
+  // Company filter: hide for LPGMC (they see only own); populate from active country
   cylFilterCompany.style.display = Auth.can('viewAll') ? '' : 'none';
+  const _cylCompanies = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+  cylFilterCompany.innerHTML = `<option value="">${t('filter.allCompanies')}</option>` +
+    _cylCompanies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 
   // Register button: LPGMC only (cylinder-producer uses button on Orders page)
   if (registerCylBtn) {
@@ -1635,6 +1686,11 @@ async function applySession() {
     txGetAll('cylinders'),
     txGetAll('events'),
   ]);
+
+  // Seed KE inspection events once if the country is KE and none exist yet
+  if (_activeCountry === 'KE' && s.role === 'ewura') {
+    await _seedKEInspectionEvents();
+  }
 
   // Refresh data-bound views (all cache hits from here)
   renderCylinders();
@@ -3320,7 +3376,7 @@ async function renderReports() {
         return `<div class="report-card" style="border-color:${stockColor}">
           <span class="report-card-value" style="color:${stockColor}">${stockDays}</span>
           <div class="report-card-label">${t('dash.nationalStock')}</div>
-          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.nationalStockSub')} · ${refills30} refills/30d</div>
+          <div class="report-card-sub" style="font-size:11px;color:var(--muted)">${t('dash.nationalStockSub')}</div>
         </div>`;
       })() : ''}
       ${role === 'ewura' ? (() => {
@@ -5926,6 +5982,7 @@ async function renderRecalls() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
           <span style="font-size:11px;color:var(--muted)">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
+          <button class="btn btn-outline recall-detail-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px">🔍 Details</button>
           <button class="btn btn-outline recall-delete-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">${t('recall.delete')}</button>
         </div>
       </div>
@@ -5934,6 +5991,12 @@ async function renderRecalls() {
 
   container.innerHTML = impactHtml;
 
+  container.querySelectorAll('.recall-detail-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const r = recalls.find(x => x.id === btn.dataset.recallId);
+      if (r) openRecallDetailModal(r);
+    });
+  });
   container.querySelectorAll('.recall-delete-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       await txDelete('recalls', btn.dataset.recallId);
@@ -5941,6 +6004,128 @@ async function renderRecalls() {
       showSnackbar(t('recall.deleted'), 'success');
     });
   });
+}
+
+async function openRecallDetailModal(r) {
+  const sevColor = { critical:'#dc2626', high:'#ea580c', medium:'#d97706' };
+  const sevLabel = { critical:'🔴 Critical', high:'🟠 High', medium:'🟡 Medium' };
+  const sColor   = sevColor[r.severity] || '#ea580c';
+
+  // Identify affected cylinders: same operator, and (if batch given) matching batch
+  // or manufacture date within range
+  const [allCyls, allEvs] = await Promise.all([txGetAll('cylinders'), txGetAll('events')]);
+  const recallTs = r.timestamp || '2020-01-01T00:00:00Z';
+
+  // Last event per cylinder (for location)
+  const lastEv = {};
+  allEvs.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .forEach(ev => { lastEv[ev.cylinderId] = ev; });
+
+  // Cylinders from the recalled operator
+  const affected = allCyls.filter(c => {
+    if (c.company !== r.operator) return false;
+    // Batch filter when specified
+    if (r.batch && c.batch && c.batch !== r.batch) return false;
+    // Manufacture-date window filter when specified
+    if (r.dateFrom && c.mfgDate && c.mfgDate < r.dateFrom) return false;
+    if (r.dateTo   && c.mfgDate && c.mfgDate > r.dateTo)   return false;
+    return true;
+  });
+
+  // "Recalled" = received-empty or reval-received event after recall date, or out-of-service
+  const returnedEvTypes = new Set(['received-empty', 'reval-received', 'ret-returned-empty', 'dist-returned-empty']);
+  const recalled  = affected.filter(c => {
+    if (c.status === 'out-of-service') return true;
+    const ev = lastEv[c.id];
+    if (!ev) return false;
+    return returnedEvTypes.has(ev.type) && ev.timestamp >= recallTs;
+  });
+  const missing   = affected.filter(c => !recalled.includes(c));
+
+  const pct = affected.length > 0 ? Math.round(recalled.length / affected.length * 100) : 0;
+  const barColor = pct >= 80 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444';
+
+  // Build location list + map markers for missing cylinders
+  const NET = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+  const missingWithLoc = missing.map(c => {
+    const ev = lastEv[c.id];
+    const locName = ev ? (ev.location || ev.company || '—') : '—';
+    const netEntry = NET.find(n => n.name === locName);
+    return { c, ev, locName, lat: netEntry?.lat, lng: netEntry?.lng };
+  }).filter(Boolean);
+
+  // Group missing by location
+  const locGroups = {};
+  missingWithLoc.forEach(({ locName, lat, lng }) => {
+    if (!locGroups[locName]) locGroups[locName] = { count: 0, lat, lng };
+    locGroups[locName].count++;
+  });
+
+  const dateRange = (r.dateFrom && r.dateTo) ? `${r.dateFrom} → ${r.dateTo}`
+                  : (r.dateFrom || r.dateTo || 'All batches');
+
+  const body = $('recall-detail-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div>
+        <div style="font-size:18px;font-weight:700;font-family:monospace">${escapeHtml(r.id)}</div>
+        <span style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${sevLabel[r.severity] || r.severity}</span>
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:var(--muted)">Issued: ${r.timestamp ? r.timestamp.slice(0,10) : '—'}</span>
+    </div>
+
+    <!-- Recall details -->
+    <div class="passport-section-title">📋 Recall Details</div>
+    <div class="passport-row"><span class="passport-key">Operator</span><span class="passport-value">${escapeHtml(r.operator)}</span></div>
+    ${r.batch ? `<div class="passport-row"><span class="passport-key">Batch</span><span class="passport-value mono">${escapeHtml(r.batch)}</span></div>` : ''}
+    <div class="passport-row"><span class="passport-key">Manufacture Period</span><span class="passport-value">${escapeHtml(dateRange)}</span></div>
+    <div class="passport-row"><span class="passport-key">Reason</span><span class="passport-value">${escapeHtml(r.reason)}</span></div>
+
+    <!-- Recovery progress -->
+    <div class="passport-section-title" style="margin-top:16px">📦 Recovery Status</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 10px">
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--amber)">${affected.length}</span><div class="partner-stat-label">Affected</div></div>
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--green)">${recalled.length}</span><div class="partner-stat-label">Recalled</div></div>
+      <div class="partner-stat-card"><span class="partner-stat-value" style="color:var(--red)">${missing.length}</span><div class="partner-stat-label">Missing</div></div>
+    </div>
+    <div style="position:relative;height:10px;background:var(--border,#e2e8f0);border-radius:5px;margin-bottom:4px">
+      <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${barColor};border-radius:5px;transition:width .4s"></div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:var(--muted);margin-bottom:14px">${pct}% recovered</div>
+
+    <!-- Missing cylinders map -->
+    ${missing.length > 0 ? `
+    <div class="passport-section-title">🗺 Missing Cylinders — Last Known Locations</div>
+    <div id="recall-detail-map" style="border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px"></div>
+    <div style="margin-bottom:16px">
+      ${Object.entries(locGroups).map(([loc, { count }]) =>
+        `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span>📍 ${escapeHtml(loc)}</span>
+          <span style="font-weight:600;color:var(--red)">${count} cylinder${count !== 1 ? 's' : ''}</span>
+        </div>`).join('')}
+    </div>` : `<p style="color:var(--green);font-size:13px;font-weight:600;margin-top:8px">✓ All cylinders have been recovered.</p>`}
+  `;
+
+  openModal('modal-recall-detail');
+
+  if (missing.length > 0) {
+    requestAnimationFrame(() => {
+      const mapEl = $('recall-detail-map');
+      if (!mapEl) return;
+      const markers = Object.entries(locGroups)
+        .filter(([, { lat, lng }]) => lat != null && lng != null)
+        .map(([loc, { count, lat, lng }]) => ({
+          lat, lng, color: '#ef4444', big: true, pulse: false,
+          label: `${loc} (${count})`,
+          detailHtml: `<b>📍 ${escapeHtml(loc)}</b><br><span style="color:#ef4444;font-weight:600">${count} missing cylinder${count !== 1 ? 's' : ''}</span>`,
+        }));
+      mapEl.innerHTML = buildInteractiveMap('rcldet', markers, [{ color:'#ef4444', label:'Missing cylinders' }], 260);
+      initInteractiveMap('rcldet', markers);
+    });
+  }
 }
 
 $('recall-new-btn')?.addEventListener('click', () => {
