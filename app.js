@@ -4895,7 +4895,7 @@ async function renderMgmtReports() {
         : `<span style="background:#22c55e22;color:#16a34a;border:1px solid #22c55e55;border-radius:20px;padding:2px 9px;font-size:12px;font-weight:600">✓ All stocked</span>`;
       return `<div class="mgmt-card" style="grid-column:1/-1">
         <div class="mgmt-card-header">
-          <div class="mgmt-card-title">📦 Network Partners — Filled Cylinder Stock</div>
+          <div class="mgmt-card-title">Network Partners — Filled Cylinder Stock</div>
           ${summaryBadge}
         </div>
         <p style="font-size:12px;color:var(--muted);margin:0 0 12px">${myPartners.length} partners supplied by ${escapeHtml(myCompany)} · partners below ${LOW}% capacity flagged</p>
