@@ -978,11 +978,6 @@ const ROLE_EVENTS = {
     { type: 'revalidated',       label: 'Revalidated',         icon: '✅' },
     { type: 'reval-returned',    label: 'Returned to LPGMC',   icon: '↩️' },
   ],
-  'cylinder-producer': [
-    { type: 'reval-received',    label: 'Received',            icon: '📥' },
-    { type: 'revalidated',       label: 'Revalidated',         icon: '✅' },
-    { type: 'reval-returned',    label: 'Returned to LPGMC',   icon: '↩️' },
-  ],
   ewura: [
     { type: 'ewura-monitored',   label: 'Supply Monitored',    icon: '📊' },
   ],
@@ -1013,7 +1008,7 @@ const ROLE_TABS = {
   tra:                ['reports', 'scan', 'cylinders'],
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
   retailer:           ['reports', 'cylinders', 'mgmt-reports'],
-  'cylinder-producer':['reports', 'orders', 'scan', 'cylinders'],
+  'cylinder-producer':['orders'],
 };
 
 const ROLE_LABELS = {
@@ -1024,7 +1019,7 @@ const ROLE_LABELS = {
   tra:                'TRA',
   distributor:        'Distributor',
   retailer:           'Retailer',
-  'cylinder-producer':'Producer-Revalidator',
+  'cylinder-producer':'Cylinder Producer',
 };
 
 const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
@@ -1130,7 +1125,7 @@ const Auth = {
       case 'register':  return role === 'lpgmc' || role === 'cylinder-producer';
       case 'inspect':   return role === 'field-auditor';
       case 'license':   return role === 'ewura';
-      case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator', 'cylinder-producer'].includes(role);
+      case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator'].includes(role);
       case 'alerts':    return ['lpgmc', 'ewura', 'field-auditor', 'distributor'].includes(role);
       default:          return false;
     }
@@ -2092,7 +2087,7 @@ async function applySession() {
   if (_shipBtn) _shipBtn.style.display = ['lpgmc', 'distributor', 'retailer'].includes(s.role) ? '' : 'none';
 
   // Navigate to first available view
-  showView('reports');
+  showView(s.role === 'cylinder-producer' ? 'orders' : 'reports');
 
   // Pre-warm the two most-read collections before render functions fire,
   // so every subsequent txGet/txGetIndex call is served from cache.
