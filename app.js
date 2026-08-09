@@ -859,6 +859,73 @@ const DEMO_BULK_TANKERS_KE = [
 ];
 DEMO_BULK_TANKERS_KE.forEach(t => { if (!t.capacity) t.capacity = t.capacityL.toLocaleString() + 'L'; });
 
+// ── Supplementary partner profile data (TZ) ───────────────────────────────────
+// Keyed by network ID. Fields: established, storageCapacity, licenseNo,
+// licenseExpiry, lastInspected, complianceScore, supplierLpgmc,
+// deliveriesPerMonth, staffCount.
+const DEMO_NETWORK_EXTRA = {
+  'NET-001': { established:2011, storageCapacity:380, licenseNo:'LIC-TZ-DIST-001', licenseExpiry:'2027-06-30', lastInspected:'2025-03-12', complianceScore:94, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:7, staffCount:18 },
+  'NET-002': { established:2014, storageCapacity:260, licenseNo:'LIC-TZ-DIST-002', licenseExpiry:'2026-12-31', lastInspected:'2025-01-28', complianceScore:88, supplierLpgmc:'Total Energies', deliveriesPerMonth:5, staffCount:12 },
+  'NET-003': { established:2009, storageCapacity:300, licenseNo:'LIC-TZ-DIST-003', licenseExpiry:'2027-03-15', lastInspected:'2024-11-05', complianceScore:91, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:6, staffCount:15 },
+  'NET-004': { established:2016, storageCapacity:180, licenseNo:'LIC-TZ-DIST-004', licenseExpiry:'2026-09-30', lastInspected:'2025-02-20', complianceScore:85, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:3, staffCount:9  },
+  'NET-005': { established:2013, storageCapacity:240, licenseNo:'LIC-TZ-DIST-005', licenseExpiry:'2027-01-31', lastInspected:'2025-04-08', complianceScore:90, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:5, staffCount:14 },
+  'NET-006': { established:2017, storageCapacity:120, licenseNo:'LIC-TZ-DIST-006', licenseExpiry:'2026-06-30', lastInspected:'2024-08-14', complianceScore:72, supplierLpgmc:'Total Energies', deliveriesPerMonth:2, staffCount:6  },
+  'NET-007': { established:2010, storageCapacity:200, licenseNo:'LIC-TZ-DIST-007', licenseExpiry:'2027-08-31', lastInspected:'2025-03-30', complianceScore:89, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:4, staffCount:11 },
+  'NET-008': { established:2015, storageCapacity:150, licenseNo:'LIC-TZ-DIST-008', licenseExpiry:'2026-11-30', lastInspected:'2025-01-10', complianceScore:86, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:3, staffCount:8  },
+  'NET-009': { established:2018, storageCapacity:110, licenseNo:'LIC-TZ-DIST-009', licenseExpiry:'2026-08-31', lastInspected:'2024-12-22', complianceScore:83, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:2, staffCount:7  },
+  'NET-010': { established:2019, storageCapacity: 80, licenseNo:'LIC-TZ-DIST-010', licenseExpiry:'2025-12-31', lastInspected:'2024-07-05', complianceScore:68, supplierLpgmc:'Total Energies', deliveriesPerMonth:1, staffCount:4  },
+  'NET-023': { established:2012, storageCapacity:165, licenseNo:'LIC-TZ-DIST-023', licenseExpiry:'2027-04-30', lastInspected:'2025-02-14', complianceScore:87, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:4, staffCount:10 },
+  'NET-024': { established:2016, storageCapacity:130, licenseNo:'LIC-TZ-DIST-024', licenseExpiry:'2027-02-28', lastInspected:'2025-03-01', complianceScore:84, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:3, staffCount:8  },
+  'NET-011': { established:2013, storageCapacity: 90, licenseNo:'LIC-TZ-RET-011',  licenseExpiry:'2027-05-31', lastInspected:'2025-04-02', complianceScore:92, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:4, staffCount:5  },
+  'NET-012': { established:2015, storageCapacity: 80, licenseNo:'LIC-TZ-RET-012',  licenseExpiry:'2026-10-31', lastInspected:'2025-01-18', complianceScore:88, supplierLpgmc:'Total Energies', deliveriesPerMonth:3, staffCount:4  },
+  'NET-013': { established:2010, storageCapacity:120, licenseNo:'LIC-TZ-RET-013',  licenseExpiry:'2027-07-31', lastInspected:'2025-03-25', complianceScore:90, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:4, staffCount:6  },
+  'NET-014': { established:2017, storageCapacity: 60, licenseNo:'LIC-TZ-RET-014',  licenseExpiry:'2026-11-30', lastInspected:'2025-02-07', complianceScore:82, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:2, staffCount:3  },
+  'NET-015': { established:2016, storageCapacity: 55, licenseNo:'LIC-TZ-RET-015',  licenseExpiry:'2026-09-30', lastInspected:'2025-04-15', complianceScore:85, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:2, staffCount:3  },
+  'NET-016': { established:2014, storageCapacity: 50, licenseNo:'LIC-TZ-RET-016',  licenseExpiry:'2027-03-31', lastInspected:'2025-01-30', complianceScore:87, supplierLpgmc:'Total Energies', deliveriesPerMonth:2, staffCount:3  },
+  'NET-017': { established:2018, storageCapacity: 48, licenseNo:'LIC-TZ-RET-017',  licenseExpiry:'2026-12-31', lastInspected:'2024-11-20', complianceScore:81, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:2, staffCount:3  },
+  'NET-018': { established:2015, storageCapacity: 60, licenseNo:'LIC-TZ-RET-018',  licenseExpiry:'2027-06-30', lastInspected:'2025-02-28', complianceScore:89, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:3, staffCount:4  },
+  'NET-019': { established:2019, storageCapacity: 42, licenseNo:'LIC-TZ-RET-019',  licenseExpiry:'2026-07-31', lastInspected:'2024-10-10', complianceScore:78, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:1, staffCount:2  },
+  'NET-020': { established:2012, storageCapacity: 75, licenseNo:'LIC-TZ-RET-020',  licenseExpiry:'2027-05-31', lastInspected:'2025-03-18', complianceScore:91, supplierLpgmc:'Total Energies', deliveriesPerMonth:3, staffCount:5  },
+  'NET-021': { established:2017, storageCapacity: 52, licenseNo:'LIC-TZ-RET-021',  licenseExpiry:'2026-10-31', lastInspected:'2025-01-05', complianceScore:84, supplierLpgmc:'Shell Gas',      deliveriesPerMonth:2, staffCount:3  },
+  'NET-022': { established:2016, storageCapacity: 68, licenseNo:'LIC-TZ-RET-022',  licenseExpiry:'2027-04-30', lastInspected:'2025-02-22', complianceScore:86, supplierLpgmc:'Lake Gas',       deliveriesPerMonth:3, staffCount:4  },
+  'NET-025': { established:2020, storageCapacity: 38, licenseNo:'LIC-TZ-RET-025',  licenseExpiry:'2026-08-31', lastInspected:'2024-12-01', complianceScore:80, supplierLpgmc:'Vivo LPG',       deliveriesPerMonth:1, staffCount:2  },
+  'NET-026': { established:2018, storageCapacity: 45, licenseNo:'LIC-TZ-RET-026',  licenseExpiry:'2027-02-28', lastInspected:'2025-01-14', complianceScore:83, supplierLpgmc:'Total Energies', deliveriesPerMonth:2, staffCount:3  },
+};
+
+// ── Supplementary partner profile data (KE) ───────────────────────────────────
+const DEMO_NETWORK_EXTRA_KE = {
+  'KE-NET-001': { established:2012, storageCapacity:400, licenseNo:'LIC-KE-DIST-001', licenseExpiry:'2027-05-31', lastInspected:'2025-04-10', complianceScore:93, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:7, staffCount:20 },
+  'KE-NET-002': { established:2010, storageCapacity:280, licenseNo:'LIC-KE-DIST-002', licenseExpiry:'2026-12-31', lastInspected:'2025-02-18', complianceScore:89, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:5, staffCount:14 },
+  'KE-NET-003': { established:2015, storageCapacity:230, licenseNo:'LIC-KE-DIST-003', licenseExpiry:'2027-02-28', lastInspected:'2025-01-22', complianceScore:86, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:4, staffCount:11 },
+  'KE-NET-004': { established:2017, storageCapacity:195, licenseNo:'LIC-KE-DIST-004', licenseExpiry:'2026-09-30', lastInspected:'2025-03-05', complianceScore:84, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:3, staffCount:9  },
+  'KE-NET-005': { established:2014, storageCapacity:175, licenseNo:'LIC-KE-DIST-005', licenseExpiry:'2027-07-31', lastInspected:'2025-04-20', complianceScore:88, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:3, staffCount:10 },
+  'KE-NET-006': { established:2018, storageCapacity:110, licenseNo:'LIC-KE-DIST-006', licenseExpiry:'2025-11-30', lastInspected:'2024-09-08', complianceScore:71, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:1, staffCount:5  },
+  'KE-NET-007': { established:2016, storageCapacity:155, licenseNo:'LIC-KE-DIST-007', licenseExpiry:'2027-03-31', lastInspected:'2025-02-28', complianceScore:87, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:3, staffCount:9  },
+  'KE-NET-008': { established:2019, storageCapacity:120, licenseNo:'LIC-KE-DIST-008', licenseExpiry:'2026-11-30', lastInspected:'2025-01-15', complianceScore:83, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:2, staffCount:7  },
+  'KE-NET-009': { established:2020, storageCapacity:100, licenseNo:'LIC-KE-DIST-009', licenseExpiry:'2026-08-31', lastInspected:'2024-12-10', complianceScore:81, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:2, staffCount:6  },
+  'KE-NET-010': { established:2021, storageCapacity: 70, licenseNo:'LIC-KE-DIST-010', licenseExpiry:'2025-10-31', lastInspected:'2024-07-20', complianceScore:66, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:1, staffCount:3  },
+  'KE-NET-011': { established:2017, storageCapacity: 90, licenseNo:'LIC-KE-DIST-011', licenseExpiry:'2027-01-31', lastInspected:'2025-03-15', complianceScore:85, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:2, staffCount:6  },
+  'KE-NET-012': { established:2019, storageCapacity: 80, licenseNo:'LIC-KE-DIST-012', licenseExpiry:'2026-10-31', lastInspected:'2025-02-05', complianceScore:82, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:2, staffCount:5  },
+  'KE-NET-013': { established:2013, storageCapacity: 95, licenseNo:'LIC-KE-RET-013',  licenseExpiry:'2027-06-30', lastInspected:'2025-04-05', complianceScore:91, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:4, staffCount:6  },
+  'KE-NET-014': { established:2016, storageCapacity: 80, licenseNo:'LIC-KE-RET-014',  licenseExpiry:'2026-11-30', lastInspected:'2025-02-12', complianceScore:87, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:3, staffCount:5  },
+  'KE-NET-015': { established:2018, storageCapacity: 65, licenseNo:'LIC-KE-RET-015',  licenseExpiry:'2026-09-30', lastInspected:'2025-01-08', complianceScore:84, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:2, staffCount:4  },
+  'KE-NET-016': { established:2020, storageCapacity: 55, licenseNo:'LIC-KE-RET-016',  licenseExpiry:'2027-04-30', lastInspected:'2025-03-22', complianceScore:86, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-017': { established:2015, storageCapacity: 60, licenseNo:'LIC-KE-RET-017',  licenseExpiry:'2026-12-31', lastInspected:'2025-02-25', complianceScore:83, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:2, staffCount:4  },
+  'KE-NET-018': { established:2017, storageCapacity: 50, licenseNo:'LIC-KE-RET-018',  licenseExpiry:'2027-03-31', lastInspected:'2025-01-30', complianceScore:85, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-019': { established:2019, storageCapacity: 58, licenseNo:'LIC-KE-RET-019',  licenseExpiry:'2026-08-31', lastInspected:'2024-12-18', complianceScore:82, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-020': { established:2020, storageCapacity: 45, licenseNo:'LIC-KE-RET-020',  licenseExpiry:'2027-01-31', lastInspected:'2025-03-10', complianceScore:84, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-021': { established:2016, storageCapacity: 42, licenseNo:'LIC-KE-RET-021',  licenseExpiry:'2026-10-31', lastInspected:'2025-02-08', complianceScore:81, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:1, staffCount:3  },
+  'KE-NET-022': { established:2018, storageCapacity: 40, licenseNo:'LIC-KE-RET-022',  licenseExpiry:'2026-07-31', lastInspected:'2024-11-25', complianceScore:79, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:1, staffCount:2  },
+  'KE-NET-023': { established:2017, storageCapacity: 52, licenseNo:'LIC-KE-RET-023',  licenseExpiry:'2027-05-31', lastInspected:'2025-03-28', complianceScore:86, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-024': { established:2019, storageCapacity: 38, licenseNo:'LIC-KE-RET-024',  licenseExpiry:'2026-09-30', lastInspected:'2025-01-20', complianceScore:80, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:1, staffCount:2  },
+  'KE-NET-025': { established:2021, storageCapacity: 36, licenseNo:'LIC-KE-RET-025',  licenseExpiry:'2026-06-30', lastInspected:'2024-10-15', complianceScore:78, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:1, staffCount:2  },
+  'KE-NET-026': { established:2020, storageCapacity: 44, licenseNo:'LIC-KE-RET-026',  licenseExpiry:'2027-02-28', lastInspected:'2025-02-01', complianceScore:82, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-027': { established:2018, storageCapacity: 42, licenseNo:'LIC-KE-RET-027',  licenseExpiry:'2026-11-30', lastInspected:'2025-01-12', complianceScore:83, supplierLpgmc:'Africa Gas & Oil',     deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-028': { established:2014, storageCapacity: 65, licenseNo:'LIC-KE-RET-028',  licenseExpiry:'2027-07-31', lastInspected:'2025-04-15', complianceScore:90, supplierLpgmc:'Hashi Energy',         deliveriesPerMonth:3, staffCount:4  },
+  'KE-NET-029': { established:2016, storageCapacity: 50, licenseNo:'LIC-KE-RET-029',  licenseExpiry:'2026-12-31', lastInspected:'2025-03-05', complianceScore:87, supplierLpgmc:'Total Energies Kenya', deliveriesPerMonth:2, staffCount:3  },
+  'KE-NET-030': { established:2019, storageCapacity: 40, licenseNo:'LIC-KE-RET-030',  licenseExpiry:'2026-08-31', lastInspected:'2024-12-28', complianceScore:81, supplierLpgmc:'Vivo Energy Kenya',    deliveriesPerMonth:1, staffCount:2  },
+};
+
 const EVENT_LABELS = {
   'registered':          'Cylinder Created & Registered',
   'refilled':            'Refilled at Plant',
@@ -3733,8 +3800,68 @@ async function renderReports() {
       })() : ''}
       `;
 
-    // Both lpgmc and ewura: hide activity section
-    reportChart.innerHTML = '';
+    // ── LPGMC: low-stock network partner report ────────────────────────────────
+    if (role === 'lpgmc') {
+      const extraMap   = _activeCountry === 'KE' ? DEMO_NETWORK_EXTRA_KE : DEMO_NETWORK_EXTRA;
+      const myCompany  = Auth.session.company;
+      const myPartners = _activeNet.filter(n => extraMap[n.id]?.supplierLpgmc === myCompany);
+      // Compute filled cylinder counts from events
+      const FULL_TYPES  = new Set(['shipped','dist-received','dist-sent-retail','ret-received']);
+      const lastEvLpgmc = {};
+      events.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        .forEach(ev => { lastEvLpgmc[ev.cylinderId] = ev; });
+      const partnerStocks = myPartners.map(n => {
+        let full = 0, total = 0;
+        cyls.filter(c => c.status === 'in-circulation').forEach(c => {
+          const ev = lastEvLpgmc[c.id];
+          if (!ev) return;
+          if ((ev.location || ev.company) !== n.name) return;
+          total++;
+          if (FULL_TYPES.has(ev.type)) full++;
+        });
+        // Fall back to static data if no event data yet
+        if (total === 0) { total = n.cylinders || 0; full = n.full || 0; }
+        const cap  = extraMap[n.id]?.storageCapacity || total || 1;
+        const pct  = cap > 0 ? Math.round((full / cap) * 100) : 0;
+        return { n, full, total, cap, pct };
+      }).sort((a, b) => a.pct - b.pct);
+
+      const LOW_THRESH = 30, MED_THRESH = 50;
+      const lowPartners = partnerStocks.filter(p => p.pct < LOW_THRESH);
+      const stockRows = partnerStocks.map(({ n, full, cap, pct }) => {
+        const barColor = pct >= MED_THRESH ? '#22c55e' : pct >= LOW_THRESH ? '#f59e0b' : '#ef4444';
+        const badge    = pct < LOW_THRESH
+          ? '<span style="background:#ef444422;color:#ef4444;border:1px solid #ef444455;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600;margin-left:6px">⚠ Low Stock</span>'
+          : '';
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;font-size:13px">
+            <span style="font-weight:600">${escapeHtml(n.name)}${badge}</span>
+            <span style="color:var(--muted);font-size:12px">${n.type} · ${n.region}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:8px;background:var(--border,#e2e8f0);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
+            </div>
+            <span style="font-size:12px;color:var(--muted);min-width:90px;text-align:right">${full} / ${cap} (${pct}%)</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      const reportEl = $('report-chart');
+      if (reportEl) {
+        reportEl.innerHTML = `
+          <div class="passport-section-title" style="margin:20px 0 4px">
+            📦 Network Partners — Filled Cylinder Stock
+            ${lowPartners.length ? `<span style="background:#ef444422;color:#ef4444;border:1px solid #ef444455;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;margin-left:8px">${lowPartners.length} low stock</span>` : ''}
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Showing ${myPartners.length} partners supplied by ${escapeHtml(myCompany)}. Partners with &lt;${LOW_THRESH}% fill are flagged.</p>
+          ${partnerStocks.length ? stockRows : '<p style="color:var(--muted);font-size:13px">No partner data available.</p>'}
+        `;
+      }
+    }
+
+    // ewura: clear chart area (lpgmc already populated it above)
+    if (role === 'ewura') reportChart.innerHTML = '';
     if (actSec) actSec.style.display = 'none';
   } else if (role === 'distributor' || role === 'retailer') {
     const partnerEntry = (_activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK).find(n => n.name === Auth.session.company);
@@ -4011,6 +4138,30 @@ async function openPartnerModal(partnerId) {
   $('partner-modal-contact').textContent       = partner.contact;
   $('partner-modal-contact-person').textContent = partner.contactPerson || '—';
   $('partner-modal-coords').textContent        = `${partner.lat.toFixed(4)}, ${partner.lng.toFixed(4)}`;
+
+  // Extra profile fields
+  const extraMap = _activeCountry === 'KE' ? DEMO_NETWORK_EXTRA_KE : DEMO_NETWORK_EXTRA;
+  const extra = extraMap[partner.id];
+  const extraEl = $('partner-extra-profile');
+  if (extraEl && extra) {
+    const scoreColor = extra.complianceScore >= 90 ? 'var(--green)' : extra.complianceScore >= 80 ? 'var(--amber)' : 'var(--red)';
+    const licExpColor = new Date(extra.licenseExpiry) < new Date(Date.now() + 90*24*3600*1000) ? 'var(--amber)' : 'var(--text)';
+    extraEl.innerHTML = `
+      <div class="passport-section-title" style="margin-top:12px;margin-bottom:4px">Business Profile</div>
+      <div class="passport-row"><span class="passport-key">Established</span><span class="passport-value">${extra.established}</span></div>
+      <div class="passport-row"><span class="passport-key">Supplier LPGMC</span><span class="passport-value">${escapeHtml(extra.supplierLpgmc)}</span></div>
+      <div class="passport-row"><span class="passport-key">Storage Capacity</span><span class="passport-value">${extra.storageCapacity} cylinders</span></div>
+      <div class="passport-row"><span class="passport-key">Staff</span><span class="passport-value">${extra.staffCount} employees</span></div>
+      <div class="passport-row"><span class="passport-key">Avg Deliveries/mo</span><span class="passport-value">${extra.deliveriesPerMonth}</span></div>
+      <div class="passport-section-title" style="margin-top:12px;margin-bottom:4px">License & Compliance</div>
+      <div class="passport-row"><span class="passport-key">License No.</span><span class="passport-value mono">${escapeHtml(extra.licenseNo)}</span></div>
+      <div class="passport-row"><span class="passport-key">License Expiry</span><span class="passport-value" style="color:${licExpColor}">${extra.licenseExpiry}</span></div>
+      <div class="passport-row"><span class="passport-key">Last Inspected</span><span class="passport-value">${extra.lastInspected}</span></div>
+      <div class="passport-row"><span class="passport-key">Compliance Score</span><span class="passport-value" style="color:${scoreColor};font-weight:700">${extra.complianceScore}%</span></div>
+    `;
+  } else if (extraEl) {
+    extraEl.innerHTML = '';
+  }
 
   const typeBadge = $('partner-modal-type-badge');
   typeBadge.textContent  = partner.type;
