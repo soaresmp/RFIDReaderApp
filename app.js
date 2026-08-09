@@ -5,11 +5,11 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 const DB_NAME    = 'lpg-tracer-db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 // ── Firebase / Firestore ──────────────────────────────────────────────────────
 // All data stores live in Firestore under /countries/{country}/; meta stays in IndexedDB for fast local seed-guard.
-const FS_STORES = new Set(['cylinders', 'events', 'licenses', 'inspections', 'recalls', 'tag-orders', 'stamp-orders']);
+const FS_STORES = new Set(); // All data stores now live in IndexedDB; Firestore init kept for future use.
 let _fdb = null;
 let _activeCountry = localStorage.getItem('lpg-country') || 'TZ';
 
@@ -1131,6 +1131,23 @@ function openDB() {
         insStore.createIndex('status',  'status',  { unique: false });
         insStore.createIndex('company', 'company', { unique: false });
       }
+
+      if (!d.objectStoreNames.contains('recalls')) {
+        const recStore = d.createObjectStore('recalls', { keyPath: 'id' });
+        recStore.createIndex('operator', 'operator', { unique: false });
+      }
+
+      if (!d.objectStoreNames.contains('tag-orders')) {
+        const toStore = d.createObjectStore('tag-orders', { keyPath: 'id' });
+        toStore.createIndex('lpgmc',  'lpgmc',  { unique: false });
+        toStore.createIndex('status', 'status', { unique: false });
+      }
+
+      if (!d.objectStoreNames.contains('stamp-orders')) {
+        const soStore = d.createObjectStore('stamp-orders', { keyPath: 'id' });
+        soStore.createIndex('lpgmc',  'lpgmc',  { unique: false });
+        soStore.createIndex('status', 'status', { unique: false });
+      }
     };
 
     req.onsuccess = (e) => { db = e.target.result; resolve(db); };
@@ -1152,8 +1169,13 @@ function _idbGetAll(storeName) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
     const req = tx.objectStore(storeName).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => reject(req.error);
+    req.onsuccess = () => {
+      const all = req.result;
+      // Filter by active country so TZ and KE data are isolated in the shared IDB
+      const filtered = all.filter(r => !r.country || r.country === _activeCountry);
+      resolve(filtered);
+    };
+    req.onerror = () => reject(req.error);
   });
 }
 
@@ -1191,6 +1213,23 @@ function _idbGetIndex(storeName, indexName, value) {
     const req = idx.getAll(value);
     req.onsuccess = () => resolve(req.result);
     req.onerror   = () => reject(req.error);
+  });
+}
+
+function _idbPutBatch(storeName, records) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    let i = 0;
+    function putNext() {
+      if (i >= records.length) return;
+      const req = store.put(records[i++]);
+      req.onsuccess = putNext;
+      req.onerror   = () => reject(req.error);
+    }
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => reject(tx.error);
+    putNext();
   });
 }
 
@@ -1573,52 +1612,251 @@ loginForm.addEventListener('submit', (e) => {
 // SESSION APPLICATION
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function _seedKEInspectionEvents() {
-  const SEED_KEY = 'lpg-ke-insp-seeded-v1';
+async function _seedLocalData(country) {
+  const SEED_KEY = 'lpg-seed-' + country + '-v1';
   if (localStorage.getItem(SEED_KEY)) return;
-  const existingEvs = await txGetAll('events');
-  const hasInsp = existingEvs.some(e => e.type === 'inspected' || e.type === 'ewura-monitored');
-  if (hasInsp) { localStorage.setItem(SEED_KEY, '1'); return; }
 
-  const companies = LPGMC_COMPANIES_KE;
-  const auditors  = ['Field Auditor — Nairobi', 'Field Auditor — Mombasa', 'Field Auditor — Kisumu'];
-  const now = Date.now();
-  const day = 24 * 3600 * 1000;
-  const seeds = [];
+  const now    = Date.now();
+  const DAY    = 24 * 3600 * 1000;
+  const t0     = now - 730 * DAY;
+  const SIZES  = ['6kg', '13kg', '15kg', '45kg'];
+
+  const companies    = country === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+  const network      = country === 'KE' ? DEMO_NETWORK_KE    : DEMO_NETWORK;
+  const distributors = network.filter(n => n.type === 'Distributor').slice(0, 6);
+  const retailers    = network.filter(n => n.type === 'Retailer').slice(0, 6);
+
+  const cylsPerCompany = country === 'KE' ? 30 : 50;
+  const auditorCities  = country === 'KE'
+    ? ['Nairobi', 'Mombasa', 'Kisumu']
+    : ['Dar es Salaam', 'Arusha', 'Mwanza'];
+  const regionList = country === 'KE'
+    ? ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru']
+    : ['Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma'];
+
+  const cylinders = [];
+  const events    = [];
+  let   evIdx     = 0;
 
   companies.forEach((company, ci) => {
-    // 6 ewura-monitored + 4 inspected per company
-    for (let i = 0; i < 6; i++) {
-      seeds.push({
-        id: `KE-EV-INSP-${ci}-M${i}-${now}`,
-        type: 'ewura-monitored',
-        cylinderId: `KE-CYL-SEED-${ci}-M${i}`,
-        company, country: 'KE',
-        compliant: Math.random() > 0.15,
-        timestamp: new Date(now - (i * 12 + ci * 5) * day).toISOString(),
-        auditor: auditors[i % auditors.length],
-        notes: 'Routine supply monitoring',
-      });
+    for (let i = 0; i < cylsPerCompany; i++) {
+      const globalIdx = ci * cylsPerCompany + i;
+      const cylId = `${country}-CYL-${String(globalIdx + 1).padStart(4, '0')}`;
+
+      // Size — weight toward 13 kg
+      const sizeRoll = (i * 7 + ci * 3) % 20;
+      const size = sizeRoll < 3 ? '6kg' : sizeRoll < 14 ? '13kg' : sizeRoll < 18 ? '15kg' : '45kg';
+
+      // Stage 0-9
+      const stage = (i * 3 + ci * 7) % 10;
+      const status = (stage === 0 || stage === 1 || stage === 9) ? 'in-stock' : 'in-circulation';
+
+      const mfgDate = new Date(t0 + (globalIdx * 3 * DAY) % (730 * DAY)).toISOString().slice(0, 10);
+      const serial  = `${country}-${company.slice(0, 3).toUpperCase()}-${String(globalIdx + 1).padStart(5, '0')}`;
+      const rfid    = `RFID-${country}-${String(globalIdx + 1).padStart(6, '0')}`;
+      const batch   = `BATCH-${country}-${ci + 1}-${Math.floor(globalIdx / 10) + 1}`;
+      const mfgObj  = CYLINDER_MANUFACTURERS[globalIdx % CYLINDER_MANUFACTURERS.length];
+
+      cylinders.push({ id: cylId, country, company, serial, size, mfgDate, batch, rfid, status,
+                       manufacturer: mfgObj.name, manufacturerCountry: mfgObj.country });
+
+      // Build event chain
+      let t = t0 + globalIdx * 2 * DAY;
+      const addEv = (type, extra = {}) => {
+        events.push(Object.assign(
+          { id: `${country}-EV-${String(++evIdx).padStart(6, '0')}`,
+            cylinderId: cylId, type,
+            timestamp: new Date(t).toISOString(),
+            company, country },
+          extra
+        ));
+        t += 5 * DAY;
+      };
+
+      addEv('registered');
+      if (stage >= 1) addEv('refilled');
+      if (stage >= 2) {
+        const dist = distributors[i % distributors.length];
+        addEv('shipped',       { location: dist.name });
+        addEv('dist-received', { location: dist.name });
+      }
+      if (stage >= 3) {
+        const ret = retailers[i % retailers.length];
+        addEv('dist-sent-retail', { location: ret.name });
+        addEv('ret-received',     { location: ret.name });
+      }
+      if (stage >= 5) addEv('ret-sold');
+      if (stage >= 7) addEv('ret-returned-empty');
+      if (stage >= 8) addEv('dist-returned-empty');
+      if (stage >= 9) addEv('received-empty');
+
+      // Recent refill for every 4th cylinder
+      if (i % 4 === 0) {
+        t = now - (15 + (i % 15)) * DAY;
+        addEv('refilled');
+      }
+      // ewura-monitored for every 4th cylinder
+      if (i % 4 === 0) {
+        addEv('ewura-monitored', {
+          compliant: (i % 7 !== 0),
+          auditor:   'Field Auditor — ' + auditorCities[i % auditorCities.length],
+          notes:     'Routine supply monitoring',
+        });
+      }
+      // inspected for every 6th cylinder
+      if (i % 6 === 0) {
+        addEv('inspected', {
+          compliant: (i % 5 !== 0),
+          auditor:   'Field Auditor — ' + auditorCities[i % auditorCities.length],
+          notes:     'Field inspection completed',
+        });
+      }
     }
-    for (let i = 0; i < 4; i++) {
-      seeds.push({
-        id: `KE-EV-INSP-${ci}-I${i}-${now}`,
-        type: 'inspected',
-        cylinderId: `KE-CYL-SEED-${ci}-I${i}`,
-        company, country: 'KE',
-        compliant: Math.random() > 0.12,
-        timestamp: new Date(now - (i * 18 + ci * 7 + 3) * day).toISOString(),
-        auditor: auditors[(i + ci) % auditors.length],
-        notes: 'Field inspection completed',
+  });
+
+  // ── Licenses ──────────────────────────────────────────────────────────────────
+  const licenses = [];
+  // 4 LPGMC licenses (one per company, all active)
+  companies.forEach((company, ci) => {
+    const issued = new Date(t0 + ci * 60 * DAY).toISOString().slice(0, 10);
+    const expiry = new Date(t0 + ci * 60 * DAY + 730 * DAY).toISOString().slice(0, 10);
+    licenses.push({ id: `${country}-LIC-LPGMC-${ci + 1}`, country,
+      companyName: company, companyType: 'lpgmc',
+      licenseNumber: `LIC-${country}-LPGMC-${ci + 1}`,
+      issuedDate: issued, expiryDate: expiry, status: 'active', history: [] });
+  });
+  // 5 distributor licenses
+  const distStatuses = ['active', 'active', 'active', 'pending', 'rejected'];
+  distributors.slice(0, 5).forEach((dist, di) => {
+    const issued = new Date(t0 + di * 45 * DAY).toISOString().slice(0, 10);
+    const expiry = new Date(t0 + di * 45 * DAY + 730 * DAY).toISOString().slice(0, 10);
+    licenses.push({ id: `${country}-LIC-DIST-${di + 1}`, country,
+      companyName: dist.name, companyType: 'distributor',
+      licenseNumber: `LIC-${country}-DIST-${di + 1}`,
+      issuedDate: issued, expiryDate: expiry, status: distStatuses[di], history: [] });
+  });
+  // 5 retailer licenses
+  const retStatuses = ['active', 'active', 'active', 'active', 'expired'];
+  retailers.slice(0, 5).forEach((ret, ri) => {
+    const issued = new Date(t0 + ri * 30 * DAY).toISOString().slice(0, 10);
+    const expiry = new Date(t0 + ri * 30 * DAY + 730 * DAY).toISOString().slice(0, 10);
+    licenses.push({ id: `${country}-LIC-RET-${ri + 1}`, country,
+      companyName: ret.name, companyType: 'retailer',
+      licenseNumber: `LIC-${country}-RET-${ri + 1}`,
+      issuedDate: issued, expiryDate: expiry, status: retStatuses[ri], history: [] });
+  });
+
+  // ── Inspections ───────────────────────────────────────────────────────────────
+  const inspCount    = country === 'KE' ? 8 : 12;
+  const inspStatuses = ['completed', 'scheduled', 'in-progress'];
+  const inspections  = [];
+  for (let i = 0; i < inspCount; i++) {
+    const ci = i % companies.length;
+    inspections.push({
+      id: `${country}-INSP-${String(i + 1).padStart(3, '0')}`,
+      country, company: companies[ci],
+      region:  regionList[ci % regionList.length],
+      auditor: 'Field Auditor — ' + auditorCities[i % auditorCities.length],
+      scheduledDate: new Date(now - (inspCount - i) * 30 * DAY).toISOString().slice(0, 10),
+      status: inspStatuses[i % inspStatuses.length],
+      notes:  i % 3 === 0 ? 'All standards met.' : i % 3 === 1 ? 'Scheduled for next quarter.' : 'Audit in progress.',
+    });
+  }
+
+  // ── Recalls ───────────────────────────────────────────────────────────────────
+  const recallCount = country === 'KE' ? 1 : 2;
+  const recalls     = [];
+  for (let i = 0; i < recallCount; i++) {
+    recalls.push({
+      id: `${country}-RECALL-${String(i + 1).padStart(3, '0')}`,
+      country, operator: companies[i % companies.length],
+      batch:    `BATCH-${country}-${i + 1}-${i + 2}`,
+      dateFrom: new Date(now - (180 - i * 30) * DAY).toISOString().slice(0, 10),
+      dateTo:   new Date(now - (150 - i * 30) * DAY).toISOString().slice(0, 10),
+      severity: i === 0 ? 'high' : 'medium',
+      reason:   i === 0 ? 'Valve defect detected in production batch' : 'Pressure test deviation',
+      timestamp: new Date(now - (180 - i * 30) * DAY).toISOString(),
+    });
+  }
+
+  // ── Tag orders ────────────────────────────────────────────────────────────────
+  const tagOrdersPerCo = country === 'KE' ? 2 : 3;
+  const tagStatuses    = ['delivered', 'dispatched', 'approved', 'pending'];
+  const tagOrders      = [];
+  let   tagIdx         = 0;
+  companies.forEach((company, ci) => {
+    for (let i = 0; i < tagOrdersPerCo; i++) {
+      const status  = tagStatuses[(ci * tagOrdersPerCo + i) % tagStatuses.length];
+      const reqDate = new Date(now - (60 - i * 15) * DAY).toISOString().slice(0, 10);
+      const appDate = ['delivered','dispatched','approved'].includes(status)
+        ? new Date(now - (50 - i * 15) * DAY).toISOString().slice(0, 10) : null;
+      const disDate = ['delivered','dispatched'].includes(status)
+        ? new Date(now - (40 - i * 15) * DAY).toISOString().slice(0, 10) : null;
+      const delDate = status === 'delivered'
+        ? new Date(now - (30 - i * 15) * DAY).toISOString().slice(0, 10) : null;
+      const mfgObj  = CYLINDER_MANUFACTURERS[tagIdx % CYLINDER_MANUFACTURERS.length];
+      tagOrders.push({
+        id: `${country}-TAG-${String(++tagIdx).padStart(4, '0')}`,
+        country, lpgmc: company,
+        quantity: (i + 1) * 500 + ci * 200,
+        tagType: 'RFID',
+        cylinderSize: SIZES[(ci + i) % SIZES.length],
+        manufacturer: mfgObj.name,
+        manufacturerCountry: mfgObj.country,
+        status, requestedDate: reqDate, approvedDate: appDate,
+        dispatchDate: disDate, deliveryDate: delDate,
+        notes: 'Routine tag order',
       });
     }
   });
 
-  await Promise.all(seeds.map(ev => txPut('events', ev)));
+  // ── Stamp orders ──────────────────────────────────────────────────────────────
+  const stampOrdersPerCo = country === 'KE' ? 1 : 2;
+  const stampStatuses    = ['delivered', 'approved'];
+  const stampOrders      = [];
+  let   stampIdx         = 0;
+  companies.forEach((company, ci) => {
+    for (let i = 0; i < stampOrdersPerCo; i++) {
+      const status  = stampStatuses[(ci * stampOrdersPerCo + i) % stampStatuses.length];
+      const reqDate = new Date(now - (45 - i * 20) * DAY).toISOString().slice(0, 10);
+      const appDate = new Date(now - (35 - i * 20) * DAY).toISOString().slice(0, 10);
+      const disDate = status === 'delivered'
+        ? new Date(now - (25 - i * 20) * DAY).toISOString().slice(0, 10) : null;
+      const delDate = status === 'delivered'
+        ? new Date(now - (15 - i * 20) * DAY).toISOString().slice(0, 10) : null;
+      stampOrders.push({
+        id: `${country}-STAMP-${String(++stampIdx).padStart(4, '0')}`,
+        country, lpgmc: company,
+        quantity: (i + 1) * 1000 + ci * 300,
+        stampType: 'Security Stamp',
+        cylinderSize: SIZES[(ci + i) % SIZES.length],
+        status, requestedDate: reqDate, approvedDate: appDate,
+        dispatchDate: disDate, deliveryDate: delDate,
+        notes: 'Stamp order for cylinder batch',
+      });
+    }
+  });
+
+  // ── Write all stores ──────────────────────────────────────────────────────────
+  const storeMap = {
+    'cylinders':    cylinders,
+    'events':       events,
+    'licenses':     licenses,
+    'inspections':  inspections,
+    'recalls':      recalls,
+    'tag-orders':   tagOrders,
+    'stamp-orders': stampOrders,
+  };
+  for (const [storeName, records] of Object.entries(storeMap)) {
+    if (records.length > 0) await _idbPutBatch(storeName, records);
+  }
+
+  // Invalidate cache for all seeded stores
+  ['cylinders','events','licenses','inspections','recalls','tag-orders','stamp-orders'].forEach(store => {
+    delete _txCache[store + ':' + country];
+  });
+
   localStorage.setItem(SEED_KEY, '1');
-  // Invalidate events cache so re-reads pick up the new records
-  const ck = 'events:KE';
-  if (_txCache.has(ck)) _txCache.delete(ck);
 }
 
 async function applySession() {
@@ -1687,10 +1925,8 @@ async function applySession() {
     txGetAll('events'),
   ]);
 
-  // Seed KE inspection events once if the country is KE and none exist yet
-  if (_activeCountry === 'KE' && s.role === 'ewura') {
-    await _seedKEInspectionEvents();
-  }
+  // Seed local IndexedDB data once per country (any role)
+  await _seedLocalData(_activeCountry);
 
   // Refresh data-bound views (all cache hits from here)
   renderCylinders();
