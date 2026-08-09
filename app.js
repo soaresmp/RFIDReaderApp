@@ -5968,7 +5968,7 @@ async function renderRecalls() {
     const sev   = r.severity || 'high';
     const color = sevColor[sev] || '#dc2626';
     const dateRange = (r.dateFrom && r.dateTo) ? `${escapeHtml(r.dateFrom)} → ${escapeHtml(r.dateTo)}` : (r.dateFrom || r.dateTo || 'All batches');
-    return `<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color}">
+    return `<div class="recall-card" data-recall-id="${escapeHtml(r.id)}" style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color};cursor:pointer">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
@@ -5982,7 +5982,6 @@ async function renderRecalls() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
           <span style="font-size:11px;color:var(--muted)">${r.timestamp ? r.timestamp.slice(0,10) : ''}</span>
-          <button class="btn btn-outline recall-detail-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px">🔍 Details</button>
           <button class="btn btn-outline recall-delete-btn" data-recall-id="${escapeHtml(r.id)}" type="button" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:var(--red)">${t('recall.delete')}</button>
         </div>
       </div>
@@ -5991,14 +5990,15 @@ async function renderRecalls() {
 
   container.innerHTML = impactHtml;
 
-  container.querySelectorAll('.recall-detail-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const r = recalls.find(x => x.id === btn.dataset.recallId);
+  container.querySelectorAll('.recall-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const r = recalls.find(x => x.id === card.dataset.recallId);
       if (r) openRecallDetailModal(r);
     });
   });
   container.querySelectorAll('.recall-delete-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
       await txDelete('recalls', btn.dataset.recallId);
       renderRecalls();
       showSnackbar(t('recall.deleted'), 'success');
