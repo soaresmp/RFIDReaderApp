@@ -4883,10 +4883,9 @@ async function renderMgmtReports() {
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div class="mgmt-bar-track" style="flex:1">
-              <div class="mgmt-bar-fill" style="width:${pct}%;background:${barColor}">
-                <span>${full} / ${cap} (${pct}%)</span>
-              </div>
+              <div class="mgmt-bar-fill" style="width:${pct}%;background:${barColor}"></div>
             </div>
+            <span style="font-size:12px;color:var(--muted);white-space:nowrap;min-width:110px;text-align:right">${full} / ${cap} (${pct}%)</span>
           </div>
         </div>`;
       }).join('');
