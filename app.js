@@ -3509,11 +3509,13 @@ async function renderReports() {
       else if (CIRC_EMPTY_EV.has(evType))  circEmpty++;
     });
 
-    const refillerCount  = LPGMC_COMPANIES.length;
-    const distCount      = DEMO_NETWORK.filter(n => n.type === 'Distributor' && n.status === 'active').length;
-    const retailCount    = DEMO_NETWORK.filter(n => n.type === 'Retailer'    && n.status === 'active').length;
-    const distTotal      = DEMO_NETWORK.filter(n => n.type === 'Distributor').length;
-    const retailTotal    = DEMO_NETWORK.filter(n => n.type === 'Retailer').length;
+    const _activeNet     = _activeCountry === 'KE' ? DEMO_NETWORK_KE : DEMO_NETWORK;
+    const _activeLpgmc   = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+    const refillerCount  = _activeLpgmc.length;
+    const distCount      = _activeNet.filter(n => n.type === 'Distributor' && n.status === 'active').length;
+    const retailCount    = _activeNet.filter(n => n.type === 'Retailer'    && n.status === 'active').length;
+    const distTotal      = _activeNet.filter(n => n.type === 'Distributor').length;
+    const retailTotal    = _activeNet.filter(n => n.type === 'Retailer').length;
     const distInactive   = distTotal - distCount;
     const retailInactive = retailTotal - retailCount;
 
@@ -4680,7 +4682,8 @@ async function renderMgmtReports() {
       ${alertRegionBarsHtml}
     </div>
     ${role === 'ewura' ? (() => {
-      const opShareM = LPGMC_COMPANIES.map(c => ({ name: c, count: allCyls.filter(cy => cy.company === c).length }));
+      const _opList  = _activeCountry === 'KE' ? LPGMC_COMPANIES_KE : LPGMC_COMPANIES;
+      const opShareM = _opList.map(c => ({ name: c, count: allCyls.filter(cy => cy.company === c).length }));
       const maxOpM = Math.max(...opShareM.map(o => o.count), 1);
       const totalCylsM = allCyls.length || 1;
       const opColorsM = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--amber)'];
