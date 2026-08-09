@@ -2486,3 +2486,16 @@ body.nav-open .nav-backdrop { display: block; }
   color: var(--muted, #64748b);
   background: var(--surface, #f8fafc);
 }
+
+/* Register Cylinder modal — brighter panel */
+#modal-register .modal {
+  background: #173d72;
+}
+#modal-register .modal-header,
+#modal-register .modal-footer {
+  background: #122f58;
+}
+#modal-register .form-control {
+  background: #0f2a52;
+  border-color: #2a5299;
+}
