@@ -1612,7 +1612,7 @@ loginForm.addEventListener('submit', (e) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function _seedLocalData(country) {
-  const SEED_KEY = 'lpg-seed-' + country + '-v1';
+  const SEED_KEY = 'lpg-seed-' + country + '-v2';
   if (localStorage.getItem(SEED_KEY)) return;
 
   const now    = Date.now();
@@ -1763,19 +1763,46 @@ async function _seedLocalData(country) {
   }
 
   // ── Recalls ───────────────────────────────────────────────────────────────────
-  const recallCount = country === 'KE' ? 1 : 2;
-  const recalls     = [];
-  for (let i = 0; i < recallCount; i++) {
-    recalls.push({
-      id: `${country}-RECALL-${String(i + 1).padStart(3, '0')}`,
-      country, operator: companies[i % companies.length],
-      batch:    `BATCH-${country}-${i + 1}-${i + 2}`,
-      dateFrom: new Date(now - (180 - i * 30) * DAY).toISOString().slice(0, 10),
-      dateTo:   new Date(now - (150 - i * 30) * DAY).toISOString().slice(0, 10),
-      severity: i === 0 ? 'high' : 'medium',
-      reason:   i === 0 ? 'Valve defect detected in production batch' : 'Pressure test deviation',
-      timestamp: new Date(now - (180 - i * 30) * DAY).toISOString(),
+  const recalls = [];
+  if (country === 'KE') {
+    const keRecallDefs = [
+      { ci: 0, batchSuffix: '1-2', daysAgo: 210, spanDays: 30, severity: 'high',
+        reason: 'Valve defect detected in production batch — risk of gas leakage under high ambient temperature' },
+      { ci: 1, batchSuffix: '2-3', daysAgo: 150, spanDays: 25, severity: 'medium',
+        reason: 'Pressure test deviation — wall thickness below minimum specification in sampled units' },
+      { ci: 2, batchSuffix: '3-1', daysAgo:  90, spanDays: 20, severity: 'high',
+        reason: 'Contamination alert — batch stored adjacent to industrial solvent during transit; residual odour detected' },
+      { ci: 3, batchSuffix: '4-2', daysAgo:  55, spanDays: 15, severity: 'low',
+        reason: 'Labelling error — cylinders dispatched with incorrect tare weight printed on neck ring label' },
+      { ci: 0, batchSuffix: '1-4', daysAgo:  20, spanDays: 10, severity: 'medium',
+        reason: 'External corrosion identified on foot-ring weld seam; precautionary recall pending re-inspection' },
+    ];
+    keRecallDefs.forEach((def, i) => {
+      recalls.push({
+        id: `KE-RECALL-${String(i + 1).padStart(3, '0')}`,
+        country: 'KE',
+        operator: companies[def.ci],
+        batch:    `BATCH-KE-${def.batchSuffix}`,
+        dateFrom: new Date(now - def.daysAgo * DAY).toISOString().slice(0, 10),
+        dateTo:   new Date(now - (def.daysAgo - def.spanDays) * DAY).toISOString().slice(0, 10),
+        severity: def.severity,
+        reason:   def.reason,
+        timestamp: new Date(now - def.daysAgo * DAY).toISOString(),
+      });
     });
+  } else {
+    for (let i = 0; i < 2; i++) {
+      recalls.push({
+        id: `${country}-RECALL-${String(i + 1).padStart(3, '0')}`,
+        country, operator: companies[i % companies.length],
+        batch:    `BATCH-${country}-${i + 1}-${i + 2}`,
+        dateFrom: new Date(now - (180 - i * 30) * DAY).toISOString().slice(0, 10),
+        dateTo:   new Date(now - (150 - i * 30) * DAY).toISOString().slice(0, 10),
+        severity: i === 0 ? 'high' : 'medium',
+        reason:   i === 0 ? 'Valve defect detected in production batch' : 'Pressure test deviation',
+        timestamp: new Date(now - (180 - i * 30) * DAY).toISOString(),
+      });
+    }
   }
 
   // ── Tag orders ────────────────────────────────────────────────────────────────
