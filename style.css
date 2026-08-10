@@ -2487,15 +2487,15 @@ body.nav-open .nav-backdrop { display: block; }
   background: var(--surface, #f8fafc);
 }
 
-/* Register Cylinder modal — brighter panel */
-#modal-register .modal {
+/* All modals — brighter panel */
+.modal-backdrop .modal {
   background: #173d72;
 }
-#modal-register .modal-header,
-#modal-register .modal-footer {
+.modal-backdrop .modal-header,
+.modal-backdrop .modal-footer {
   background: #122f58;
 }
-#modal-register .form-control {
+.modal-backdrop .form-control {
   background: #0f2a52;
   border-color: #2a5299;
 }
