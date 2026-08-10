@@ -2490,7 +2490,7 @@ body.nav-open .nav-backdrop { display: block; }
 /* All modals — light theme via CSS variable override */
 .modal-backdrop {
   --text:      #1e293b;
-  --muted:     #64748b;
+  --muted:     #334155;
   --dim:       #94a3b8;
   --border:    #e2e8f0;
   --bg:        #ffffff;
