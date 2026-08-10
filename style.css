@@ -2487,7 +2487,21 @@ body.nav-open .nav-backdrop { display: block; }
   background: var(--surface, #f8fafc);
 }
 
-/* All modals — light theme */
+/* All modals — light theme via CSS variable override */
+.modal-backdrop {
+  --text:      #1e293b;
+  --muted:     #64748b;
+  --dim:       #94a3b8;
+  --border:    #e2e8f0;
+  --bg:        #ffffff;
+  --surface:   #f8fafc;
+  --surface2:  #f0f4f8;
+  --surface3:  #e8edf2;
+  --blue-dim:  #dbeafe;
+  --green-dim: #dcfce7;
+  --red-dim:   #fee2e2;
+  --amber-dim: #fef3c7;
+}
 .modal-backdrop .modal {
   background: #f8fafc;
   color: #1e293b;
@@ -2496,42 +2510,19 @@ body.nav-open .nav-backdrop { display: block; }
 .modal-backdrop .modal-footer {
   background: #f0f4f8;
 }
-.modal-backdrop .modal-header h2,
-.modal-backdrop .modal-header h3 {
-  color: #1e293b;
-}
-.modal-backdrop .modal-close {
-  color: #64748b;
-}
 .modal-backdrop .modal-close:hover {
-  color: #1e293b;
   background: #e2e8f0;
 }
 .modal-backdrop .form-control {
   background: #ffffff;
-  border-color: #cbd5e1;
-  color: #1e293b;
-}
-.modal-backdrop .form-control:focus {
-  border-color: #2563eb;
 }
 .modal-backdrop .form-control[disabled],
 .modal-backdrop .form-control[readonly] {
   background: #f1f5f9;
-  color: #64748b;
-}
-.modal-backdrop label {
-  color: #475569;
-}
-.modal-backdrop .form-section-title {
-  color: #1e293b;
-  border-color: #e2e8f0;
 }
 .modal-backdrop .modal-footer .btn-outline {
   border-color: #cbd5e1;
-  color: #475569;
 }
 .modal-backdrop .modal-footer .btn-outline:hover {
   background: #e2e8f0;
-  color: #1e293b;
 }
