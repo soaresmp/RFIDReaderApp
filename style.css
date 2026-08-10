@@ -2487,15 +2487,51 @@ body.nav-open .nav-backdrop { display: block; }
   background: var(--surface, #f8fafc);
 }
 
-/* All modals — brighter panel */
+/* All modals — light theme */
 .modal-backdrop .modal {
-  background: #173d72;
+  background: #f8fafc;
+  color: #1e293b;
 }
 .modal-backdrop .modal-header,
 .modal-backdrop .modal-footer {
-  background: #143468;
+  background: #f0f4f8;
+}
+.modal-backdrop .modal-header h2,
+.modal-backdrop .modal-header h3 {
+  color: #1e293b;
+}
+.modal-backdrop .modal-close {
+  color: #64748b;
+}
+.modal-backdrop .modal-close:hover {
+  color: #1e293b;
+  background: #e2e8f0;
 }
 .modal-backdrop .form-control {
-  background: #0f2a52;
-  border-color: #2a5299;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+.modal-backdrop .form-control:focus {
+  border-color: #2563eb;
+}
+.modal-backdrop .form-control[disabled],
+.modal-backdrop .form-control[readonly] {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.modal-backdrop label {
+  color: #475569;
+}
+.modal-backdrop .form-section-title {
+  color: #1e293b;
+  border-color: #e2e8f0;
+}
+.modal-backdrop .modal-footer .btn-outline {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+.modal-backdrop .modal-footer .btn-outline:hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
