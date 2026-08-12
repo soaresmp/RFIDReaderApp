@@ -1616,7 +1616,7 @@ textarea.form-control { resize: vertical; min-height: 60px; }
   background: #f4f7fb;
   overflow-y: auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 48px 40px;
 }
