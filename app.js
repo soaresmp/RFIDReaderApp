@@ -58,6 +58,7 @@ const TRANSLATIONS = {
     'alert.stuck':'Unreported','alert.misplaced':'Misplaced',
     'status.active':'active','status.inactive':'inactive',
     'status.inRefill':'In Refill','status.inCirc':'In Circulation','status.inReval':'In Revalidation','status.inUse':'In Use',
+    'status.decommissioned':'Decommissioned',
     'status.registered':'Registered','status.refilled':'Refilled','status.shipped':'Shipped','status.distReceived':'Dist. Received',
     'status.distSentRetail':'Sent to Retailer','status.retReceived':'Retailer Received','status.retSold':'Sold',
     'status.retReturnedEmpty':'Returned Empty (Retailer)','status.distReturnedEmpty':'Returned Empty (Dist.)','status.receivedEmpty':'Received Empty',
@@ -117,6 +118,7 @@ const TRANSLATIONS = {
     'login.revalTitle':'Revalidator','login.revalDesc':'Cylinders Revalidator · Receive · Revalidate & Update · Return to LPGMC',
     'login.auditorTitle':'Field Auditor','login.auditorDesc':'Field Inspection Unit · Inspect Products · View All Cylinders',
     'login.traDesc':'Revenue Authority · Cross-check Refills · Register Shipments',
+    'login.enforcementTitle':'Enforcement Officer','login.enforcementDesc':'EPRA/ACA Enforcement · Field CSN Verification · Case Management · Detect Illegal Refills',
     'mgmt.netSalesTop10':'Network Sales — Top 10 Partners',
     'mgmt.fieldInspByRegion':'Field Inspection by Region',
     'mgmt.alertsByRegion':'Cylinder Alerts by Region',
@@ -344,6 +346,38 @@ const TRANSLATIONS = {
     'mgmt.dispatchesByMonth':'Dispatches by Month',
     'mgmt.ageFresh':'Fresh','mgmt.ageNormal':'Normal','mgmt.ageSlow':'Slow-moving','mgmt.ageAging':'Aging stock',
     'scan.selectEventFirst':'Select an event first.','scan.noEventsExport':'No events to export.',
+    'csn.label':'Composite Serial Number (CSN)',
+    'csn.active':'✅ CSN Active — Legitimately Refilled',
+    'csn.none':'⚠ No Active CSN — Not Recently Refilled',
+    'csn.destroyed':'CSN Destroyed (Sold to Consumer)',
+    'csn.blockActive':'Refill blocked: this cylinder has an active CSN. It must be sold to a consumer before it can be refilled again.',
+    'csn.blockOverdue':'Refill blocked: cylinder is overdue for revalidation. Send for requalification first.',
+    'csn.blockDecomm':'Refill blocked: cylinder is decommissioned and permanently withdrawn from service.',
+    'ev.decommission':'Decommissioned',
+    'ev.enforcementScan':'Enforcement Scan',
+    'ev.enforcementCase':'Enforcement Case Opened',
+    'consumer.pass':'✅ PASS — Legitimately Refilled',
+    'consumer.passSub':'This cylinder bears a valid Composite Serial Number confirming a legitimate refill.',
+    'consumer.warn':'⚠ CAUTION — Not Recently Refilled',
+    'consumer.warnSub':'This cylinder is registered but has no active refill stamp. Verify the physical seal before use.',
+    'consumer.fail':'❌ FAIL — Not Registered',
+    'consumer.failSub':'This cylinder is not in the national registry. Do not use — report to EPRA immediately.',
+    'consumer.report':'Report to EPRA',
+    'consumer.reported':'Reported ✓',
+    'consumer.csnValue':'CSN',
+    'consumer.lastSale':'Last Consumer Sale',
+    'stamp.reconcileTitle':'Stamp Accountability Report',
+    'stamp.issued':'Issued','stamp.used':'Used','stamp.remaining':'Remaining',
+    'stamp.damaged':'Damaged','stamp.lost':'Lost','stamp.spoiled':'Spoiled',
+    'stamp.reportBtn':'Submit Accountability Report',
+    'stamp.reportSaved':'Stamp accountability report saved.',
+    'decommission.confirm':'Permanently decommission this cylinder? This cannot be undone.',
+    'decommission.action':'Decommission',
+    'enforcement.caseTitle':'Open Enforcement Case',
+    'enforcement.caseNotes':'Case Notes / Findings',
+    'enforcement.outcome':'Outcome','enforcement.confiscated':'Confiscated','enforcement.cautionIssued':'Caution Issued','enforcement.referred':'Referred to Prosecutor',
+    'enforcement.caseOpened':'Enforcement case opened.',
+    'enforcement.scanResult':'Enforcement Scan Result',
   },
   sw: {
     'nav.dashboard':'Dashibodi','nav.scan':'Changanua','nav.cylinders':'Mitungi',
@@ -421,6 +455,7 @@ const TRANSLATIONS = {
     'login.revalTitle':'Mthibitishaji','login.revalDesc':'Mthibitishaji wa Mitungi · Pokea · Thibitisha Upya · Rudisha kwa LPGMC',
     'login.auditorTitle':'Mkaguzi wa Uwanjani','login.auditorDesc':'Kitengo cha Ukaguzi wa Uwanjani · Kagua Bidhaa · Tazama Mitungi Yote',
     'login.traDesc':'Mamlaka ya Mapato · Kagua Kujaza · Sajili Mizigo',
+    'login.enforcementTitle':'Afisa wa Utekelezaji','login.enforcementDesc':'Utekelezaji wa EPRA/ACA · Uthibitishaji wa CSN Uwanjani · Usimamizi wa Kesi',
     'mgmt.netSalesTop10':'Mauzo ya Mtandao — Washirika 10 Bora',
     'mgmt.fieldInspByRegion':'Ukaguzi wa Uwanjani kwa Mkoa',
     'mgmt.alertsByRegion':'Tahadhari za Mitungi kwa Mkoa',
@@ -648,6 +683,38 @@ const TRANSLATIONS = {
     'mgmt.dispatchesByMonth':'Usafirishaji kwa Mwezi',
     'mgmt.ageFresh':'Mpya','mgmt.ageNormal':'Kawaida','mgmt.ageSlow':'Inasogea polepole','mgmt.ageAging':'Inakaribia Kumalizika',
     'scan.selectEventFirst':'Chagua tukio kwanza.','scan.noEventsExport':'Hakuna matukio ya kusafirisha.',
+    'csn.label':'Nambari ya Mfululizo wa Pamoja (CSN)',
+    'csn.active':'✅ CSN Inafanya Kazi — Imejazwa Halisi',
+    'csn.none':'⚠ Hakuna CSN Inayofanya Kazi — Haijajazwa Hivi Karibuni',
+    'csn.destroyed':'CSN Imeharibiwa (Imeuzwa kwa Mnunuzi)',
+    'csn.blockActive':'Kujaza kumezuiwa: mtungi huu una CSN inayofanya kazi. Lazima iuzwe kwa mnunuzi kabla ya kujaza tena.',
+    'csn.blockOverdue':'Kujaza kumezuiwa: mtungi umechelewa uthibitishaji upya. Tuma kwa uthibitishaji kwanza.',
+    'csn.blockDecomm':'Kujaza kumezuiwa: mtungi umeondolewa kwenye huduma.',
+    'ev.decommission':'Umeondolewa Kwenye Huduma',
+    'ev.enforcementScan':'Uchanganuzi wa Utekelezaji',
+    'ev.enforcementCase':'Kesi ya Utekelezaji Imefunguliwa',
+    'consumer.pass':'✅ IMEPITA — Imejazwa Halisi',
+    'consumer.passSub':'Mtungi huu una Nambari ya Mfululizo wa Pamoja halali inayothibitisha kujaza halisi.',
+    'consumer.warn':'⚠ TAHADHARI — Haijajazwa Hivi Karibuni',
+    'consumer.warnSub':'Mtungi huu umesajiliwa lakini hauna muhuri wa kujaza unaofanya kazi. Thibitisha muhuri wa kimwili kabla ya kutumia.',
+    'consumer.fail':'❌ IMESHINDWA — Haijasajiliwa',
+    'consumer.failSub':'Mtungi huu hauko kwenye rejista ya kitaifa. Usitumie — ripoti kwa EPRA mara moja.',
+    'consumer.report':'Ripoti kwa EPRA',
+    'consumer.reported':'Imeripotiwa ✓',
+    'consumer.csnValue':'CSN',
+    'consumer.lastSale':'Mauzo ya Mwisho kwa Mnunuzi',
+    'stamp.reconcileTitle':'Ripoti ya Uwajibikaji wa Muhuri',
+    'stamp.issued':'Imetolewa','stamp.used':'Imetumika','stamp.remaining':'Iliyobaki',
+    'stamp.damaged':'Iliyoharibiwa','stamp.lost':'Iliyopotea','stamp.spoiled':'Iliyoharibika',
+    'stamp.reportBtn':'Wasilisha Ripoti ya Uwajibikaji',
+    'stamp.reportSaved':'Ripoti ya uwajibikaji wa muhuri imehifadhiwa.',
+    'decommission.confirm':'Ondoa mtungi huu kwenye huduma milele? Hii haiwezi kutenduliwa.',
+    'decommission.action':'Ondoa Kwenye Huduma',
+    'enforcement.caseTitle':'Fungua Kesi ya Utekelezaji',
+    'enforcement.caseNotes':'Maelezo ya Kesi / Matokeo',
+    'enforcement.outcome':'Matokeo','enforcement.confiscated':'Ilikamatwa','enforcement.cautionIssued':'Onyo Lilitolewa','enforcement.referred':'Imetumwa kwa Mshtaki',
+    'enforcement.caseOpened':'Kesi ya utekelezaji imefunguliwa.',
+    'enforcement.scanResult':'Matokeo ya Uchanganuzi wa Utekelezaji',
   },
 };
 
@@ -972,14 +1039,17 @@ const ROLE_EVENTS = {
     { type: 'shipped',           label: 'Shipped',             icon: '🚚' },
     { type: 'received-empty',    label: 'Received Empty',      icon: '📥' },
     { type: 'sent-revalidation', label: 'Sent Revalidation',   icon: '🔧' },
+    { type: 'decommission',      label: 'Decommission',        icon: '🚫' },
   ],
   revalidator: [
     { type: 'reval-received',    label: 'Received',            icon: '📥' },
     { type: 'revalidated',       label: 'Revalidated',         icon: '✅' },
     { type: 'reval-returned',    label: 'Returned to LPGMC',   icon: '↩️' },
+    { type: 'decommission',      label: 'Decommission (failed test)', icon: '🚫' },
   ],
   ewura: [
     { type: 'ewura-monitored',   label: 'Supply Monitored',    icon: '📊' },
+    { type: 'decommission',      label: 'Decommission',        icon: '🚫' },
   ],
   'field-auditor': [
     { type: 'inspected',         label: 'Inspected',           icon: '🔍' },
@@ -998,6 +1068,11 @@ const ROLE_EVENTS = {
     { type: 'ret-sold',            label: 'Sold to Consumer',  icon: '🛒' },
     { type: 'ret-returned-empty',  label: 'Returned Empty',    icon: '↩️' },
   ],
+  enforcement: [
+    { type: 'enforcement-scan',    label: 'Enforcement Scan',  icon: '🔎' },
+    { type: 'enforcement-case',    label: 'Open Case',         icon: '📋' },
+    { type: 'decommission',        label: 'Decommission',      icon: '🚫' },
+  ],
 };
 
 const ROLE_TABS = {
@@ -1009,6 +1084,7 @@ const ROLE_TABS = {
   distributor:        ['reports', 'cylinders', 'alerts', 'mgmt-reports'],
   retailer:           ['reports', 'cylinders', 'mgmt-reports'],
   'cylinder-producer':['orders'],
+  enforcement:        ['reports', 'scan', 'cylinders', 'alerts', 'inspections'],
 };
 
 const ROLE_LABELS = {
@@ -1020,6 +1096,7 @@ const ROLE_LABELS = {
   distributor:        'Distributor',
   retailer:           'Retailer',
   'cylinder-producer':'Cylinder Producer',
+  enforcement:        'Enforcement Officer',
 };
 
 const LPGMC_COMPANIES = ['Vivo LPG', 'Total Energies', 'Shell Gas', 'Lake Gas'];
@@ -1125,7 +1202,7 @@ const Auth = {
       case 'register':  return role === 'lpgmc' || role === 'cylinder-producer';
       case 'inspect':   return role === 'field-auditor';
       case 'license':   return role === 'ewura';
-      case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator'].includes(role);
+      case 'viewAll':   return ['ewura', 'field-auditor', 'tra', 'distributor', 'retailer', 'revalidator', 'enforcement'].includes(role);
       case 'alerts':    return ['lpgmc', 'ewura', 'field-auditor', 'distributor'].includes(role);
       default:          return false;
     }
@@ -2393,11 +2470,26 @@ async function commitScanEvent(cyl, timestamp, overrideType, extraFields = {}) {
   if (eventType === 'refilled') {
     updatedCyl.fillCount = (updatedCyl.fillCount || 0) + 1;
     updatedCyl.status = 'in-refill'; // ready to ship after refill
-    if (extraFields.stampCode) updatedCyl.lastStampCode = extraFields.stampCode;
+    if (extraFields.stampCode) {
+      // Create Composite Serial Number (CSN): cylinder serial + stamp serial
+      const csn = updatedCyl.serial + '-' + extraFields.stampCode;
+      updatedCyl.lastStampCode = extraFields.stampCode;
+      updatedCyl.currentCsn   = csn;
+      updatedCyl.csnActive    = true;
+      updatedCyl.csnCreatedAt = nowISO();
+      extraFields.csn = csn;
+    }
   } else if (eventType === 'shipped' || eventType === 'dist-received' || eventType === 'ret-received' || eventType === 'dist-sent-retail') {
     updatedCyl.status = 'in-circulation';
   } else if (eventType === 'ret-sold') {
     updatedCyl.status = 'in-use';
+    // Destroy CSN on consumer sale (FR-RET-02)
+    if (updatedCyl.currentCsn) {
+      updatedCyl.lastCsn      = updatedCyl.currentCsn;
+      updatedCyl.lastCsnSold  = nowISO();
+    }
+    updatedCyl.currentCsn   = null;
+    updatedCyl.csnActive    = false;
   } else if (eventType === 'dist-returned-empty' || eventType === 'ret-returned-empty' || eventType === 'received-empty') {
     updatedCyl.status = 'in-refill';
   } else if (eventType === 'sent-revalidation' || eventType === 'reval-received') {
@@ -2409,6 +2501,15 @@ async function commitScanEvent(cyl, timestamp, overrideType, extraFields = {}) {
       updatedCyl.lastRequalDate = today;
       updatedCyl.requalPlant = session.company;
     }
+  } else if (eventType === 'decommission') {
+    // Permanently withdraw cylinder from service (FR-CYL-08)
+    updatedCyl.status        = 'decommissioned';
+    updatedCyl.currentCsn   = null;
+    updatedCyl.csnActive    = false;
+    updatedCyl.decomDate    = today;
+    updatedCyl.decomBy      = session.company;
+  } else if (eventType === 'enforcement-scan' || eventType === 'enforcement-case') {
+    // No status change — just record the enforcement event
   }
 
   await txPut('cylinders', updatedCyl);
@@ -2698,7 +2799,7 @@ let _cylLocations = {}; // cylinderId → { location, region }
 function renderCylindersMap(cyls) {
   const mapEl = $('cyl-map');
   if (!mapEl) return;
-  const statusColor = { 'in-refill':'#3b82f6', 'in-circulation':'#22c55e', 'revalidation':'#f59e0b', 'in-use':'#a855f7' };
+  const statusColor = { 'in-refill':'#3b82f6', 'in-circulation':'#22c55e', 'revalidation':'#f59e0b', 'in-use':'#a855f7', 'decommissioned':'#6b7280' };
   const markers = [];
   cyls.forEach(cyl => {
     let lat, lng;
@@ -2862,6 +2963,7 @@ function applyCylFilters() {
     'in-refill':      'In Refill',
     'in-circulation': 'In Circulation',
     'revalidation':   'In Revalidation',
+    'decommissioned': 'Decommissioned',
     'in-use':         'In Use',
   };
 
@@ -2967,11 +3069,13 @@ function buildOsmEmbed(lat, lng) {
 
 function getNextActions(cyl, role) {
   const s = cyl.status;
+  // Decommissioned cylinders: no further actions allowed
+  if (s === 'decommissioned') return [];
   const validByStatus = {
-    'in-refill':      ['refilled', 'shipped', 'sent-revalidation', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered'],
-    'in-circulation': ['dist-received', 'dist-sent-retail', 'ret-received', 'received-empty', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered'],
-    'in-use':         ['ret-sold', 'ret-returned-empty', 'dist-returned-empty', 'inspected', 'ewura-monitored'],
-    'revalidation':   ['reval-received', 'revalidated', 'reval-returned'],
+    'in-refill':      ['refilled', 'shipped', 'sent-revalidation', 'decommission', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered', 'enforcement-scan', 'enforcement-case'],
+    'in-circulation': ['dist-received', 'dist-sent-retail', 'ret-received', 'received-empty', 'decommission', 'inspected', 'ewura-monitored', 'tra-verified', 'tra-registered', 'enforcement-scan', 'enforcement-case'],
+    'in-use':         ['ret-sold', 'ret-returned-empty', 'dist-returned-empty', 'decommission', 'inspected', 'ewura-monitored', 'enforcement-scan', 'enforcement-case'],
+    'revalidation':   ['reval-received', 'revalidated', 'reval-returned', 'decommission'],
   };
   const validTypes = new Set(validByStatus[s] || []);
   return (ROLE_EVENTS[role] || []).filter(e => validTypes.has(e.type));
@@ -3007,6 +3111,10 @@ async function openPassportModal(cylId) {
       <div class="passport-section-title" style="color:var(--amber);margin-bottom:6px">⚠ Alerts</div>
       ${_cylAlerts.map(a => `<div style="font-size:12px;color:${a.sev === 'critical' ? 'var(--red)' : 'var(--amber)'};padding:2px 0">● ${escapeHtml(a.msg)}</div>`).join('')}
     </div>` : ''}
+    ${cyl.status === 'decommissioned' ? `<div class="passport-section" style="background:rgba(107,114,128,0.08);border-left:3px solid #6b7280;padding:12px 14px">
+      <div style="font-size:13px;font-weight:700;color:#6b7280">🚫 ${t('status.decommissioned').toUpperCase()} — Permanently withdrawn from service</div>
+      ${cyl.decomDate ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">Date: ${cyl.decomDate} · By: ${escapeHtml(cyl.decomBy||'')}</div>` : ''}
+    </div>` : ''}
     <div class="passport-section">
       <div class="passport-section-title">Identity</div>
       <div class="passport-row">
@@ -3024,6 +3132,16 @@ async function openPassportModal(cylId) {
       <div class="passport-row">
         <span class="passport-key">Status</span>
         <span class="passport-value">${escapeHtml(cyl.status)}</span>
+      </div>
+      <div class="passport-row">
+        <span class="passport-key">${t('csn.label')}</span>
+        <span class="passport-value" style="font-family:monospace;font-size:12px;color:${cyl.currentCsn && cyl.csnActive ? 'var(--green,#16a34a)' : 'var(--dim)'}">
+          ${cyl.currentCsn && cyl.csnActive
+            ? escapeHtml(cyl.currentCsn)
+            : cyl.lastCsn
+              ? `${t('csn.destroyed')} · ${escapeHtml(cyl.lastCsn)}`
+              : '—'}
+        </span>
       </div>
       <div class="passport-row">
         <span class="passport-key">Level</span>
@@ -3113,10 +3231,39 @@ passportBody.addEventListener('click', async (e) => {
     extraFields.destinedRegion = partner ? partner.region : '';
   }
 
+  if (type === 'decommission') {
+    if (!confirm(t('decommission.confirm'))) return;
+  }
+
   if (type === 'refilled') {
+    // Hard block: decommissioned
+    if (cyl.status === 'decommissioned') {
+      showSnackbar(t('csn.blockDecomm'), 'error'); return;
+    }
+    // Hard block: overdue for revalidation (FR-REV-02, FR-RFL-03)
+    const rBase = cyl.lastRequalDate || cyl.manufactureDate;
+    if (rBase) {
+      const due = new Date(rBase + 'T00:00:00');
+      due.setFullYear(due.getFullYear() + 8);
+      if (due < new Date()) {
+        showSnackbar(t('csn.blockOverdue'), 'error'); return;
+      }
+    }
+    // Hard block: active CSN — one live CSN at a time (FR-RFL-04)
+    if (cyl.currentCsn && cyl.csnActive) {
+      showSnackbar(t('csn.blockActive'), 'error'); return;
+    }
     const input = btn.dataset.stampInput ? document.getElementById(btn.dataset.stampInput) : null;
-    if (!input || !input.value.trim()) { showSnackbar('Enter a stamp code first.', 'error'); return; }
-    extraFields.stampCode = input.value.trim();
+    if (!input || !input.value.trim()) { showSnackbar('Enter a stamp serial number first.', 'error'); return; }
+    extraFields.stampCode = input.value.trim().toUpperCase();
+  }
+
+  if (type === 'enforcement-case') {
+    const notesEl = btn.dataset.enforcementNotes ? document.getElementById(btn.dataset.enforcementNotes) : null;
+    const outcomeEl = btn.dataset.enforcementOutcome ? document.getElementById(btn.dataset.enforcementOutcome) : null;
+    extraFields.caseNotes = notesEl?.value?.trim() || '';
+    extraFields.caseOutcome = outcomeEl?.value || 'caution-issued';
+    showSnackbar(t('enforcement.caseOpened'), 'success');
   }
 
   await commitScanEvent(cyl, null, type, extraFields);
@@ -3193,12 +3340,13 @@ async function renderAlerts() {
   _alertsData = [];
 
   for (const cyl of cyls) {
-    // 1. Requalification due: 10 years since manufacture or lastRequalDate
+    // 1. Requalification due: 8 years since manufacture or lastRequalDate (TOR §7A.2)
+    if (cyl.status === 'decommissioned') continue; // decommissioned cylinders skip all alerts
     const baseDate = cyl.lastRequalDate || cyl.manufactureDate;
     if (baseDate) {
       const base = new Date(baseDate + 'T00:00:00');
       const dueDate = new Date(base);
-      dueDate.setFullYear(dueDate.getFullYear() + 10);
+      dueDate.setFullYear(dueDate.getFullYear() + 8);
       const daysUntilDue = Math.floor((dueDate - now) / (24*60*60*1000));
       if (daysUntilDue <= 0) {
         _alertsData.push({ severity:'critical', type:'requalification-overdue', cylinder:cyl,
@@ -3333,6 +3481,7 @@ function applyAlertFilters() {
   const statLabelMap = {
     'in-refill': t('status.inRefill'), 'in-circulation': t('status.inCirc'),
     'revalidation': t('status.inReval'), 'in-use': t('status.inUse'),
+    'decommissioned': t('status.decommissioned'),
   };
   pageAlerts.forEach(al => {
     const cyl = al.cylinder;
@@ -6867,8 +7016,23 @@ async function renderOrders() {
   const stampSection = $('orders-stamp');
   if (stampTab) stampTab.style.display = isCylProd ? 'none' : '';
   if (stampSection && isCylProd) stampSection.style.display = 'none';
+
+  // Stamp reconciliation tab: LPGMC + ewura only
+  const reconcileTab = $('stamp-reconcile-tab');
+  const reconcileSection = $('orders-stamp-reconcile');
+  const showReconcile = !isCylProd && (role === 'lpgmc' || role === 'ewura');
+  if (reconcileTab)    reconcileTab.style.display    = showReconcile ? '' : 'none';
+  if (reconcileSection && !showReconcile) reconcileSection.style.display = 'none';
+
+  // Wire reconcile tab render
+  if (showReconcile && ordersEl.dataset.tabsReady) {
+    ordersEl.querySelector('.orders-subtab[data-section="orders-stamp-reconcile"]')
+      ?.addEventListener('click', renderStampReconcile, { once: false });
+  }
+
   await renderTagOrders();
   if (!isCylProd) await renderStampOrders();
+  if (showReconcile) await renderStampReconcile();
 }
 
 async function renderTagOrders() {
@@ -7112,6 +7276,92 @@ async function renderStampOrders() {
   });
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// STAMP RECONCILIATION (FR-STM-06 / FR-STM-08)
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function renderStampReconcile() {
+  const listEl = $('stamp-reconcile-list');
+  if (!listEl) return;
+  const role    = Auth.session?.role;
+  const company = Auth.session?.company;
+  const orders  = await txGetAll('stamp-orders');
+  const visible = role === 'lpgmc' ? orders.filter(o => o.lpgmc === company && o.status === 'delivered') : orders.filter(o => o.status === 'delivered');
+
+  if (!visible.length) {
+    listEl.innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">No delivered stamp orders to reconcile.</p>';
+    $('stamp-reconcile-form').style.display = 'none';
+    return;
+  }
+
+  listEl.innerHTML = visible.map(o => {
+    const rec = o.reconciliation || {};
+    const done = !!rec.submittedAt;
+    return `<div class="order-card">
+      <div class="order-card-header">
+        <span class="order-card-id font-mono">${escapeHtml(o.id)}</span>
+        <span style="font-size:12px;color:var(--muted)">${o.deliveryDate ? o.deliveryDate.slice(0,10) : ''}</span>
+      </div>
+      <div class="order-card-body">
+        <div class="order-card-row"><span>${t('stamp.issued')}</span><strong>${(o.quantity||0).toLocaleString()}</strong></div>
+        ${done ? `
+          <div class="order-card-row"><span>${t('stamp.used')}</span><strong>${(rec.used||0).toLocaleString()}</strong></div>
+          <div class="order-card-row"><span>${t('stamp.damaged')}</span><strong>${(rec.damaged||0).toLocaleString()}</strong></div>
+          <div class="order-card-row"><span>${t('stamp.lost')}</span><strong>${(rec.lost||0).toLocaleString()}</strong></div>
+          <div class="order-card-row"><span>${t('stamp.spoiled')}</span><strong>${(rec.spoiled||0).toLocaleString()}</strong></div>
+          <div class="order-card-row"><span>${t('stamp.remaining')}</span><strong>${(rec.remaining||0).toLocaleString()}</strong></div>
+          <div class="order-card-row"><span>Reported</span><strong>${rec.submittedAt ? rec.submittedAt.slice(0,10) : ''}</strong></div>
+        ` : role === 'lpgmc' ? `<button class="btn btn-sm btn-primary stamp-reconcile-open" data-id="${escapeHtml(o.id)}" style="margin-top:8px">${t('stamp.reportBtn')}</button>` : '<span style="color:var(--muted);font-size:13px">Not yet reconciled</span>'}
+      </div>
+    </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.stamp-reconcile-open').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const order = visible.find(o => o.id === btn.dataset.id);
+      if (!order) return;
+      $('sr-order-id').value  = order.id;
+      $('sr-issued').value    = order.quantity || 0;
+      $('sr-used').value      = '';
+      $('sr-damaged').value   = '';
+      $('sr-lost').value      = '';
+      $('sr-spoiled').value   = '';
+      $('sr-remaining').value = '';
+      $('stamp-reconcile-form').style.display = '';
+      const recalc = () => {
+        const used    = parseInt($('sr-used').value)    || 0;
+        const damaged = parseInt($('sr-damaged').value) || 0;
+        const lost    = parseInt($('sr-lost').value)    || 0;
+        const spoiled = parseInt($('sr-spoiled').value) || 0;
+        $('sr-remaining').value = Math.max(0, (order.quantity || 0) - used - damaged - lost - spoiled);
+      };
+      ['sr-used','sr-damaged','sr-lost','sr-spoiled'].forEach(id => $('sr-' + id.replace('sr-',''))?.removeEventListener('input', recalc));
+      ['sr-used','sr-damaged','sr-lost','sr-spoiled'].forEach(id => $(id)?.addEventListener('input', recalc));
+    });
+  });
+}
+
+$('sr-cancel-btn')?.addEventListener('click', () => { $('stamp-reconcile-form').style.display = 'none'; });
+
+$('sr-submit-btn')?.addEventListener('click', async () => {
+  const orderId = $('sr-order-id')?.value;
+  if (!orderId) return;
+  const issued  = parseInt($('sr-issued').value)    || 0;
+  const used    = parseInt($('sr-used').value)      || 0;
+  const damaged = parseInt($('sr-damaged').value)   || 0;
+  const lost    = parseInt($('sr-lost').value)      || 0;
+  const spoiled = parseInt($('sr-spoiled').value)   || 0;
+  const remaining = Math.max(0, issued - used - damaged - lost - spoiled);
+  const orders = await txGetAll('stamp-orders');
+  const order  = orders.find(o => o.id === orderId);
+  if (!order) return;
+  order.reconciliation = { used, damaged, lost, spoiled, remaining, submittedAt: nowISO(), submittedBy: Auth.session?.company };
+  await txPut('stamp-orders', order);
+  $('stamp-reconcile-form').style.display = 'none';
+  showSnackbar(t('stamp.reportSaved'), 'success');
+  renderStampReconcile();
+});
+
 $('stamp-order-place-btn')?.addEventListener('click', () => openModal('modal-stamp-order'));
 
 $('stamp-order-submit-btn')?.addEventListener('click', async () => {
@@ -7325,26 +7575,53 @@ async function init() {
       const events = cyl ? await txGetIndex('events', 'cylinderId', cyl.id) : [];
       const lastEv = events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
       if (cyl) {
+        const hasActiveCsn = cyl.currentCsn && cyl.csnActive;
+        const isDecomm = cyl.status === 'decommissioned';
+        let bgColor, borderColor, resultLabel, resultSub, icon;
+        if (isDecomm) {
+          bgColor='#f3f4f6'; borderColor='#6b7280'; icon='🚫';
+          resultLabel='Decommissioned'; resultSub='This cylinder has been permanently withdrawn from service. Do not fill or use.';
+        } else if (hasActiveCsn) {
+          bgColor='#f0fdf4'; borderColor='#22c55e'; icon='✅';
+          resultLabel=t('consumer.pass'); resultSub=t('consumer.passSub');
+        } else {
+          bgColor='#fffbeb'; borderColor='#f59e0b'; icon='⚠️';
+          resultLabel=t('consumer.warn'); resultSub=t('consumer.warnSub');
+        }
         contentEl.innerHTML = `
-          <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
-            <div style="font-size:36px;margin-bottom:8px">✅</div>
-            <div style="font-size:18px;font-weight:700;color:#15803d;margin-bottom:12px">${t('consumer.registered')}</div>
-            <div style="text-align:left;font-size:13px;color:#374151">
-              <div style="margin-bottom:6px"><strong>ID:</strong> ${escapeHtml(cyl.id)}</div>
-              <div style="margin-bottom:6px"><strong>Serial:</strong> ${escapeHtml(cyl.serial)}</div>
-              <div style="margin-bottom:6px"><strong>Size:</strong> ${escapeHtml(cyl.size || 'N/A')}</div>
-              <div style="margin-bottom:6px"><strong>Company:</strong> ${escapeHtml(cyl.company || 'N/A')}</div>
-              <div style="margin-bottom:6px"><strong>Status:</strong> ${escapeHtml(cyl.status || 'N/A')}</div>
+          <div style="background:${bgColor};border:2px solid ${borderColor};border-radius:12px;padding:24px;text-align:center;max-width:340px;margin:0 auto">
+            <div style="font-size:36px;margin-bottom:8px">${icon}</div>
+            <div style="font-size:17px;font-weight:700;color:#111827;margin-bottom:8px">${resultLabel}</div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:16px">${resultSub}</div>
+            <div style="text-align:left;font-size:13px;color:#374151;background:#fff;border-radius:8px;padding:12px;border:1px solid #e5e7eb">
+              <div style="margin-bottom:5px"><strong>Serial:</strong> ${escapeHtml(cyl.serial)}</div>
+              <div style="margin-bottom:5px"><strong>Brand:</strong> ${escapeHtml(cyl.company || 'N/A')}</div>
+              <div style="margin-bottom:5px"><strong>Size:</strong> ${escapeHtml(cyl.size || 'N/A')}</div>
+              ${hasActiveCsn ? `<div style="margin-bottom:5px"><strong>${t('consumer.csnValue')}:</strong> <span style="font-family:monospace;font-size:11px">${escapeHtml(cyl.currentCsn)}</span></div>` : ''}
+              ${cyl.lastCsnSold ? `<div style="margin-bottom:5px"><strong>${t('consumer.lastSale')}:</strong> ${escapeHtml(cyl.lastCsnSold.slice(0,10))}</div>` : ''}
               ${lastEv ? `<div><strong>Last Scan:</strong> ${escapeHtml(lastEv.timestamp.slice(0,10))}</div>` : ''}
             </div>
+            <button id="consumer-report-btn" style="margin-top:14px;background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px">${t('consumer.report')}</button>
           </div>`;
+        document.getElementById('consumer-report-btn')?.addEventListener('click', function() {
+          this.textContent = t('consumer.reported');
+          this.disabled = true;
+          showSnackbar('Report submitted to EPRA.', 'success');
+        });
       } else {
         contentEl.innerHTML = `
-          <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:24px;text-align:center;max-width:320px;margin:0 auto">
-            <div style="font-size:36px;margin-bottom:8px">⚠️</div>
-            <div style="font-size:18px;font-weight:700;color:#dc2626;margin-bottom:12px">${t('consumer.notRegistered')}</div>
-            <div style="font-size:13px;color:#374151">${t('kpi.total').replace('Total','Cylinder').replace('Jumla','Mtungi') || 'Cylinder'} <strong>${escapeHtml(consumerCylId)}</strong> ${t('consumer.notRegisteredDesc')}</div>
+          <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:24px;text-align:center;max-width:340px;margin:0 auto">
+            <div style="font-size:36px;margin-bottom:8px">❌</div>
+            <div style="font-size:18px;font-weight:700;color:#dc2626;margin-bottom:8px">${t('consumer.fail')}</div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:16px">${t('consumer.failSub')}</div>
+            <div style="font-size:13px;color:#374151">Cylinder ID: <strong>${escapeHtml(consumerCylId)}</strong></div>
+            <button id="consumer-report-btn" style="margin-top:14px;background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px">${t('consumer.report')}</button>
           </div>`;
+        document.getElementById('consumer-report-btn')?.addEventListener('click', function() {
+          this.textContent = t('consumer.reported');
+          this.disabled = true;
+          showSnackbar('Report submitted to EPRA.', 'success');
+        });
       }
       overlay.style.display = 'flex';
     }
